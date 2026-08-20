@@ -1,0 +1,241 @@
+import React, { useState, useRef } from 'react';
+import { Upload, Link as LinkIcon, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
+
+interface ImageUploadDropzoneProps {
+  onUploadFile: (file: File) => Promise<void>;
+  onAddUrl: (url: string) => Promise<void>;
+  disabled?: boolean;
+  helperText?: string;
+}
+
+export const ImageUploadDropzone: React.FC<ImageUploadDropzoneProps> = ({
+  onUploadFile,
+  onAddUrl,
+  disabled = false,
+  helperText = 'Supports JPG, PNG, WebP, AVIF up to 30MB. Preserves original aspect ratio.',
+}) => {
+  const [activeTab, setActiveTab] = useState<'device' | 'url'>('device');
+  const [urlInput, setUrlInput] = useState('');
+  const [isDragging, setIsDragging] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [successMsg, setSuccessMsg] = useState<string | null>(null);
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const clearMessages = () => {
+    setErrorMsg(null);
+    setSuccessMsg(null);
+  };
+
+  const handleFileSelection = async (file: File) => {
+    if (!file) return;
+    clearMessages();
+    setIsUploading(true);
+
+    try {
+      await onUploadFile(file);
+      setSuccessMsg(`"${file.name}" uploaded successfully`);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    } catch (err: any) {
+      setErrorMsg(err?.message || 'Failed to upload image from device');
+    } finally {
+      setIsUploading(false);
+      setTimeout(() => setSuccessMsg(null), 4000);
+    }
+  };
+
+  const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) handleFileSelection(file);
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    if (!disabled && !isUploading) {
+      setIsDragging(true);
+    }
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    if (disabled || isUploading) return;
+
+    const file = e.dataTransfer.files?.[0];
+    if (file) {
+      handleFileSelection(file);
+    }
+  };
+
+  const handleUrlSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const cleanUrl = urlInput.trim();
+    if (!cleanUrl) return;
+
+    if (!cleanUrl.startsWith('http://') && !cleanUrl.startsWith('https://')) {
+      setErrorMsg('Please enter a valid URL starting with http:// or https://');
+      return;
+    }
+
+    clearMessages();
+    setIsUploading(true);
+
+    try {
+      await onAddUrl(cleanUrl);
+      setUrlInput('');
+      setSuccessMsg('Image URL added successfully');
+    } catch (err: any) {
+      setErrorMsg(err?.message || 'Failed to add image by URL');
+    } finally {
+      setIsUploading(false);
+      setTimeout(() => setSuccessMsg(null), 4000);
+    }
+  };
+
+  return (
+    <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-5 mb-6">
+      {/* Upload mode tabs */}
+      <div className="flex items-center gap-2 mb-4 border-b border-neutral-800 pb-3">
+        <span className="text-xs uppercase tracking-widest text-neutral-400 font-mono mr-2">
+          Add New Image:
+        </span>
+        <button
+          type="button"
+          onClick={() => {
+            setActiveTab('device');
+            clearMessages();
+          }}
+          className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-medium tracking-wide transition-all ${
+            activeTab === 'device'
+              ? 'bg-neutral-100 text-neutral-950 shadow-sm'
+              : 'bg-neutral-800 text-neutral-400 hover:text-neutral-200'
+          }`}
+        >
+          <Upload className="w-3.5 h-3.5" />
+          UPLOAD FROM DEVICE
+        </button>
+
+        <button
+          type="button"
+          onClick={() => {
+            setActiveTab('url');
+            clearMessages();
+          }}
+          className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-medium tracking-wide transition-all ${
+            activeTab === 'url'
+              ? 'bg-neutral-100 text-neutral-950 shadow-sm'
+              : 'bg-neutral-800 text-neutral-400 hover:text-neutral-200'
+          }`}
+        >
+          <LinkIcon className="w-3.5 h-3.5" />
+          UPLOAD FROM URL
+        </button>
+      </div>
+
+      {/* Tab 1: Device Upload Dropzone */}
+      {activeTab === 'device' && (
+        <div>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/jpeg,image/png,image/webp,image/avif,image/gif"
+            onChange={handleFileInputChange}
+            className="hidden"
+            disabled={disabled || isUploading}
+          />
+
+          <div
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+            onClick={() => {
+              if (!disabled && !isUploading) {
+                fileInputRef.current?.click();
+              }
+            }}
+            className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-all flex flex-col items-center justify-center ${
+              isDragging
+                ? 'border-amber-400 bg-amber-400/5'
+                : 'border-neutral-700 hover:border-neutral-500 bg-neutral-950/50'
+            } ${disabled || isUploading ? 'opacity-60 pointer-events-none' : ''}`}
+          >
+            {isUploading ? (
+              <div className="flex flex-col items-center">
+                <Loader2 className="w-8 h-8 text-amber-400 animate-spin mb-3" />
+                <p className="text-sm text-neutral-200 font-medium">Uploading and processing image...</p>
+                <p className="text-xs text-neutral-500 mt-1">Preserving original aspect ratio</p>
+              </div>
+            ) : (
+              <>
+                <div className="w-12 h-12 rounded-full bg-neutral-800/80 border border-neutral-700 flex items-center justify-center mb-3 text-neutral-300">
+                  <Upload className="w-5 h-5" />
+                </div>
+                <p className="text-sm font-medium text-neutral-200 mb-1">
+                  Drag and drop photo here, or <span className="text-amber-400 underline underline-offset-2">browse files</span>
+                </p>
+                <p className="text-xs text-neutral-500 max-w-md">{helperText}</p>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Tab 2: URL Upload Form */}
+      {activeTab === 'url' && (
+        <form onSubmit={handleUrlSubmit} className="space-y-3">
+          <div className="flex gap-2">
+            <div className="relative flex-1">
+              <LinkIcon className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500" />
+              <input
+                type="url"
+                value={urlInput}
+                onChange={(e) => setUrlInput(e.target.value)}
+                placeholder="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format..."
+                disabled={disabled || isUploading}
+                className="w-full bg-neutral-950 border border-neutral-700 rounded-lg pl-9 pr-3 py-2.5 text-xs font-mono text-neutral-200 placeholder-neutral-600 focus:outline-none focus:border-amber-400"
+              />
+            </div>
+            <button
+              type="submit"
+              disabled={disabled || isUploading || !urlInput.trim()}
+              className="px-5 py-2.5 bg-neutral-100 hover:bg-white text-neutral-950 text-xs font-semibold rounded-lg tracking-wide transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5 whitespace-nowrap"
+            >
+              {isUploading ? (
+                <>
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ADDING...
+                </>
+              ) : (
+                'ADD FROM URL'
+              )}
+            </button>
+          </div>
+          <p className="text-xs text-neutral-500">
+            Paste any direct HTTPS image link (Unsplash, Cloudinary, AWS S3, etc.).
+          </p>
+        </form>
+      )}
+
+      {/* Feedback banners */}
+      {errorMsg && (
+        <div className="mt-3 flex items-center gap-2 text-xs text-red-400 bg-red-950/40 border border-red-900/60 rounded-lg px-3 py-2">
+          <AlertCircle className="w-4 h-4 shrink-0" />
+          <span>{errorMsg}</span>
+        </div>
+      )}
+
+      {successMsg && (
+        <div className="mt-3 flex items-center gap-2 text-xs text-emerald-400 bg-emerald-950/40 border border-emerald-900/60 rounded-lg px-3 py-2">
+          <CheckCircle2 className="w-4 h-4 shrink-0" />
+          <span>{successMsg}</span>
+        </div>
+      )}
+    </div>
+  );
+};

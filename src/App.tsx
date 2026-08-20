@@ -1,8 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { ThemeProvider } from './context/ThemeContext';
+import { AdminAuthProvider } from './context/AdminAuthContext';
 import { HomePage } from './pages/HomePage';
 import { GalleryPage } from './pages/GalleryPage';
 import { CollaborationFormPage } from './pages/CollaborationFormPage';
+import { AdminLoginPage } from './pages/admin/AdminLoginPage';
+import { AdminDashboard } from './pages/admin/AdminDashboard';
+import { AdminTab } from './components/admin/AdminLayout';
 
 export default function App() {
   const [currentPath, setCurrentPath] = useState<string>(() => {
@@ -30,8 +34,22 @@ export default function App() {
   useEffect(() => {
     if (currentPath === '/') {
       document.title = 'Gold Akingbade — Fashion & Editorial Photography';
+    } else if (currentPath.startsWith('/admin')) {
+      document.title = 'Flames CMS — Admin Portal';
     }
   }, [currentPath]);
+
+  // Admin routes
+  const isAdminLogin = currentPath === '/admin/login' || currentPath === '/admin/login/';
+  const isAdminRoute = currentPath.startsWith('/admin') && !isAdminLogin;
+
+  // Determine initial admin tab from path
+  const getAdminTabFromPath = (): AdminTab => {
+    if (currentPath.includes('/admin/home')) return 'home';
+    if (currentPath.includes('/admin/projects')) return 'projects';
+    if (currentPath.includes('/admin/footer')) return 'footer';
+    return 'splash';
+  };
 
   // Determine if on a gallery route: /gallery/:slug
   const galleryMatch = currentPath.match(/^\/gallery\/([a-zA-Z0-9_-]+)/);
@@ -43,6 +61,28 @@ export default function App() {
     currentPath === '/inquiry' ||
     currentPath === '/form';
 
+  // If in admin routes, render in admin container with AdminAuthProvider
+  if (isAdminLogin) {
+    return (
+      <AdminAuthProvider>
+        <AdminLoginPage
+          onLoginSuccess={() => {
+            navigateTo('/admin/splash');
+          }}
+        />
+      </AdminAuthProvider>
+    );
+  }
+
+  if (isAdminRoute) {
+    return (
+      <AdminAuthProvider>
+        <AdminDashboard initialTab={getAdminTabFromPath()} />
+      </AdminAuthProvider>
+    );
+  }
+
+  // PUBLIC WEBSITE (Unmodified, exactly as originally designed)
   return (
     <ThemeProvider>
       <div className="w-full min-h-screen bg-[#FEFDF3] dark:bg-[#111111] text-[#111111] dark:text-[#FEFDF3] transition-colors duration-400">
