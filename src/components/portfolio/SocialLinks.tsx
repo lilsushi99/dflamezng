@@ -1,14 +1,22 @@
-import React from 'react';
-import { SOCIAL_LINKS } from '../../services/portfolioData';
+import React, { useState, useEffect } from 'react';
+import { publicApiService } from '../../services/publicApiService';
 
 export const SocialLinks: React.FC = () => {
+  const [links, setLinks] = useState(publicApiService.getState().socialLinks);
+
+  useEffect(() => {
+    return publicApiService.subscribe((state) => {
+      setLinks(state.socialLinks);
+    });
+  }, []);
+
   return (
     <nav
       id="social-links-nav"
       aria-label="Social and Portfolio Links"
       className="flex flex-wrap items-center justify-center gap-x-6 sm:gap-x-8 md:gap-x-10 gap-y-2 font-editorial-sans text-[10px] sm:text-[11px] tracking-[0.22em] uppercase select-none"
     >
-      {SOCIAL_LINKS.map((link) => (
+      {links.map((link) => (
         <a
           key={link.id}
           id={`link-social-${link.id}`}
@@ -23,3 +31,4 @@ export const SocialLinks: React.FC = () => {
     </nav>
   );
 };
+

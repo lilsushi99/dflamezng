@@ -19,11 +19,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ initialTab = 'sp
   useEffect(() => {
     const syncTabFromPath = () => {
       const path = window.location.pathname;
-      if (path.includes('/admin/splash')) setCurrentTab('splash');
-      else if (path.includes('/admin/home')) setCurrentTab('home');
-      else if (path.includes('/admin/projects')) setCurrentTab('projects');
-      else if (path.includes('/admin/footer')) setCurrentTab('footer');
-      else if (path === '/admin' || path === '/admin/') setCurrentTab('splash');
+      if (path.includes('/fire/splash')) setCurrentTab('splash');
+      else if (path.includes('/fire/home')) setCurrentTab('home');
+      else if (path.includes('/fire/projects')) setCurrentTab('projects');
+      else if (path.includes('/fire/footer')) setCurrentTab('footer');
+      else if (path === '/fire' || path === '/fire/') setCurrentTab('splash');
     };
 
     syncTabFromPath();
@@ -33,7 +33,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ initialTab = 'sp
 
   const handleSelectTab = (tab: AdminTab) => {
     setCurrentTab(tab);
-    window.history.pushState({}, '', `/admin/${tab}`);
+    window.history.pushState({}, '', `/fire/${tab}`);
   };
 
   if (loading) {
@@ -45,9 +45,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ initialTab = 'sp
     );
   }
 
-  // If not authenticated, redirect to /admin/login
+  // If not authenticated, redirect to /fire
   if (!isAuthenticated) {
-    window.history.replaceState({}, '', '/admin/login');
+    window.history.replaceState({}, '', '/fire');
     window.dispatchEvent(new PopStateEvent('popstate'));
     return null;
   }

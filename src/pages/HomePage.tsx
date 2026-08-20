@@ -8,7 +8,9 @@ import { PhotoStackIntro } from '../components/portfolio/PhotoStackIntro';
 import { ProjectsIndexModal } from '../components/portfolio/ProjectsIndexModal';
 import { Footer } from '../components/portfolio/Footer';
 import { PhotoAsset } from '../types/portfolio';
-import { TOP_PHOTO_ASSETS, BOTTOM_PHOTO_ASSETS } from '../services/portfolioData';
+import { publicApiService } from '../services/publicApiService';
+import { ImageAssetService } from '../services/imageAssetService';
+import { X } from 'lucide-react';
 
 interface HomePageProps {
   onNavigateGallery: (slug: string) => void;
@@ -24,6 +26,17 @@ export const HomePage: React.FC<HomePageProps> = ({
   onMarkIntroComplete,
 }) => {
   const [isProjectsOpen, setIsProjectsOpen] = useState(false);
+  const [topPhotos, setTopPhotos] = useState<PhotoAsset[]>(() => ImageAssetService.getTopPhotoAssets());
+  const [bottomPhotos, setBottomPhotos] = useState<PhotoAsset[]>(() => ImageAssetService.getBottomPhotoAssets());
+  const [previewPhoto, setPreviewPhoto] = useState<PhotoAsset | null>(null);
+
+  // Subscribe to live dynamic photos from CMS
+  useEffect(() => {
+    return publicApiService.subscribe((state) => {
+      if (state.topTrackPhotos?.length > 0) setTopPhotos(state.topTrackPhotos);
+      if (state.bottomTrackPhotos?.length > 0) setBottomPhotos(state.bottomTrackPhotos);
+    });
+  }, []);
 
   // Check if reduced motion is preferred
   useEffect(() => {
@@ -33,6 +46,9 @@ export const HomePage: React.FC<HomePageProps> = ({
   }, [introCompleted, onMarkIntroComplete]);
 
   const handleOpenGallery = (projectIdOrCode: string) => {
+    if (!projectIdOrCode || projectIdOrCode === 'null') {
+      return;
+    }
     const slug = projectIdOrCode.replace(/^0+/, '');
     onNavigateGallery(slug);
   };
@@ -71,7 +87,7 @@ export const HomePage: React.FC<HomePageProps> = ({
         }`}
       >
         <TopImageTrack
-          photos={TOP_PHOTO_ASSETS}
+          photos={topPhotos}
           onOpenGallery={handleOpenGallery}
           isIntroComplete={introCompleted}
         />
@@ -98,7 +114,7 @@ export const HomePage: React.FC<HomePageProps> = ({
         }`}
       >
         <BottomImageTrack
-          photos={BOTTOM_PHOTO_ASSETS}
+          photos={bottomPhotos}
           onOpenGallery={handleOpenGallery}
           isIntroComplete={introCompleted}
         />
@@ -119,6 +135,36 @@ export const HomePage: React.FC<HomePageProps> = ({
         onClose={() => setIsProjectsOpen(false)}
         onSelectProjectPhoto={handleSelectProjectFromModal}
       />
+
+      {/* Single Photo Lightbox Preview (for unlinked photos) */}
+      {previewPhoto && (
+        <div
+          id="photo-preview-modal"
+          className="fixed inset-0 z-50 bg-[#111111]/90 flex items-center justify-center p-4 select-none backdrop-blur-sm"
+          onClick={() => setPreviewPhoto(null)}
+        >
+          <button
+            onClick={() => setPreviewPhoto(null)}
+            className="absolute top-6 right-6 text-[#FEFDF3] opacity-70 hover:opacity-100 p-2 cursor-pointer"
+            aria-label="Close preview"
+          >
+            <X className="w-6 h-6" />
+          </button>
+          <div className="max-w-4xl max-h-[85vh] p-2 bg-[#FEFDF3] dark:bg-[#181818] shadow-2xl">
+            <img
+              src={previewPhoto.src}
+              alt={previewPhoto.title || 'Print Preview'}
+              className="max-h-[75vh] w-auto object-contain mx-auto"
+            />
+            {previewPhoto.title && (
+              <p className="mt-2 text-center font-editorial-sans text-xs tracking-widest uppercase opacity-75">
+                {previewPhoto.title}
+              </p>
+            )}
+          </div>
+        </div>
+      )}
     </main>
   );
 };
+

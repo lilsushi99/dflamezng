@@ -1,12 +1,47 @@
 import React, { useState, useEffect } from 'react';
 import { ThemeProvider } from './context/ThemeContext';
-import { AdminAuthProvider } from './context/AdminAuthContext';
+import { AdminAuthProvider, useAdminAuth } from './context/AdminAuthContext';
 import { HomePage } from './pages/HomePage';
 import { GalleryPage } from './pages/GalleryPage';
 import { CollaborationFormPage } from './pages/CollaborationFormPage';
 import { AdminLoginPage } from './pages/admin/AdminLoginPage';
 import { AdminDashboard } from './pages/admin/AdminDashboard';
 import { AdminTab } from './components/admin/AdminLayout';
+import { Loader2 } from 'lucide-react';
+
+interface AdminPortalRouterProps {
+  path: string;
+  isFireLogin: boolean;
+  initialTab: AdminTab;
+  onNavigate: (path: string) => void;
+}
+
+function AdminPortalRouter({ isFireLogin, initialTab, onNavigate }: AdminPortalRouterProps) {
+  const { isAuthenticated, loading } = useAdminAuth();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-neutral-950 flex flex-col items-center justify-center text-neutral-400">
+        <Loader2 className="w-8 h-8 text-amber-400 animate-spin mb-3" />
+        <p className="text-xs font-mono">Authenticating secure session...</p>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <AdminLoginPage
+        onLoginSuccess={() => {
+          onNavigate('/fire/splash');
+        }}
+      />
+    );
+  }
+
+  // If authenticated and user navigates to /fire or /fire/login, route to /fire/splash
+  const activeTab = isFireLogin ? 'splash' : initialTab;
+  return <AdminDashboard initialTab={activeTab} />;
+}
 
 export default function App() {
   const [currentPath, setCurrentPath] = useState<string>(() => {
@@ -39,15 +74,16 @@ export default function App() {
     }
   }, [currentPath]);
 
-  // Admin routes
-  const isAdminLogin = currentPath === '/admin/login' || currentPath === '/admin/login/';
-  const isAdminRoute = currentPath.startsWith('/admin') && !isAdminLogin;
+  // Admin routes: ONLY /fire prefix
+  const isFireBase = currentPath === '/fire' || currentPath === '/fire/';
+  const isFireLogin = currentPath === '/fire/login' || currentPath === '/fire/login/';
+  const isFireRoute = currentPath.startsWith('/fire');
 
   // Determine initial admin tab from path
   const getAdminTabFromPath = (): AdminTab => {
-    if (currentPath.includes('/admin/home')) return 'home';
-    if (currentPath.includes('/admin/projects')) return 'projects';
-    if (currentPath.includes('/admin/footer')) return 'footer';
+    if (currentPath.includes('/fire/home')) return 'home';
+    if (currentPath.includes('/fire/projects')) return 'projects';
+    if (currentPath.includes('/fire/footer')) return 'footer';
     return 'splash';
   };
 
@@ -61,23 +97,25 @@ export default function App() {
     currentPath === '/inquiry' ||
     currentPath === '/form';
 
-  // If in admin routes, render in admin container with AdminAuthProvider
-  if (isAdminLogin) {
-    return (
-      <AdminAuthProvider>
-        <AdminLoginPage
-          onLoginSuccess={() => {
-            navigateTo('/admin/splash');
-          }}
-        />
-      </AdminAuthProvider>
-    );
-  }
+  // Legacy /admin redirect to /fire
+  useEffect(() => {
+    if (currentPath.startsWith('/admin')) {
+      const redirected = currentPath.replace('/admin', '/fire');
+      window.history.replaceState({}, '', redirected || '/fire');
+      setCurrentPath(redirected || '/fire');
+    }
+  }, [currentPath]);
 
-  if (isAdminRoute) {
+  // If in admin routes (/fire), render in admin container with AdminAuthProvider
+  if (isFireRoute) {
     return (
       <AdminAuthProvider>
-        <AdminDashboard initialTab={getAdminTabFromPath()} />
+        <AdminPortalRouter
+          path={currentPath}
+          isFireLogin={isFireLogin || isFireBase}
+          initialTab={getAdminTabFromPath()}
+          onNavigate={(path) => navigateTo(path)}
+        />
       </AdminAuthProvider>
     );
   }

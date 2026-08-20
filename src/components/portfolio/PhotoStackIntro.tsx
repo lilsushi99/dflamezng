@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { INTRO_STACK_ITEMS } from '../../services/introStackData';
+import { publicApiService } from '../../services/publicApiService';
 
 interface PhotoStackIntroProps {
   onComplete: () => void;
@@ -12,7 +13,15 @@ export const PhotoStackIntro: React.FC<PhotoStackIntroProps> = ({ onComplete }) 
   const onCompleteRef = useRef(onComplete);
   onCompleteRef.current = onComplete;
 
-  const fullWordmark = 'Gold Akingbade';
+  const [fullWordmark, setFullWordmark] = useState(publicApiService.getState().photographerName || 'Gold Akingbade');
+  const [subtitle, setSubtitle] = useState(publicApiService.getState().professionSubtitle || 'Photography & Art Direction');
+
+  useEffect(() => {
+    return publicApiService.subscribe((state) => {
+      if (state.photographerName) setFullWordmark(state.photographerName);
+      if (state.professionSubtitle) setSubtitle(state.professionSubtitle);
+    });
+  }, []);
 
   useEffect(() => {
     // Check if user prefers reduced motion
@@ -111,7 +120,7 @@ export const PhotoStackIntro: React.FC<PhotoStackIntroProps> = ({ onComplete }) 
         <div
           className="mt-4 font-editorial-sans text-[10px] sm:text-[11px] tracking-[0.28em] uppercase intro-subtitle-reveal"
         >
-          Photography & Art Direction
+          {subtitle}
         </div>
       </div>
 
