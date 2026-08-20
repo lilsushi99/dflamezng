@@ -13,7 +13,7 @@ export const Identity: React.FC<IdentityProps> = ({ isVisible = true }) => {
       }`}
     >
       <h1 className="font-editorial-serif font-light clamp-masthead tracking-tight text-inherit transition-transform duration-500 hover:scale-[1.004] text-center px-1">
-        Good Akingbade
+        Gold Akingbade
       </h1>
       <p className="sr-only">Fashion & Editorial Art Direction Photography</p>
     </div>

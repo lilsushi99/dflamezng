@@ -26,9 +26,9 @@ export const GalleryPage: React.FC<GalleryPageProps> = ({
     const nextProject = ImageAssetService.getProjectBySlug(projectSlug);
     setProject(nextProject);
     if (nextProject) {
-      document.title = `${nextProject.title} — Good Akingbade`;
+      document.title = `${nextProject.title} — Gold Akingbade`;
     } else {
-      document.title = 'Project Not Found — Good Akingbade';
+      document.title = 'Project Not Found — Gold Akingbade';
     }
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [projectSlug]);
@@ -71,7 +71,6 @@ export const GalleryPage: React.FC<GalleryPageProps> = ({
       {/* 1. Minimal Top Navigation Bar with Understated HOME Control */}
       <GalleryHeader
         onNavigateHome={onNavigateHome}
-        projectCode={project.code}
         projectTitle={project.title}
       />
 
@@ -87,6 +86,7 @@ export const GalleryPage: React.FC<GalleryPageProps> = ({
       <GalleryImageViewer
         image={focusedImage}
         allImages={project.images}
+        projectTitle={project.title}
         onClose={() => setFocusedImage(null)}
         onSelectImage={(img) => setFocusedImage(img)}
       />

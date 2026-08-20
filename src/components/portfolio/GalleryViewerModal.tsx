@@ -113,7 +113,7 @@ export const GalleryViewerModal: React.FC<GalleryViewerModalProps> = ({ photo, o
           >
             ← Return to Canvas
           </button>
-          <span className="opacity-50">Good Akingbade Studio Archive</span>
+          <span className="opacity-50">Gold Akingbade Studio Archive</span>
         </div>
       </div>
     </div>

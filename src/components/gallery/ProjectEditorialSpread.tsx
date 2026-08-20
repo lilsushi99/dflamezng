@@ -221,7 +221,7 @@ export const ProjectEditorialSpread: React.FC<ProjectEditorialSpreadProps> = ({
         </div>
 
         <div className="mt-8 text-center text-[8px] sm:text-[9px] tracking-[0.24em] uppercase opacity-40">
-          Good Akingbade — All Works Protected Under Copyright 2024–2026
+          Gold Akingbade — All Works Protected Under Copyright 2024–2026
         </div>
       </footer>
     </article>

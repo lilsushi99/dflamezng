@@ -73,7 +73,7 @@ export const InquiryModal: React.FC<InquiryModalProps> = ({ isOpen, onClose }) =
             </div>
             <h2 className="font-editorial-serif text-3xl sm:text-4xl italic">Inquiry Received</h2>
             <p className="font-editorial-sans text-xs tracking-[0.18em] opacity-75 max-w-sm mx-auto leading-relaxed uppercase">
-              Thank you, {formData.name || 'Friend'}. Good Akingbade and studio management will review your commission request and reply within 48 hours.
+              Thank you, {formData.name || 'Friend'}. Gold Akingbade and studio management will review your commission request and reply within 48 hours.
             </p>
             <div className="pt-4">
               <button

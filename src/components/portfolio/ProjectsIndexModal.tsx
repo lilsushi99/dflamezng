@@ -20,7 +20,9 @@ export const ProjectsIndexModal: React.FC<ProjectsIndexModalProps> = ({
   const topPhotos = ImageAssetService.getTopPhotoAssets();
 
   const handleOpenProject = (project: ProjectGallery) => {
-    const matched = topPhotos.find((p) => p.projectCode === project.code) || topPhotos[0];
+    const matched =
+      topPhotos.find((p) => p.projectId === project.id || p.projectCode === project.code) ||
+      topPhotos[0];
     onClose();
     onSelectProjectPhoto(matched);
   };
@@ -92,8 +94,8 @@ export const ProjectsIndexModal: React.FC<ProjectsIndexModalProps> = ({
         </div>
 
         <div className="mt-8 pt-6 border-t border-[#111111]/15 dark:border-[#FEFDF3]/15 flex items-center justify-between font-editorial-sans text-[10px] tracking-[0.2em] uppercase opacity-60">
-          <span>Good Akingbade Studio Archive</span>
-          <span>Akure / Lagos</span>
+          <span>Gold Akingbade Studio Archive</span>
+          <span>5 Selected Projects</span>
         </div>
       </div>
     </div>

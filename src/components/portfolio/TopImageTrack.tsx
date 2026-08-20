@@ -71,7 +71,7 @@ export const TopImageTrack: React.FC<TopImageTrackProps> = ({
     <section
       id="photographic-field-top"
       aria-label="Top Photographic Field"
-      className="w-full relative pt-12 sm:pt-16 md:pt-18 pb-1 sm:pb-2 z-20 overflow-hidden touch-pan-y"
+      className="w-full relative pt-12 sm:pt-14 md:pt-12 lg:pt-12 pb-1 sm:pb-2 z-20 overflow-hidden touch-pan-y"
       onMouseEnter={() => setIsSlowed(true)}
       onMouseLeave={() => setIsSlowed(false)}
       onTouchStart={() => setIsPaused(true)}
@@ -79,7 +79,7 @@ export const TopImageTrack: React.FC<TopImageTrackProps> = ({
     >
       <div
         ref={trackRef}
-        className="w-full overflow-x-auto no-scrollbar flex items-start gap-4 sm:gap-6 md:gap-8 px-4 sm:px-8 md:px-12 select-none"
+        className="w-full overflow-x-auto no-scrollbar flex items-start gap-2 sm:gap-3 md:gap-4 px-3 sm:px-6 md:px-8 select-none"
       >
         {repeatedPhotos.map((photo, idx) => (
           <PhotoPrint

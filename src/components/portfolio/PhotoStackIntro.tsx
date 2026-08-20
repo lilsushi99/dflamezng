@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { INTRO_STACK_ITEMS } from '../../services/introStackData';
 
 interface PhotoStackIntroProps {
@@ -8,30 +8,21 @@ interface PhotoStackIntroProps {
 export const PhotoStackIntro: React.FC<PhotoStackIntroProps> = ({ onComplete }) => {
   const [visibleStackCount, setVisibleStackCount] = useState(0);
   const [isDissolving, setIsDissolving] = useState(false);
-  const [typedCharsCount, setTypedCharsCount] = useState(0);
   const [imagesLoaded, setImagesLoaded] = useState<Record<string, boolean>>({});
+  const onCompleteRef = useRef(onComplete);
+  onCompleteRef.current = onComplete;
 
-  const fullWordmark = 'Good Akingbade';
+  const fullWordmark = 'Gold Akingbade';
 
   useEffect(() => {
     // Check if user prefers reduced motion
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (prefersReducedMotion) {
-      onComplete();
+      onCompleteRef.current();
       return;
     }
 
-    // Step 1: Typewriter reveal for photographer name in Cormorant Garamond serif font
-    let charIdx = 0;
-    const charInterval = setInterval(() => {
-      charIdx++;
-      setTypedCharsCount(charIdx);
-      if (charIdx >= fullWordmark.length) {
-        clearInterval(charInterval);
-      }
-    }, 65);
-
-    // Step 2: Progressively stack physical photographic prints around center
+    // Step 1: Progressively stack physical photographic prints around center
     const timers: NodeJS.Timeout[] = [];
     INTRO_STACK_ITEMS.forEach((item, index) => {
       const t = setTimeout(() => {
@@ -40,23 +31,22 @@ export const PhotoStackIntro: React.FC<PhotoStackIntroProps> = ({ onComplete }) 
       timers.push(t);
     });
 
-    // Step 3: Dissolve / reorganize stack toward upper and lower tracks
+    // Step 2: Dissolve stack toward upper and lower tracks
     const dissolveTimer = setTimeout(() => {
       setIsDissolving(true);
     }, 3600);
 
-    // Step 4: Complete transition and handover to live canvas
+    // Step 3: Complete transition and handover to live canvas
     const completeTimer = setTimeout(() => {
-      onComplete();
+      onCompleteRef.current();
     }, 4400);
 
     return () => {
-      clearInterval(charInterval);
       timers.forEach((t) => clearTimeout(t));
       clearTimeout(dissolveTimer);
       clearTimeout(completeTimer);
     };
-  }, [onComplete]);
+  }, []); // Run once on mount
 
   return (
     <div
@@ -65,7 +55,41 @@ export const PhotoStackIntro: React.FC<PhotoStackIntroProps> = ({ onComplete }) 
         isDissolving ? 'opacity-0 pointer-events-none' : 'opacity-100'
       }`}
     >
-      {/* 1. Central Photographer Identity with Refined Typewriter Reveal */}
+      <style>{`
+        @keyframes smoothCharReveal {
+          0% {
+            opacity: 0;
+            transform: translateY(4px);
+          }
+          100% {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        @keyframes introSubtitleFade {
+          0% {
+            opacity: 0;
+            transform: translateY(2px);
+          }
+          100% {
+            opacity: 0.6;
+            transform: translateY(0);
+          }
+        }
+        .intro-char-reveal {
+          display: inline-block;
+          opacity: 0;
+          animation: smoothCharReveal 350ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+          will-change: opacity, transform;
+        }
+        .intro-subtitle-reveal {
+          opacity: 0;
+          animation: introSubtitleFade 600ms ease-out 1050ms forwards;
+          will-change: opacity, transform;
+        }
+      `}</style>
+
+      {/* 1. Central Photographer Identity with Smooth Fluid Typewriter Reveal */}
       <div className="absolute z-40 text-center pointer-events-none px-4">
         <h1
           id="typewriter-photographer-name"
@@ -74,23 +98,18 @@ export const PhotoStackIntro: React.FC<PhotoStackIntroProps> = ({ onComplete }) 
           {fullWordmark.split('').map((char, i) => (
             <span
               key={`intro-char-${i}`}
-              className={`inline-block transition-all duration-200 ${
-                i < typedCharsCount ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'
-              }`}
+              className="intro-char-reveal"
+              style={{
+                animationDelay: `${i * 65}ms`,
+              }}
             >
               {char === ' ' ? '\u00A0' : char}
             </span>
           ))}
-          {/* Subtle cursor line during typing */}
-          {typedCharsCount < fullWordmark.length && (
-            <span className="inline-block w-[2px] h-[0.8em] bg-current ml-1 align-middle animate-pulse" />
-          )}
         </h1>
 
         <div
-          className={`mt-4 font-editorial-sans text-[10px] sm:text-[11px] tracking-[0.28em] uppercase transition-opacity duration-700 ${
-            typedCharsCount >= fullWordmark.length ? 'opacity-60' : 'opacity-0'
-          }`}
+          className="mt-4 font-editorial-sans text-[10px] sm:text-[11px] tracking-[0.28em] uppercase intro-subtitle-reveal"
         >
           Photography & Art Direction
         </div>
@@ -151,7 +170,7 @@ export const PhotoStackIntro: React.FC<PhotoStackIntroProps> = ({ onComplete }) 
       {/* 3. Understated Skip Control */}
       <button
         id="btn-skip-intro"
-        onClick={onComplete}
+        onClick={() => onCompleteRef.current()}
         className="absolute bottom-6 right-6 sm:bottom-8 sm:right-10 pointer-events-auto font-editorial-sans text-[10px] tracking-[0.22em] uppercase opacity-50 hover:opacity-100 transition-opacity cursor-pointer border-b border-transparent hover:border-current pb-0.5"
       >
         Skip Entrance →

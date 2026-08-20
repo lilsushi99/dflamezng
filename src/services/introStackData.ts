@@ -15,13 +15,15 @@ export interface StackItem {
 }
 
 // 10 Curated physical photographic prints for the central stacking sequence
+// Assets reside in /assets/splash-images/ and follow the splash-N naming pattern
 export const INTRO_STACK_ITEMS: StackItem[] = [
   {
     id: 'splash-1',
     photo: {
       id: 'sp-1',
-      filename: '1.jpg',
-      src: '/assets/splash-images/1.jpg',
+      projectId: '1',
+      filename: 'splash-1.jpg',
+      src: '/assets/splash-images/splash-1.jpg',
       fallbackSrc: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=800&q=80',
       title: 'Adunni in Ochre',
       projectCode: '01',
@@ -47,8 +49,9 @@ export const INTRO_STACK_ITEMS: StackItem[] = [
     id: 'splash-2',
     photo: {
       id: 'sp-2',
-      filename: '2.jpg',
-      src: '/assets/splash-images/2.jpg',
+      projectId: '2',
+      filename: 'splash-2.jpg',
+      src: '/assets/splash-images/splash-2.jpg',
       fallbackSrc: 'https://images.unsplash.com/photo-1509631179647-0177331693ae?auto=format&fit=crop&w=800&q=80',
       title: 'Nocturne Drapery',
       projectCode: '02',
@@ -74,8 +77,9 @@ export const INTRO_STACK_ITEMS: StackItem[] = [
     id: 'splash-3',
     photo: {
       id: 'sp-3',
-      filename: '3.jpg',
-      src: '/assets/splash-images/3.jpg',
+      projectId: '1',
+      filename: 'splash-3.jpg',
+      src: '/assets/splash-images/splash-3.jpg',
       fallbackSrc: 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=800&q=80',
       title: 'Sunlit Monolith',
       projectCode: '01',
@@ -101,8 +105,9 @@ export const INTRO_STACK_ITEMS: StackItem[] = [
     id: 'splash-4',
     photo: {
       id: 'sp-4',
-      filename: '4.jpg',
-      src: '/assets/splash-images/4.jpg',
+      projectId: '3',
+      filename: 'splash-4.jpg',
+      src: '/assets/splash-images/splash-4.jpg',
       fallbackSrc: 'https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=800&q=80',
       title: 'Terracotta Gaze',
       projectCode: '03',
@@ -128,8 +133,9 @@ export const INTRO_STACK_ITEMS: StackItem[] = [
     id: 'splash-5',
     photo: {
       id: 'sp-5',
-      filename: '5.jpg',
-      src: '/assets/splash-images/5.jpg',
+      projectId: '3',
+      filename: 'splash-5.jpg',
+      src: '/assets/splash-images/splash-5.jpg',
       fallbackSrc: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=800&q=80',
       title: 'Solitude of Idanre',
       projectCode: '03',
@@ -155,8 +161,9 @@ export const INTRO_STACK_ITEMS: StackItem[] = [
     id: 'splash-6',
     photo: {
       id: 'sp-6',
-      filename: '6.jpg',
-      src: '/assets/splash-images/6.jpg',
+      projectId: '4',
+      filename: 'splash-6.jpg',
+      src: '/assets/splash-images/splash-6.jpg',
       fallbackSrc: 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&w=800&q=80',
       title: 'Aso-Oke Motion Study',
       projectCode: '04',
@@ -182,8 +189,9 @@ export const INTRO_STACK_ITEMS: StackItem[] = [
     id: 'splash-7',
     photo: {
       id: 'sp-7',
-      filename: '7.jpg',
-      src: '/assets/splash-images/7.jpg',
+      projectId: '2',
+      filename: 'splash-7.jpg',
+      src: '/assets/splash-images/splash-7.jpg',
       fallbackSrc: 'https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?auto=format&fit=crop&w=800&q=80',
       title: 'The Gilded Veil',
       projectCode: '02',
@@ -209,8 +217,9 @@ export const INTRO_STACK_ITEMS: StackItem[] = [
     id: 'splash-8',
     photo: {
       id: 'sp-8',
-      filename: '8.jpg',
-      src: '/assets/splash-images/8.jpg',
+      projectId: '4',
+      filename: 'splash-8.jpg',
+      src: '/assets/splash-images/splash-8.jpg',
       fallbackSrc: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=800&q=80',
       title: 'Contemplation at Dusk',
       projectCode: '04',
@@ -236,8 +245,9 @@ export const INTRO_STACK_ITEMS: StackItem[] = [
     id: 'splash-9',
     photo: {
       id: 'sp-9',
-      filename: '9.jpg',
-      src: '/assets/splash-images/9.jpg',
+      projectId: '1',
+      filename: 'splash-9.jpg',
+      src: '/assets/splash-images/splash-9.jpg',
       fallbackSrc: 'https://images.unsplash.com/photo-1576995853123-5a10305d93c0?auto=format&fit=crop&w=800&q=80',
       title: 'Architectural Linen',
       projectCode: '01',
@@ -263,8 +273,9 @@ export const INTRO_STACK_ITEMS: StackItem[] = [
     id: 'splash-10',
     photo: {
       id: 'sp-10',
-      filename: '10.jpg',
-      src: '/assets/splash-images/10.jpg',
+      projectId: '3',
+      filename: 'splash-10.jpg',
+      src: '/assets/splash-images/splash-10.jpg',
       fallbackSrc: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=800&q=80',
       title: 'Kola Nut & Amber',
       projectCode: '03',

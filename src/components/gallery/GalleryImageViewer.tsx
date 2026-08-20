@@ -5,6 +5,7 @@ import { GalleryImage } from '../../types/portfolio';
 interface GalleryImageViewerProps {
   image: GalleryImage | null;
   allImages: GalleryImage[];
+  projectTitle: string;
   onClose: () => void;
   onSelectImage: (img: GalleryImage) => void;
 }
@@ -12,6 +13,7 @@ interface GalleryImageViewerProps {
 export const GalleryImageViewer: React.FC<GalleryImageViewerProps> = ({
   image,
   allImages,
+  projectTitle,
   onClose,
   onSelectImage,
 }) => {
@@ -47,75 +49,67 @@ export const GalleryImageViewer: React.FC<GalleryImageViewerProps> = ({
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      {/* Top action bar */}
-      <div className="absolute top-5 left-5 right-5 sm:top-8 sm:left-8 sm:right-8 flex items-center justify-between font-editorial-sans text-[10px] sm:text-[11px] tracking-[0.22em] uppercase opacity-75">
-        <div>
-          <span>{image.plateNumber}</span>
-          <span className="opacity-40 mx-2">/</span>
-          <span className="opacity-60">{image.filename}</span>
-        </div>
+      {/* Top action bar: Clean top-left, simple close icon at top-right */}
+      <div className="absolute top-5 left-5 right-5 sm:top-8 sm:left-8 sm:right-8 flex items-center justify-between">
+        {/* Clean top-left area (no plate number or technical filenames) */}
+        <div aria-hidden="true" />
 
+        {/* Top-right close icon */}
         <button
           id="btn-close-focused-viewer"
           onClick={onClose}
-          className="flex items-center space-x-1.5 opacity-70 hover:opacity-100 transition-opacity cursor-pointer p-1"
-          aria-label="Close image inspection viewer"
+          className="p-2 opacity-70 hover:opacity-100 transition-opacity cursor-pointer text-inherit"
+          aria-label="Close image preview"
         >
-          <span>Close</span>
-          <X className="w-4 h-4" />
+          <X className="w-5 h-5" />
         </button>
       </div>
 
       {/* Main Photographic Focus Frame */}
-      <div className="relative max-w-5xl max-h-[78vh] w-full flex flex-col items-center justify-center">
-        <div className="relative overflow-hidden bg-neutral-200 dark:bg-neutral-800 max-h-[72vh] flex items-center justify-center">
+      <div className="relative max-w-5xl max-h-[76vh] w-full flex flex-col items-center justify-center">
+        <div className="relative overflow-hidden bg-neutral-200 dark:bg-neutral-800 max-h-[68vh] flex items-center justify-center shadow-lg border border-[#111111]/8 dark:border-[#FEFDF3]/8">
           <img
             src={image.src || image.fallbackSrc}
-            alt={image.caption}
+            alt={projectTitle}
             onError={(e) => {
               (e.target as HTMLImageElement).src = image.fallbackSrc;
             }}
-            className="w-auto h-auto max-h-[72vh] max-w-full object-contain"
+            className="w-auto h-auto max-h-[68vh] max-w-full object-contain"
           />
         </div>
 
-        {/* Minimal caption & subtitle below frame */}
-        <div className="mt-4 w-full text-center space-y-1 font-editorial-sans">
-          <p className="text-xs sm:text-sm tracking-wide opacity-90 font-editorial-serif italic text-base sm:text-lg">
-            {image.caption}
-          </p>
-          {image.subtitle && (
-            <p className="text-[10px] sm:text-[11px] tracking-[0.18em] uppercase opacity-60">
-              {image.subtitle}
-            </p>
-          )}
+        {/* Project title beneath frame (Project title only, NO individual image caption/number/location) */}
+        <div className="mt-4 sm:mt-5 w-full text-center space-y-1 font-editorial-sans">
+          <h2 className="font-editorial-serif text-base sm:text-lg md:text-xl font-light tracking-wide text-inherit">
+            {projectTitle}
+          </h2>
         </div>
       </div>
 
-      {/* Left/Right Prev/Next Arrows */}
+      {/* Left/Right Navigation Controls across current project series */}
       {allImages.length > 1 && (
         <>
           <button
             onClick={handlePrev}
-            aria-label="Previous plate"
-            className="absolute left-4 sm:left-8 top-1/2 -translate-y-1/2 p-2 opacity-50 hover:opacity-100 transition-opacity cursor-pointer"
+            aria-label="Previous photograph in series"
+            className="absolute left-3 sm:left-6 md:left-8 top-1/2 -translate-y-1/2 p-3 opacity-50 hover:opacity-100 transition-opacity cursor-pointer"
           >
-            <ChevronLeft className="w-6 h-6" />
+            <ChevronLeft className="w-6 h-6 sm:w-7 sm:h-7" />
           </button>
           <button
             onClick={handleNext}
-            aria-label="Next plate"
-            className="absolute right-4 sm:right-8 top-1/2 -translate-y-1/2 p-2 opacity-50 hover:opacity-100 transition-opacity cursor-pointer"
+            aria-label="Next photograph in series"
+            className="absolute right-3 sm:right-6 md:right-8 top-1/2 -translate-y-1/2 p-3 opacity-50 hover:opacity-100 transition-opacity cursor-pointer"
           >
-            <ChevronRight className="w-6 h-6" />
+            <ChevronRight className="w-6 h-6 sm:w-7 sm:h-7" />
           </button>
         </>
       )}
 
-      {/* Bottom info footer */}
-      <div className="absolute bottom-5 left-5 right-5 sm:bottom-8 sm:left-8 sm:right-8 flex items-center justify-between font-editorial-sans text-[9px] sm:text-[10px] tracking-[0.2em] uppercase opacity-50">
-        <span>Good Akingbade Studio Archive</span>
-        <span>Use ← / → keys to browse series</span>
+      {/* Bottom info footer: Studio archive text & arrow key instruction */}
+      <div className="absolute bottom-5 left-5 right-5 sm:bottom-8 sm:left-8 sm:right-8 flex flex-col sm:flex-row items-center justify-between gap-2 font-editorial-sans text-[9px] sm:text-[10px] tracking-[0.2em] uppercase opacity-50 text-center sm:text-left">
+        <span>Gold Akingbade Studio Archive</span>
+        <span>Use arrow keys to browse series</span>
       </div>
     </div>
   );

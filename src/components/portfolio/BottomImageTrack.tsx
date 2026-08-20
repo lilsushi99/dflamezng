@@ -83,7 +83,7 @@ export const BottomImageTrack: React.FC<BottomImageTrackProps> = ({
     >
       <div
         ref={trackRef}
-        className="w-full overflow-x-auto no-scrollbar flex items-end gap-4 sm:gap-6 md:gap-8 px-4 sm:px-8 md:px-12 select-none"
+        className="w-full overflow-x-auto no-scrollbar flex items-end gap-2 sm:gap-3 md:gap-4 px-3 sm:px-6 md:px-8 select-none"
       >
         {repeatedPhotos.map((photo, idx) => (
           <PhotoPrint

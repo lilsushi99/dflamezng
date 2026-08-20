@@ -3,12 +3,10 @@ import { HeaderNav } from '../components/navigation/HeaderNav';
 import { TopImageTrack } from '../components/portfolio/TopImageTrack';
 import { BottomImageTrack } from '../components/portfolio/BottomImageTrack';
 import { Identity } from '../components/portfolio/Identity';
-import { Location } from '../components/portfolio/Location';
-import { Availability } from '../components/portfolio/Availability';
 import { SocialLinks } from '../components/portfolio/SocialLinks';
-import { CollaborationButton } from '../components/portfolio/CollaborationButton';
 import { PhotoStackIntro } from '../components/portfolio/PhotoStackIntro';
 import { ProjectsIndexModal } from '../components/portfolio/ProjectsIndexModal';
+import { Footer } from '../components/portfolio/Footer';
 import { PhotoAsset } from '../types/portfolio';
 import { TOP_PHOTO_ASSETS, BOTTOM_PHOTO_ASSETS } from '../services/portfolioData';
 
@@ -34,20 +32,20 @@ export const HomePage: React.FC<HomePageProps> = ({
     }
   }, [introCompleted, onMarkIntroComplete]);
 
-  const handleOpenGalleryByCode = (projectCode: string) => {
-    const slug = projectCode.replace(/^0+/, '');
+  const handleOpenGallery = (projectIdOrCode: string) => {
+    const slug = projectIdOrCode.replace(/^0+/, '');
     onNavigateGallery(slug);
   };
 
   const handleSelectProjectFromModal = (photo: PhotoAsset) => {
     setIsProjectsOpen(false);
-    handleOpenGalleryByCode(photo.projectCode);
+    handleOpenGallery(photo.projectId || photo.projectCode);
   };
 
   return (
     <main
       id="portfolio-canvas"
-      className="relative w-full min-h-screen overflow-x-clip flex flex-col justify-between select-none bg-[#FEFDF3] dark:bg-[#111111] text-[#111111] dark:text-[#FEFDF3] transition-colors duration-400 py-3 sm:py-6 md:py-8 gap-4 sm:gap-6 md:gap-8"
+      className="relative w-full min-h-screen overflow-x-clip flex flex-col justify-between select-none bg-[#FEFDF3] dark:bg-[#111111] text-[#111111] dark:text-[#FEFDF3] transition-colors duration-400 pt-0 pb-0 gap-2 sm:gap-4 md:gap-4"
     >
       {/* 0. Signature Typewriter & Real Photographic Stacking Intro Choreography */}
       {!introCompleted && (
@@ -74,47 +72,22 @@ export const HomePage: React.FC<HomePageProps> = ({
       >
         <TopImageTrack
           photos={TOP_PHOTO_ASSETS}
-          onOpenGallery={handleOpenGalleryByCode}
+          onOpenGallery={handleOpenGallery}
           isIntroComplete={introCompleted}
         />
       </div>
 
-      {/* 3. Calm Center Spatial Area with Editorial Typography, Location, Availability, Socials & Form */}
+      {/* 3. Minimalist Center Spatial Area: Large Photographer Name + Social Links Only */}
       <div
         id="central-canvas-area"
-        className={`w-full flex-1 flex flex-col justify-center items-center px-4 sm:px-8 md:px-12 relative z-30 my-auto py-2 sm:py-4 md:py-6 max-w-7xl mx-auto transition-opacity duration-700 ${
+        className={`w-full flex-1 flex flex-col justify-center items-center px-4 sm:px-8 md:px-12 relative z-30 my-auto py-2 sm:py-4 md:py-6 max-w-5xl mx-auto transition-opacity duration-700 ${
           introCompleted ? 'opacity-100' : 'opacity-0'
         }`}
       >
-        {/* Desktop 3-column Layout / Mobile Balanced Stacked Architecture */}
-        <div className="w-full flex flex-col md:flex-row items-center justify-between gap-2 sm:gap-3 md:gap-4">
-          {/* Left Metadata: Location */}
-          <div className="hidden md:flex w-full md:w-1/4 justify-center md:justify-start order-2 md:order-1">
-            <Location />
-          </div>
+        <Identity isVisible={introCompleted} />
 
-          {/* Center Masthead: Photographer Name */}
-          <div className="w-full md:w-2/4 flex flex-col items-center justify-center order-1 md:order-2">
-            <Identity isVisible={introCompleted} />
-
-            {/* Mobile-only compact metadata row directly beneath masthead */}
-            <div className="flex md:hidden items-center justify-between w-full max-w-xs px-2 pt-1 font-editorial-sans text-[9px] sm:text-[10px] tracking-[0.2em] uppercase opacity-70">
-              <span>Akure / Lagos</span>
-              <span className="opacity-40">•</span>
-              <span>Open to Travel</span>
-            </div>
-          </div>
-
-          {/* Right Metadata: Availability */}
-          <div className="hidden md:flex w-full md:w-1/4 justify-center md:justify-end order-3">
-            <Availability />
-          </div>
-        </div>
-
-        {/* Social Navigation and Inquiry Action beneath Identity */}
-        <div className="w-full max-w-3xl mx-auto mt-3 sm:mt-4 md:mt-6 space-y-2 sm:space-y-3 text-center">
+        <div className="w-full max-w-2xl mx-auto mt-3 sm:mt-4 md:mt-5 text-center">
           <SocialLinks />
-          <CollaborationButton onClick={onNavigateCollaborate} />
         </div>
       </div>
 
@@ -126,9 +99,18 @@ export const HomePage: React.FC<HomePageProps> = ({
       >
         <BottomImageTrack
           photos={BOTTOM_PHOTO_ASSETS}
-          onOpenGallery={handleOpenGalleryByCode}
+          onOpenGallery={handleOpenGallery}
           isIntroComplete={introCompleted}
         />
+      </div>
+
+      {/* 5. Minimal Site Footer (Divider + Flames Photography + Castel Studios Link) */}
+      <div
+        className={`w-full shrink-0 transition-opacity duration-1000 ${
+          introCompleted ? 'opacity-100' : 'opacity-0'
+        }`}
+      >
+        <Footer />
       </div>
 
       {/* Projects Archive Modal */}

@@ -23,13 +23,13 @@ export default function App() {
     setCurrentPath(path);
     if (path === '/') {
       setIntroCompleted(true);
-      document.title = 'Good Akingbade — Fashion & Editorial Photography';
+      document.title = 'Gold Akingbade — Fashion & Editorial Photography';
     }
   };
 
   useEffect(() => {
     if (currentPath === '/') {
-      document.title = 'Good Akingbade — Fashion & Editorial Photography';
+      document.title = 'Gold Akingbade — Fashion & Editorial Photography';
     }
   }, [currentPath]);
 

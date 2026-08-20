@@ -8,6 +8,7 @@ export interface ThemeContextType {
 
 export interface PhotoAsset {
   id: string;
+  projectId?: string; // '1' | '2' | '3' | '4' | '5'
   filename: string;
   src: string;
   fallbackSrc: string;
@@ -47,19 +48,21 @@ export interface GalleryImage {
 
 export interface ProjectGallery {
   id: string;
-  code: string; // '01', '02', etc. (also accessible via slug / 1, 2)
-  slug: string; // '1', '2', '3', '4'
+  code: string; // '01', '02', '03', '04', '05'
+  slug: string; // '1', '2', '3', '4', '5'
   title: string;
-  statement: string; // Bold, confident editorial serif concept phrase
+  statement?: string; // Editorial concept phrase
   subtitle: string;
   year: string;
   location: string;
-  category: string;
-  client?: string;
-  creativeDirection?: string;
-  styling?: string;
+  category: string; // e.g. 'FASHION', 'EDITORIAL', 'PORTRAIT', etc.
+  story?: string; // Dedicated project story
+  client?: string; // Optional legacy data
+  creativeDirection?: string; // Optional legacy data
+  styling?: string; // Optional legacy data
   description: string;
   coverImage: string;
+  homepageImages?: PhotoAsset[];
   images: GalleryImage[];
   nextProjectSlug?: string;
   prevProjectSlug?: string;

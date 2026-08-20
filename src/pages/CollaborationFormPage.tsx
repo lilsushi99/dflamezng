@@ -24,7 +24,7 @@ export const CollaborationFormPage: React.FC<CollaborationFormPageProps> = ({
   });
 
   useEffect(() => {
-    document.title = 'Collaboration Inquiry — Good Akingbade';
+    document.title = 'Collaboration Inquiry — Gold Akingbade';
     window.scrollTo(0, 0);
   }, []);
 
@@ -80,7 +80,7 @@ export const CollaborationFormPage: React.FC<CollaborationFormPageProps> = ({
             </span>
           </button>
           <span className="font-medium opacity-80 text-[11px] sm:text-xs tracking-[0.22em]">
-            Good Akingbade
+            Gold Akingbade
           </span>
         </div>
       </nav>
@@ -327,7 +327,7 @@ export const CollaborationFormPage: React.FC<CollaborationFormPageProps> = ({
               </button>
 
               <span className="text-[9px] tracking-[0.2em] uppercase opacity-50">
-                Direct transmission to Good Akingbade Studio
+                Direct transmission to Gold Akingbade Studio
               </span>
             </div>
           </form>
