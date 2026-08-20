@@ -12,6 +12,12 @@ router.get('/home', (req, res) => publicController.getHome(req, res));
 // GET /api/home/socials
 router.get('/home/socials', (req, res) => publicController.getSocials(req, res));
 
+// GET /api/home/front-images
+router.get('/home/front-images', (req, res) => publicController.getFrontImages(req, res));
+
+// GET /api/home/back-images
+router.get('/home/back-images', (req, res) => publicController.getBackImages(req, res));
+
 // GET /api/projects
 router.get('/projects', (req, res) => publicController.getProjects(req, res));
 

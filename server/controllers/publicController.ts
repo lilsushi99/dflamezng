@@ -66,6 +66,40 @@ export class PublicController {
     }
   }
 
+  // GET /api/home/front-images
+  async getFrontImages(_req: Request, res: Response): Promise<void> {
+    try {
+      const frontImages = await settingsRepository.getHomepageImages('FRONT');
+      res.status(200).json({
+        success: true,
+        images: frontImages,
+      });
+    } catch (error: any) {
+      res.status(500).json({
+        success: false,
+        message: 'Failed to retrieve homepage front images',
+        error: error?.message,
+      });
+    }
+  }
+
+  // GET /api/home/back-images
+  async getBackImages(_req: Request, res: Response): Promise<void> {
+    try {
+      const backImages = await settingsRepository.getHomepageImages('BACK');
+      res.status(200).json({
+        success: true,
+        images: backImages,
+      });
+    } catch (error: any) {
+      res.status(500).json({
+        success: false,
+        message: 'Failed to retrieve homepage back images',
+        error: error?.message,
+      });
+    }
+  }
+
   // GET /api/projects
   async getProjects(_req: Request, res: Response): Promise<void> {
     try {
