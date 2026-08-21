@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTheme } from '../../hooks/useTheme';
 import { Sun, Moon, ArrowLeft } from 'lucide-react';
+import { publicApiService } from '../../services/publicApiService';
 
 interface GalleryHeaderProps {
   onNavigateHome: () => void;
@@ -12,6 +13,17 @@ export const GalleryHeader: React.FC<GalleryHeaderProps> = ({
   projectTitle,
 }) => {
   const { theme, toggleTheme } = useTheme();
+  const [photographerName, setPhotographerName] = useState(
+    publicApiService.getState().photographerName || 'Flames Photography'
+  );
+
+  useEffect(() => {
+    return publicApiService.subscribe((state) => {
+      if (state.photographerName) {
+        setPhotographerName(state.photographerName);
+      }
+    });
+  }, []);
 
   return (
     <nav
@@ -42,7 +54,7 @@ export const GalleryHeader: React.FC<GalleryHeaderProps> = ({
       {/* RIGHT: Wordmark + Theme Toggle */}
       <div className="flex items-center space-x-4 sm:space-x-6">
         <span className="font-medium opacity-80 text-[10px] sm:text-xs tracking-[0.22em] hidden md:inline-block">
-          Gold Akingbade
+          {photographerName}
         </span>
 
         <button

@@ -1,7 +1,8 @@
 import React from 'react';
-import { X, ArrowRight } from 'lucide-react';
+import { X } from 'lucide-react';
 import { ProjectGallery } from '../../types/portfolio';
 import { ImageAssetService } from '../../services/imageAssetService';
+import { publicApiService } from '../../services/publicApiService';
 
 interface ProjectsIndexModalProps {
   isOpen: boolean;
@@ -18,11 +19,12 @@ export const ProjectsIndexModal: React.FC<ProjectsIndexModalProps> = ({
 
   const projects = ImageAssetService.getAllProjects();
   const topPhotos = ImageAssetService.getTopPhotoAssets();
+  const studioName = publicApiService.getState().studioName || publicApiService.getState().photographerName || 'Flames Photography';
 
   const handleOpenProject = (project: ProjectGallery) => {
     const matched =
       topPhotos.find((p) => p.projectId === project.id || p.projectCode === project.code) ||
-      topPhotos[0];
+      (topPhotos.length > 0 ? topPhotos[0] : { projectId: project.id, projectCode: project.code });
     onClose();
     onSelectProjectPhoto(matched);
   };
@@ -57,45 +59,51 @@ export const ProjectsIndexModal: React.FC<ProjectsIndexModalProps> = ({
           </h2>
         </div>
 
-        <div className="divide-y divide-[#111111]/10 dark:divide-[#FEFDF3]/10">
-          {projects.map((project) => (
-            <div
-              key={project.id}
-              onClick={() => handleOpenProject(project)}
-              className="py-6 sm:py-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4 group cursor-pointer transition-opacity hover:opacity-80"
-              role="button"
-              tabIndex={0}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  handleOpenProject(project);
-                }
-              }}
-            >
-              <div className="flex items-baseline space-x-4 sm:space-x-6">
-                <span className="font-editorial-sans text-xs sm:text-sm tracking-[0.2em] opacity-40 group-hover:opacity-100 transition-opacity">
-                  {project.code}
-                </span>
-                <div>
-                  <h3 className="font-editorial-serif text-2xl sm:text-3xl md:text-4xl group-hover:italic transition-all">
-                    {project.title}
-                  </h3>
-                  <p className="font-editorial-sans text-[11px] tracking-wider opacity-60 mt-1 uppercase">
-                    {project.subtitle}
-                  </p>
+        {projects.length === 0 ? (
+          <div className="py-12 text-center font-editorial-sans text-xs tracking-widest uppercase opacity-50">
+            No projects in archive
+          </div>
+        ) : (
+          <div className="divide-y divide-[#111111]/10 dark:divide-[#FEFDF3]/10">
+            {projects.map((project) => (
+              <div
+                key={project.id}
+                onClick={() => handleOpenProject(project)}
+                className="py-6 sm:py-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4 group cursor-pointer transition-opacity hover:opacity-80"
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    handleOpenProject(project);
+                  }
+                }}
+              >
+                <div className="flex items-baseline space-x-4 sm:space-x-6">
+                  <span className="font-editorial-sans text-xs sm:text-sm tracking-[0.2em] opacity-40 group-hover:opacity-100 transition-opacity">
+                    {project.code}
+                  </span>
+                  <div>
+                    <h3 className="font-editorial-serif text-2xl sm:text-3xl md:text-4xl group-hover:italic transition-all">
+                      {project.title}
+                    </h3>
+                    <p className="font-editorial-sans text-[11px] tracking-wider opacity-60 mt-1 uppercase">
+                      {project.subtitle}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center space-x-4 self-end sm:self-center font-editorial-sans text-[10px] tracking-[0.2em] uppercase opacity-70">
+                  <span>{project.year}</span>
+                  <span className="group-hover:translate-x-1 transition-transform">→</span>
                 </div>
               </div>
-
-              <div className="flex items-center space-x-4 self-end sm:self-center font-editorial-sans text-[10px] tracking-[0.2em] uppercase opacity-70">
-                <span>{project.year}</span>
-                <span className="group-hover:translate-x-1 transition-transform">→</span>
-              </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
 
         <div className="mt-8 pt-6 border-t border-[#111111]/15 dark:border-[#FEFDF3]/15 flex items-center justify-between font-editorial-sans text-[10px] tracking-[0.2em] uppercase opacity-60">
-          <span>Gold Akingbade Studio Archive</span>
-          <span>5 Selected Projects</span>
+          <span>{studioName} Archive</span>
+          <span>{projects.length} Selected Project{projects.length === 1 ? '' : 's'}</span>
         </div>
       </div>
     </div>

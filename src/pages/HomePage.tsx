@@ -33,8 +33,8 @@ export const HomePage: React.FC<HomePageProps> = ({
   // Subscribe to live dynamic photos from CMS
   useEffect(() => {
     return publicApiService.subscribe((state) => {
-      if (state.topTrackPhotos?.length > 0) setTopPhotos(state.topTrackPhotos);
-      if (state.bottomTrackPhotos?.length > 0) setBottomPhotos(state.bottomTrackPhotos);
+      setTopPhotos(state.topTrackPhotos || []);
+      setBottomPhotos(state.bottomTrackPhotos || []);
     });
   }, []);
 

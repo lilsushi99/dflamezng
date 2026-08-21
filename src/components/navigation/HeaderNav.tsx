@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTheme } from '../../hooks/useTheme';
 import { Sun, Moon, Menu } from 'lucide-react';
 import { MobileNavDrawer } from './MobileNavDrawer';
+import { publicApiService } from '../../services/publicApiService';
 
 interface HeaderNavProps {
   onOpenProjects: () => void;
@@ -11,6 +12,21 @@ interface HeaderNavProps {
 export const HeaderNav: React.FC<HeaderNavProps> = ({ onOpenProjects, onOpenInquiry }) => {
   const { theme, toggleTheme } = useTheme();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [navState, setNavState] = useState(() => ({
+    logoText: publicApiService.getState().navbarLogoText || publicApiService.getState().photographerName || 'Flames Photography',
+    projectsLabel: publicApiService.getState().navbarProjectsLabel || 'PROJECTS',
+    contactLabel: publicApiService.getState().navbarContactLabel || 'CONTACT',
+  }));
+
+  useEffect(() => {
+    return publicApiService.subscribe((state) => {
+      setNavState({
+        logoText: state.navbarLogoText || state.photographerName || 'Flames Photography',
+        projectsLabel: state.navbarProjectsLabel || 'PROJECTS',
+        contactLabel: state.navbarContactLabel || 'CONTACT',
+      });
+    });
+  }, []);
 
   return (
     <>
@@ -21,7 +37,7 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({ onOpenProjects, onOpenInqu
         {/* Top Left Wordmark: Photographer name */}
         <div className="flex items-center">
           <span className="font-medium opacity-90 transition-opacity hover:opacity-100 cursor-default">
-            Gold Akingbade
+            {navState.logoText}
           </span>
         </div>
 
@@ -33,7 +49,7 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({ onOpenProjects, onOpenInqu
             onClick={onOpenProjects}
             className="hidden md:inline-block opacity-70 hover:opacity-100 transition-opacity cursor-pointer text-[11px] tracking-[0.22em]"
           >
-            PROJECTS
+            {navState.projectsLabel}
           </button>
 
           <button
@@ -41,7 +57,7 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({ onOpenProjects, onOpenInqu
             onClick={onOpenInquiry}
             className="hidden md:inline-block opacity-70 hover:opacity-100 transition-opacity cursor-pointer text-[11px] tracking-[0.22em]"
           >
-            CONTACT
+            {navState.contactLabel}
           </button>
 
           {/* Theme Toggle (Always visible on mobile & desktop) */}

@@ -1,5 +1,6 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { X } from 'lucide-react';
+import { publicApiService } from '../../services/publicApiService';
 
 interface MobileNavDrawerProps {
   isOpen: boolean;
@@ -14,6 +15,22 @@ export const MobileNavDrawer: React.FC<MobileNavDrawerProps> = ({
   onOpenProjects,
   onOpenContact,
 }) => {
+  const [navState, setNavState] = useState(() => ({
+    projectsLabel: publicApiService.getState().navbarProjectsLabel || 'PROJECTS',
+    contactLabel: publicApiService.getState().navbarContactLabel || 'CONTACT',
+    studioName: publicApiService.getState().studioName || publicApiService.getState().photographerName || 'Flames Photography',
+  }));
+
+  useEffect(() => {
+    return publicApiService.subscribe((state) => {
+      setNavState({
+        projectsLabel: state.navbarProjectsLabel || 'PROJECTS',
+        contactLabel: state.navbarContactLabel || 'CONTACT',
+        studioName: state.studioName || state.photographerName || 'Flames Photography',
+      });
+    });
+  }, []);
+
   // Prevent background scrolling when drawer is open
   useEffect(() => {
     if (isOpen) {
@@ -80,7 +97,7 @@ export const MobileNavDrawer: React.FC<MobileNavDrawerProps> = ({
             onClick={handleSelectProjects}
             className="text-left py-2 opacity-80 hover:opacity-100 transition-opacity cursor-pointer"
           >
-            PROJECTS
+            {navState.projectsLabel}
           </button>
 
           <button
@@ -88,13 +105,13 @@ export const MobileNavDrawer: React.FC<MobileNavDrawerProps> = ({
             onClick={handleSelectContact}
             className="text-left py-2 opacity-80 hover:opacity-100 transition-opacity cursor-pointer"
           >
-            CONTACT
+            {navState.contactLabel}
           </button>
         </nav>
 
         {/* Minimal Footer */}
         <div className="pt-6 border-t border-[#111111]/10 dark:border-[#FEFDF3]/10 font-editorial-sans text-[9px] tracking-[0.22em] uppercase opacity-50">
-          <span>Gold Akingbade Studio</span>
+          <span>{navState.studioName}</span>
         </div>
       </div>
     </>

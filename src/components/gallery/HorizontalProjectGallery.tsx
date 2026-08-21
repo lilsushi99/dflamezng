@@ -170,74 +170,76 @@ export const HorizontalProjectGallery: React.FC<HorizontalProjectGalleryProps> =
          ============================================================ */}
       <div
         id="horizontal-gallery-strip-container"
-        className="w-full relative my-auto py-2 sm:py-4 overflow-hidden touch-pan-x"
+        className="w-full relative my-auto py-2 sm:py-4 overflow-hidden touch-pan-x min-h-[30vh] flex items-center"
         onMouseEnter={() => setIsSlowed(true)}
         onMouseLeave={() => setIsSlowed(false)}
         onTouchStart={() => setIsPaused(true)}
         onTouchEnd={() => setIsPaused(false)}
       >
-        <div
-          ref={trackRef}
-          onMouseDown={handleMouseDown}
-          onMouseLeave={handleMouseLeaveOrUp}
-          onMouseUp={handleMouseLeaveOrUp}
-          onMouseMove={handleMouseMove}
-          onWheel={handleWheel}
-          className={`w-full overflow-x-auto no-scrollbar flex items-center gap-2 sm:gap-3 md:gap-4 px-4 sm:px-8 md:px-12 cursor-grab active:cursor-grabbing ${
-            isDragging ? 'select-none' : ''
-          }`}
-        >
-          {repeatedImages.map((img, idx) => {
-            const originalIndex = idx % project.images.length;
-            const { containerClass, verticalAlign } = getImageSizing(img, originalIndex);
-            const isLoaded = imagesLoaded[`${img.id}-${idx}`];
+        {project.images.length === 0 ? (
+          <div className="w-full py-16 text-center font-editorial-sans text-xs tracking-widest uppercase opacity-40">
+            No photographs uploaded for this project yet
+          </div>
+        ) : (
+          <div
+            ref={trackRef}
+            onMouseDown={handleMouseDown}
+            onMouseLeave={handleMouseLeaveOrUp}
+            onMouseUp={handleMouseLeaveOrUp}
+            onMouseMove={handleMouseMove}
+            onWheel={handleWheel}
+            className={`w-full overflow-x-auto no-scrollbar flex items-center gap-2 sm:gap-3 md:gap-4 px-4 sm:px-8 md:px-12 cursor-grab active:cursor-grabbing ${
+              isDragging ? 'select-none' : ''
+            }`}
+          >
+            {repeatedImages.map((img, idx) => {
+              const originalIndex = project.images.length > 0 ? idx % project.images.length : 0;
+              const { containerClass, verticalAlign } = getImageSizing(img, originalIndex);
+              const isLoaded = imagesLoaded[`${img.id}-${idx}`];
 
-            return (
-              <div
-                key={`gallery-plate-${img.id}-${idx}`}
-                id={`gallery-plate-${img.id}-${idx}`}
-                className={`relative shrink-0 group cursor-pointer ${containerClass} ${verticalAlign} transition-transform duration-500 hover:scale-[1.015]`}
-                onClick={() => onSelectImage(img)}
-                role="button"
-                tabIndex={0}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    onSelectImage(img);
-                  }
-                }}
-                aria-label={`View photograph from ${project.title}`}
-              >
-                {/* Clean Photographic Print Surface (NO hover overlays or text) */}
-                <div className="w-full h-full relative overflow-hidden bg-[#E2DFD2]/40 dark:bg-[#181818] border border-[#111111]/8 dark:border-[#FEFDF3]/8 shadow-sm group-hover:shadow-md transition-all duration-300">
-                  {/* Progressive loading placeholder shimmer */}
-                  {!isLoaded && (
-                    <div className="absolute inset-0 bg-[#E2DFD2]/30 dark:bg-[#202020] animate-pulse" />
-                  )}
+              return (
+                <div
+                  key={`gallery-plate-${img.id}-${idx}`}
+                  id={`gallery-plate-${img.id}-${idx}`}
+                  className={`relative shrink-0 group cursor-pointer ${containerClass} ${verticalAlign} transition-transform duration-500 hover:scale-[1.015]`}
+                  onClick={() => onSelectImage(img)}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      onSelectImage(img);
+                    }
+                  }}
+                  aria-label={`View photograph from ${project.title}`}
+                >
+                  {/* Clean Photographic Print Surface (NO hover overlays or text) */}
+                  <div className="w-full h-full relative overflow-hidden bg-[#E2DFD2]/40 dark:bg-[#181818] border border-[#111111]/8 dark:border-[#FEFDF3]/8 shadow-sm group-hover:shadow-md transition-all duration-300">
+                    {/* Progressive loading placeholder shimmer */}
+                    {!isLoaded && (
+                      <div className="absolute inset-0 bg-[#E2DFD2]/30 dark:bg-[#202020] animate-pulse" />
+                    )}
 
-                  <img
-                    src={img.src}
-                    alt={project.title}
-                    loading={idx < 6 ? 'eager' : 'lazy'}
-                    decoding="async"
-                    referrerPolicy="no-referrer"
-                    onLoad={() => setImagesLoaded((prev) => ({ ...prev, [`${img.id}-${idx}`]: true }))}
-                    onError={(e) => {
-                      const target = e.currentTarget;
-                      if (target.src !== img.fallbackSrc) {
-                        target.src = img.fallbackSrc;
-                      }
-                      setImagesLoaded((prev) => ({ ...prev, [`${img.id}-${idx}`]: true }));
-                    }}
-                    className={`w-full h-full object-cover select-none transition-opacity duration-700 ${
-                      isLoaded ? 'opacity-100' : 'opacity-0'
-                    }`}
-                    draggable={false}
-                  />
+                    <img
+                      src={img.src}
+                      alt={project.title}
+                      loading={idx < 6 ? 'eager' : 'lazy'}
+                      decoding="async"
+                      referrerPolicy="no-referrer"
+                      onLoad={() => setImagesLoaded((prev) => ({ ...prev, [`${img.id}-${idx}`]: true }))}
+                      onError={() => {
+                        setImagesLoaded((prev) => ({ ...prev, [`${img.id}-${idx}`]: true }));
+                      }}
+                      className={`w-full h-full object-cover select-none transition-opacity duration-700 ${
+                        isLoaded ? 'opacity-100' : 'opacity-0'
+                      }`}
+                      draggable={false}
+                    />
+                  </div>
                 </div>
-              </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       {/* ============================================================

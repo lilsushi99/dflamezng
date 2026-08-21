@@ -10,8 +10,10 @@ import {
   FooterSettings,
   TrackType,
 } from '../types/admin';
+import { publicApiService } from './publicApiService';
 
-const API_BASE = '/api';
+const API_ROOT = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '');
+const API_BASE = `${API_ROOT}/api`;
 
 // Helper for sending authenticated fetch requests
 async function fetchWithAuth(url: string, options: RequestInit = {}): Promise<Response> {

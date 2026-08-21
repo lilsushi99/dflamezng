@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ImageAssetService } from '../services/imageAssetService';
+import { publicApiService } from '../services/publicApiService';
 import { GalleryImage, ProjectGallery } from '../types/portfolio';
 import { GalleryHeader } from '../components/gallery/GalleryHeader';
 import { HorizontalProjectGallery } from '../components/gallery/HorizontalProjectGallery';
@@ -23,14 +24,24 @@ export const GalleryPage: React.FC<GalleryPageProps> = ({
   const [focusedImage, setFocusedImage] = useState<GalleryImage | null>(null);
 
   useEffect(() => {
-    const nextProject = ImageAssetService.getProjectBySlug(projectSlug);
-    setProject(nextProject);
-    if (nextProject) {
-      document.title = `${nextProject.title} — Gold Akingbade`;
-    } else {
-      document.title = 'Project Not Found — Gold Akingbade';
-    }
+    const updateProject = () => {
+      const nextProject = ImageAssetService.getProjectBySlug(projectSlug);
+      setProject(nextProject);
+      const photographer = publicApiService.getState().photographerName || 'Flames Photography';
+      if (nextProject) {
+        document.title = `${nextProject.title} — ${photographer}`;
+      } else {
+        document.title = `Project Not Found — ${photographer}`;
+      }
+    };
+
+    updateProject();
+    const unsubscribe = publicApiService.subscribe(() => {
+      updateProject();
+    });
+
     window.scrollTo({ top: 0, behavior: 'smooth' });
+    return () => unsubscribe();
   }, [projectSlug]);
 
   if (!project) {
