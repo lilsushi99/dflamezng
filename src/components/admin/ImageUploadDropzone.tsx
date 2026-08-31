@@ -1,11 +1,12 @@
 import React, { useState, useRef } from 'react';
-import { Upload, Link as LinkIcon, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Upload, Link as LinkIcon, Loader2, CheckCircle2, AlertCircle, Eye, X, ArrowUpRight } from 'lucide-react';
 
 interface ImageUploadDropzoneProps {
   onUploadFile: (file: File) => Promise<void>;
   onAddUrl: (url: string) => Promise<void>;
   disabled?: boolean;
   helperText?: string;
+  submitButtonText?: string;
 }
 
 export const ImageUploadDropzone: React.FC<ImageUploadDropzoneProps> = ({
@@ -13,8 +14,11 @@ export const ImageUploadDropzone: React.FC<ImageUploadDropzoneProps> = ({
   onAddUrl,
   disabled = false,
   helperText = 'Supports JPG, PNG, WebP, AVIF up to 30MB. Preserves original aspect ratio.',
+  submitButtonText = 'UPLOAD & PUBLISH IMAGE',
 }) => {
   const [activeTab, setActiveTab] = useState<'device' | 'url'>('device');
+  const [stagedFile, setStagedFile] = useState<File | null>(null);
+  const [stagedPreviewUrl, setStagedPreviewUrl] = useState<string | null>(null);
   const [urlInput, setUrlInput] = useState('');
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
@@ -28,15 +32,32 @@ export const ImageUploadDropzone: React.FC<ImageUploadDropzoneProps> = ({
     setSuccessMsg(null);
   };
 
-  const handleFileSelection = async (file: File) => {
+  const handleStageFile = (file: File) => {
     if (!file) return;
+    clearMessages();
+    setStagedFile(file);
+    const objectUrl = URL.createObjectURL(file);
+    setStagedPreviewUrl(objectUrl);
+  };
+
+  const handleClearStaged = () => {
+    if (stagedPreviewUrl) {
+      URL.revokeObjectURL(stagedPreviewUrl);
+    }
+    setStagedFile(null);
+    setStagedPreviewUrl(null);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  const handleConfirmUpload = async () => {
+    if (!stagedFile) return;
     clearMessages();
     setIsUploading(true);
 
     try {
-      await onUploadFile(file);
-      setSuccessMsg(`"${file.name}" uploaded successfully`);
-      if (fileInputRef.current) fileInputRef.current.value = '';
+      await onUploadFile(stagedFile);
+      setSuccessMsg(`"${stagedFile.name}" uploaded and published successfully`);
+      handleClearStaged();
     } catch (err: any) {
       setErrorMsg(err?.message || 'Failed to upload image from device');
     } finally {
@@ -47,7 +68,7 @@ export const ImageUploadDropzone: React.FC<ImageUploadDropzoneProps> = ({
 
   const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) handleFileSelection(file);
+    if (file) handleStageFile(file);
   };
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -69,7 +90,7 @@ export const ImageUploadDropzone: React.FC<ImageUploadDropzoneProps> = ({
 
     const file = e.dataTransfer.files?.[0];
     if (file) {
-      handleFileSelection(file);
+      handleStageFile(file);
     }
   };
 
@@ -89,13 +110,19 @@ export const ImageUploadDropzone: React.FC<ImageUploadDropzoneProps> = ({
     try {
       await onAddUrl(cleanUrl);
       setUrlInput('');
-      setSuccessMsg('Image URL added successfully');
+      setSuccessMsg('Image URL added and published successfully');
     } catch (err: any) {
       setErrorMsg(err?.message || 'Failed to add image by URL');
     } finally {
       setIsUploading(false);
       setTimeout(() => setSuccessMsg(null), 4000);
     }
+  };
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
   };
 
   return (
@@ -150,46 +177,96 @@ export const ImageUploadDropzone: React.FC<ImageUploadDropzoneProps> = ({
             disabled={disabled || isUploading}
           />
 
-          <div
-            onDragOver={handleDragOver}
-            onDragLeave={handleDragLeave}
-            onDrop={handleDrop}
-            onClick={() => {
-              if (!disabled && !isUploading) {
-                fileInputRef.current?.click();
-              }
-            }}
-            className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-all flex flex-col items-center justify-center ${
-              isDragging
-                ? 'border-amber-400 bg-amber-400/5'
-                : 'border-neutral-700 hover:border-neutral-500 bg-neutral-950/50'
-            } ${disabled || isUploading ? 'opacity-60 pointer-events-none' : ''}`}
-          >
-            {isUploading ? (
-              <div className="flex flex-col items-center">
-                <Loader2 className="w-8 h-8 text-amber-400 animate-spin mb-3" />
-                <p className="text-sm text-neutral-200 font-medium">Uploading and processing image...</p>
-                <p className="text-xs text-neutral-500 mt-1">Preserving original aspect ratio</p>
+          {!stagedFile ? (
+            <div
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+              onClick={() => {
+                if (!disabled && !isUploading) {
+                  fileInputRef.current?.click();
+                }
+              }}
+              className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-all flex flex-col items-center justify-center ${
+                isDragging
+                  ? 'border-amber-400 bg-amber-400/5'
+                  : 'border-neutral-700 hover:border-neutral-500 bg-neutral-950/50'
+              } ${disabled || isUploading ? 'opacity-60 pointer-events-none' : ''}`}
+            >
+              <div className="w-12 h-12 rounded-full bg-neutral-800/80 border border-neutral-700 flex items-center justify-center mb-3 text-neutral-300">
+                <Upload className="w-5 h-5" />
               </div>
-            ) : (
-              <>
-                <div className="w-12 h-12 rounded-full bg-neutral-800/80 border border-neutral-700 flex items-center justify-center mb-3 text-neutral-300">
-                  <Upload className="w-5 h-5" />
+              <p className="text-sm font-medium text-neutral-200 mb-1">
+                Drag and drop photo here, or <span className="text-amber-400 underline underline-offset-2">browse device</span>
+              </p>
+              <p className="text-xs text-neutral-500 max-w-md">{helperText}</p>
+            </div>
+          ) : (
+            /* Staged Image Preview with Explicit Action Buttons */
+            <div className="bg-neutral-950 border border-neutral-700 rounded-lg p-4 flex flex-col sm:flex-row items-center gap-5">
+              <div className="relative w-32 h-32 sm:w-28 sm:h-28 rounded-lg overflow-hidden bg-neutral-900 border border-neutral-800 shrink-0">
+                {stagedPreviewUrl && (
+                  <img
+                    src={stagedPreviewUrl}
+                    alt="Preview"
+                    className="w-full h-full object-cover"
+                  />
+                )}
+                <div className="absolute top-1 right-1 bg-black/60 backdrop-blur-md rounded-full p-1 text-white">
+                  <Eye className="w-3 h-3" />
                 </div>
-                <p className="text-sm font-medium text-neutral-200 mb-1">
-                  Drag and drop photo here, or <span className="text-amber-400 underline underline-offset-2">browse files</span>
+              </div>
+
+              <div className="flex-1 text-center sm:text-left space-y-1.5">
+                <div className="text-xs font-mono font-medium text-neutral-200 truncate max-w-md">
+                  {stagedFile.name}
+                </div>
+                <div className="text-[11px] text-neutral-400 font-mono">
+                  Size: {formatFileSize(stagedFile.size)} • Type: {stagedFile.type || 'image'}
+                </div>
+                <p className="text-xs text-amber-400/90 font-sans">
+                  Ready to upload to server storage and register in database.
                 </p>
-                <p className="text-xs text-neutral-500 max-w-md">{helperText}</p>
-              </>
-            )}
-          </div>
+              </div>
+
+              <div className="flex flex-col sm:flex-row items-center gap-2.5 w-full sm:w-auto">
+                <button
+                  type="button"
+                  onClick={handleClearStaged}
+                  disabled={isUploading}
+                  className="w-full sm:w-auto px-4 py-2.5 bg-neutral-800 hover:bg-neutral-700 text-neutral-300 text-xs font-mono rounded-lg transition-colors flex items-center justify-center gap-1.5"
+                >
+                  <X className="w-3.5 h-3.5" />
+                  CANCEL
+                </button>
+                <button
+                  type="button"
+                  onClick={handleConfirmUpload}
+                  disabled={isUploading}
+                  className="w-full sm:w-auto px-5 py-2.5 bg-amber-400 hover:bg-amber-300 text-neutral-950 text-xs font-semibold rounded-lg font-mono tracking-wider transition-all flex items-center justify-center gap-2 shadow-lg shadow-amber-400/10 disabled:opacity-50"
+                >
+                  {isUploading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      SAVING & PUBLISHING...
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="w-4 h-4" />
+                      {submitButtonText}
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
       {/* Tab 2: URL Upload Form */}
       {activeTab === 'url' && (
         <form onSubmit={handleUrlSubmit} className="space-y-3">
-          <div className="flex gap-2">
+          <div className="flex flex-col sm:flex-row gap-2">
             <div className="relative flex-1">
               <LinkIcon className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500" />
               <input
@@ -204,15 +281,18 @@ export const ImageUploadDropzone: React.FC<ImageUploadDropzoneProps> = ({
             <button
               type="submit"
               disabled={disabled || isUploading || !urlInput.trim()}
-              className="px-5 py-2.5 bg-neutral-100 hover:bg-white text-neutral-950 text-xs font-semibold rounded-lg tracking-wide transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5 whitespace-nowrap"
+              className="px-5 py-2.5 bg-amber-400 hover:bg-amber-300 text-neutral-950 text-xs font-semibold rounded-lg font-mono tracking-wider transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1.5 whitespace-nowrap shadow-sm"
             >
               {isUploading ? (
                 <>
                   <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                  ADDING...
+                  SAVING TO DATABASE...
                 </>
               ) : (
-                'ADD FROM URL'
+                <>
+                  <ArrowUpRight className="w-3.5 h-3.5" />
+                  SAVE & PUBLISH URL
+                </>
               )}
             </button>
           </div>
@@ -239,3 +319,4 @@ export const ImageUploadDropzone: React.FC<ImageUploadDropzoneProps> = ({
     </div>
   );
 };
+

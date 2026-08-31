@@ -17,13 +17,13 @@ interface StackSlot {
 }
 
 const STACK_SLOTS: StackSlot[] = [
-  { initialX: -40, initialY: 40, targetX: -260, targetY: -110, rotation: -7, width: 'w-36 sm:w-44 md:w-52', height: 'h-48 sm:h-58 md:h-70', zIndex: 11 },
-  { initialX: 40, initialY: -30, targetX: 250, targetY: 100, rotation: 6, width: 'w-40 sm:w-48 md:w-56', height: 'h-48 sm:h-58 md:h-70', zIndex: 12 },
-  { initialX: -20, initialY: -40, targetX: -290, targetY: 120, rotation: 5, width: 'w-44 sm:w-52 md:w-60', height: 'h-36 sm:h-42 md:h-48', zIndex: 13 },
-  { initialX: 30, initialY: 30, targetX: 270, targetY: -130, rotation: -6, width: 'w-36 sm:w-44 md:w-50', height: 'h-48 sm:h-58 md:h-66', zIndex: 14 },
-  { initialX: -10, initialY: 10, targetX: -120, targetY: -210, rotation: -3, width: 'w-40 sm:w-48 md:w-56', height: 'h-44 sm:h-52 md:h-62', zIndex: 15 },
-  { initialX: 15, initialY: -15, targetX: 130, targetY: 210, rotation: 4, width: 'w-38 sm:w-46 md:w-54', height: 'h-46 sm:h-56 md:h-64', zIndex: 16 },
-  { initialX: 0, initialY: 0, targetX: 0, targetY: 0, rotation: 0, width: 'w-44 sm:w-52 md:w-64', height: 'h-56 sm:h-66 md:h-80', zIndex: 17 },
+  { initialX: 0, initialY: 15, targetX: -18, targetY: -12, rotation: -3.5, width: 'w-48 sm:w-60 md:w-72', height: 'h-64 sm:h-80 md:h-96', zIndex: 11 },
+  { initialX: 0, initialY: -15, targetX: 16, targetY: 10, rotation: 3.0, width: 'w-48 sm:w-60 md:w-72', height: 'h-64 sm:h-80 md:h-96', zIndex: 12 },
+  { initialX: 0, initialY: 10, targetX: -10, targetY: 14, rotation: -2.0, width: 'w-50 sm:w-64 md:w-76', height: 'h-66 sm:h-84 md:h-100', zIndex: 13 },
+  { initialX: 0, initialY: -10, targetX: 14, targetY: -8, rotation: 2.5, width: 'w-48 sm:w-60 md:w-72', height: 'h-64 sm:h-80 md:h-96', zIndex: 14 },
+  { initialX: 0, initialY: 0, targetX: -6, targetY: 4, rotation: -1.0, width: 'w-52 sm:w-66 md:w-80', height: 'h-68 sm:h-86 md:h-104', zIndex: 15 },
+  { initialX: 0, initialY: 0, targetX: 8, targetY: -4, rotation: 1.5, width: 'w-52 sm:w-66 md:w-80', height: 'h-68 sm:h-86 md:h-104', zIndex: 16 },
+  { initialX: 0, initialY: 0, targetX: 0, targetY: 0, rotation: 0, width: 'w-54 sm:w-68 md:w-84', height: 'h-70 sm:h-90 md:h-108', zIndex: 17 },
 ];
 
 export const PhotoStackIntro: React.FC<PhotoStackIntroProps> = ({ onComplete }) => {
