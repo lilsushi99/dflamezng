@@ -34,10 +34,13 @@ export interface SplashImage {
 
 export interface HomepageSettings {
   id: number;
+  logo_type?: 'TEXT' | 'IMAGE';
   navbar_logo_text?: string;
+  logo_image_path?: string | null;
   navbar_projects_label?: string;
   navbar_contact_label?: string;
   theme_toggle_visible?: boolean;
+  theme_mode?: 'DARK' | 'LIGHT';
   photographer_name?: string;
   top_track_speed: number;
   bottom_track_speed: number;
@@ -45,6 +48,46 @@ export interface HomepageSettings {
   hero_subtext: string | null;
   created_at: string;
   updated_at: string;
+}
+
+export interface GlobalSeoSettings {
+  id: number;
+  site_title: string;
+  meta_description: string;
+  primary_keywords: string;
+  secondary_keywords: string;
+  canonical_url: string;
+  og_title: string;
+  og_description: string;
+  og_image_url: string | null;
+  google_site_verification: string | null;
+  robots_indexing: boolean;
+  schema_type: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface SeoLocation {
+  id: number;
+  location_name: string;
+  state: string;
+  url_slug: string;
+  seo_title: string;
+  meta_description: string;
+  primary_keyword: string;
+  secondary_keywords: string;
+  location_content: string;
+  services_offered: string[];
+  related_projects?: number[];
+  og_title?: string;
+  og_description?: string;
+  og_image_url?: string | null;
+  canonical_url?: string;
+  is_published: boolean;
+  is_indexable: boolean;
+  sitemap_priority: number;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface HomepageImage {
@@ -102,3 +145,30 @@ export interface FooterSettings {
   created_at: string;
   updated_at: string;
 }
+
+export interface SiteContactSettings {
+  id: number;
+  site_title?: string;
+  photographer_name?: string;
+  studio_name?: string;
+  contact_email?: string;
+  contact_phone?: string;
+  location_text?: string;
+  is_available?: boolean;
+  availability_text?: string;
+}
+
+export interface Inquiry {
+  id: number;
+  name: string;
+  email: string;
+  project_type: string;
+  timeline: string;
+  message: string;
+  budget?: string;
+  status: 'NEW' | 'REVIEWED' | 'ARCHIVED';
+  notes?: string;
+  created_at: string;
+  updated_at: string;
+}
+

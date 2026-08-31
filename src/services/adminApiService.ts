@@ -9,6 +9,8 @@ import {
   ProjectImage,
   FooterSettings,
   TrackType,
+  GlobalSeoSettings,
+  SeoLocation,
 } from '../types/admin';
 import { publicApiService } from './publicApiService';
 
@@ -127,6 +129,17 @@ export class AdminApiService {
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || 'Failed to reorder splash images');
     return data.images;
+  }
+
+  async updateSplashImage(id: number, payload: Partial<SplashImage>): Promise<SplashImage> {
+    const res = await fetchWithAuth(`${API_BASE}/admin/splash/images/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Failed to save splash image');
+    return data.image;
   }
 
   async deleteSplashImage(id: number): Promise<void> {
@@ -358,6 +371,143 @@ export class AdminApiService {
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || 'Failed to update footer settings');
     return data.footer;
+  }
+
+  // ==========================================
+  // 5. LOGO MANAGEMENT
+  // ==========================================
+  async uploadLogo(file: File): Promise<{ logo_image_path: string; settings: HomepageSettings }> {
+    const formData = new FormData();
+    formData.append('logo', file);
+
+    const res = await fetchWithAuth(`${API_BASE}/admin/home/logo/upload`, {
+      method: 'POST',
+      body: formData,
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Failed to upload logo');
+    return data;
+  }
+
+  async deleteLogo(): Promise<{ settings: HomepageSettings }> {
+    const res = await fetchWithAuth(`${API_BASE}/admin/home/logo`, {
+      method: 'DELETE',
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Failed to remove logo');
+    return data;
+  }
+
+  // ==========================================
+  // 6. SEO & LOCATION PAGES
+  // ==========================================
+  async getGlobalSeo(): Promise<{ seo: GlobalSeoSettings; locationsCount: number; publishedCount: number }> {
+    const res = await fetchWithAuth(`${API_BASE}/admin/seo`);
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Failed to fetch SEO settings');
+    return { seo: data.seo, locationsCount: data.locationsCount, publishedCount: data.publishedCount };
+  }
+
+  async updateGlobalSeo(payload: Partial<GlobalSeoSettings>): Promise<GlobalSeoSettings> {
+    const res = await fetchWithAuth(`${API_BASE}/admin/seo/global`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Failed to update SEO settings');
+    return data.seo;
+  }
+
+  async getAllLocations(): Promise<SeoLocation[]> {
+    const res = await fetchWithAuth(`${API_BASE}/admin/seo/locations`);
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Failed to fetch SEO locations');
+    return data.locations || [];
+  }
+
+  async getLocationById(id: number): Promise<SeoLocation> {
+    const res = await fetchWithAuth(`${API_BASE}/admin/seo/locations/${id}`);
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Failed to fetch location page');
+    return data.location;
+  }
+
+  async createLocation(payload: Partial<SeoLocation>): Promise<SeoLocation> {
+    const res = await fetchWithAuth(`${API_BASE}/admin/seo/locations`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Failed to create SEO location page');
+    return data.location;
+  }
+
+  async updateLocation(id: number, payload: Partial<SeoLocation>): Promise<SeoLocation> {
+    const res = await fetchWithAuth(`${API_BASE}/admin/seo/locations/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Failed to update location page');
+    return data.location;
+  }
+
+  async deleteLocation(id: number): Promise<void> {
+    const res = await fetchWithAuth(`${API_BASE}/admin/seo/locations/${id}`, {
+      method: 'DELETE',
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Failed to delete location page');
+  }
+
+  // ==========================================
+  // 7. CONTACT & INQUIRIES
+  // ==========================================
+  async getContactSettings(): Promise<any> {
+    const res = await fetchWithAuth(`${API_BASE}/admin/contact-settings`);
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Failed to fetch contact settings');
+    return data.settings;
+  }
+
+  async updateContactSettings(payload: any): Promise<any> {
+    const res = await fetchWithAuth(`${API_BASE}/admin/contact-settings`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Failed to update contact settings');
+    return data.settings;
+  }
+
+  async getInquiries(): Promise<any[]> {
+    const res = await fetchWithAuth(`${API_BASE}/admin/inquiries`);
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Failed to fetch inquiries');
+    return data.inquiries || [];
+  }
+
+  async updateInquiry(id: number, payload: { status: string; notes?: string }): Promise<any> {
+    const res = await fetchWithAuth(`${API_BASE}/admin/inquiries/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Failed to update inquiry');
+    return data.inquiry;
+  }
+
+  async deleteInquiry(id: number): Promise<void> {
+    const res = await fetchWithAuth(`${API_BASE}/admin/inquiries/${id}`, {
+      method: 'DELETE',
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Failed to delete inquiry');
   }
 }
 

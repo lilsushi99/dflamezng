@@ -4,6 +4,7 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import { createServer as createViteServer } from 'vite';
 import apiRouter from './server/routes/index';
+import { publicSeoController } from './server/controllers/publicSeoController';
 import { errorHandler } from './server/middleware/errorHandler';
 import { testConnection } from './server/database/db';
 
@@ -24,6 +25,10 @@ async function startServer() {
 
   // 3. API Routes FIRST
   app.use('/api', apiRouter);
+
+  // Dynamic SEO Files
+  app.get('/sitemap.xml', (req, res) => publicSeoController.getSitemap(req, res));
+  app.get('/robots.txt', (req, res) => publicSeoController.getRobots(req, res));
 
   // 4. Vite middleware for development / Static files for production
   if (!isProduction) {

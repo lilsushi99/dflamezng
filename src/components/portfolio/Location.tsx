@@ -1,13 +1,25 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { publicApiService } from '../../services/publicApiService';
 
 export const Location: React.FC = () => {
+  const [locationPrimary, setLocationPrimary] = useState(publicApiService.getState().locationPrimary || 'Akure / Lagos');
+  const [locationSecondary, setLocationSecondary] = useState(publicApiService.getState().locationSecondary || 'Nigeria');
+
+  useEffect(() => {
+    return publicApiService.subscribe((state) => {
+      if (state.locationPrimary) setLocationPrimary(state.locationPrimary);
+      if (state.locationSecondary) setLocationSecondary(state.locationSecondary);
+    });
+  }, []);
+
   return (
     <div
       id="metadata-location"
       className="text-left font-editorial-sans text-[11px] sm:text-xs tracking-[0.25em] uppercase opacity-75 select-none"
     >
-      <span className="block font-medium">Akure / Lagos</span>
-      <span className="block text-[9px] sm:text-[10px] tracking-[0.2em] opacity-60 mt-0.5">Nigeria</span>
+      <span className="block font-medium">{locationPrimary}</span>
+      <span className="block text-[9px] sm:text-[10px] tracking-[0.2em] opacity-60 mt-0.5">{locationSecondary}</span>
     </div>
   );
 };
+

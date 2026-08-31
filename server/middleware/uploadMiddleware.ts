@@ -10,6 +10,7 @@ const directories = [
   path.join(rootStorageDir, 'homepage', 'front'),
   path.join(rootStorageDir, 'homepage', 'back'),
   path.join(rootStorageDir, 'projects'),
+  path.join(rootStorageDir, 'logos'),
 ];
 
 directories.forEach((dir) => {
@@ -86,4 +87,28 @@ export const uploadProject = multer({
   storage: createStorage('projects'),
   fileFilter: imageFileFilter,
   limits,
+});
+
+export const uploadLogo = multer({
+  storage: createStorage('logos'),
+  fileFilter: (
+    _req: Request,
+    file: Express.Multer.File,
+    cb: multer.FileFilterCallback
+  ) => {
+    const allowed = [
+      'image/jpeg',
+      'image/jpg',
+      'image/png',
+      'image/webp',
+      'image/svg+xml',
+      'image/gif',
+    ];
+    if (allowed.includes(file.mimetype.toLowerCase()) || file.originalname.endsWith('.svg')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Invalid logo format. Permitted: PNG, SVG, JPG, WEBP.'));
+    }
+  },
+  limits: { fileSize: 10 * 1024 * 1024 },
 });

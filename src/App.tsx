@@ -4,6 +4,7 @@ import { AdminAuthProvider, useAdminAuth } from './context/AdminAuthContext';
 import { HomePage } from './pages/HomePage';
 import { GalleryPage } from './pages/GalleryPage';
 import { CollaborationFormPage } from './pages/CollaborationFormPage';
+import { LocationLandingPage } from './pages/LocationLandingPage';
 import { AdminLoginPage } from './pages/admin/AdminLoginPage';
 import { AdminDashboard } from './pages/admin/AdminDashboard';
 import { AdminTab } from './components/admin/AdminLayout';
@@ -84,12 +85,18 @@ export default function App() {
     if (currentPath.includes('/fire/home')) return 'home';
     if (currentPath.includes('/fire/projects')) return 'projects';
     if (currentPath.includes('/fire/footer')) return 'footer';
+    if (currentPath.includes('/fire/seo')) return 'seo';
+    if (currentPath.includes('/fire/contact')) return 'contact';
     return 'splash';
   };
 
   // Determine if on a gallery route: /gallery/:slug
   const galleryMatch = currentPath.match(/^\/gallery\/([a-zA-Z0-9_-]+)/);
   const gallerySlug = galleryMatch ? galleryMatch[1] : null;
+
+  // Determine if on location landing route: /location/:slug
+  const locationMatch = currentPath.match(/^\/location\/([a-zA-Z0-9_-]+)/);
+  const locationSlug = locationMatch ? locationMatch[1] : null;
 
   // Determine if on collaborate route: /collaborate or /inquiry or /form
   const isCollaborateRoute =
@@ -127,6 +134,12 @@ export default function App() {
         {gallerySlug ? (
           <GalleryPage
             projectSlug={gallerySlug}
+            onNavigateHome={() => navigateTo('/')}
+            onNavigateProject={(slug) => navigateTo(`/gallery/${slug}`)}
+          />
+        ) : locationSlug ? (
+          <LocationLandingPage
+            slug={locationSlug}
             onNavigateHome={() => navigateTo('/')}
             onNavigateProject={(slug) => navigateTo(`/gallery/${slug}`)}
           />

@@ -183,6 +183,29 @@ export class SettingsRepository {
     return createdImage;
   }
 
+  async updateSplashImage(id: number, data: Partial<SplashImage>): Promise<SplashImage | null> {
+    if (isDatabaseConnected()) {
+      try {
+        await execute(
+          'UPDATE splash_images SET display_order = COALESCE(?, display_order), updated_at = NOW() WHERE id = ?',
+          [data.display_order ?? null, id]
+        );
+      } catch (e) {
+        console.warn('[SettingsRepository] DB update failed for splash image:', e);
+      }
+    }
+
+    const store = PersistentStore.getStore();
+    const item = store.splashImages.find(img => img.id === id);
+    if (item) {
+      if (data.display_order !== undefined) item.display_order = data.display_order;
+      item.updated_at = new Date();
+      PersistentStore.saveStore();
+      return item;
+    }
+    return null;
+  }
+
   async reorderSplashImages(orderedIds: number[]): Promise<SplashImage[]> {
     if (isDatabaseConnected()) {
       try {
@@ -251,7 +274,9 @@ export class SettingsRepository {
       try {
         await execute(
           `UPDATE homepage_settings SET 
+            logo_type = ?,
             navbar_logo_text = ?,
+            logo_image_path = ?,
             navbar_projects_label = ?,
             navbar_contact_label = ?,
             theme_toggle_visible = ?,
@@ -263,7 +288,9 @@ export class SettingsRepository {
             updated_at = NOW() 
           WHERE id = ?`,
           [
+            data.logo_type ?? current.logo_type ?? 'TEXT',
             data.navbar_logo_text ?? current.navbar_logo_text,
+            data.logo_image_path !== undefined ? data.logo_image_path : current.logo_image_path,
             data.navbar_projects_label ?? current.navbar_projects_label,
             data.navbar_contact_label ?? current.navbar_contact_label,
             data.theme_toggle_visible ?? current.theme_toggle_visible,

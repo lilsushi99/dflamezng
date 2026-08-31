@@ -154,6 +154,39 @@ export class AdminSplashController {
     }
   }
 
+  // PUT /api/admin/splash/images/:id (update single splash image)
+  async updateImage(req: Request, res: Response): Promise<void> {
+    try {
+      const id = Number(req.params.id);
+      if (!id || isNaN(id)) {
+        res.status(400).json({ success: false, message: 'Invalid image ID' });
+        return;
+      }
+
+      const { display_order } = req.body;
+      const updated = await settingsRepository.updateSplashImage(id, {
+        display_order: display_order !== undefined ? Number(display_order) : undefined,
+      });
+
+      if (!updated) {
+        res.status(404).json({ success: false, message: 'Image not found' });
+        return;
+      }
+
+      res.status(200).json({
+        success: true,
+        message: 'Splash image saved successfully',
+        image: updated,
+      });
+    } catch (error: any) {
+      res.status(500).json({
+        success: false,
+        message: 'Failed to update splash image',
+        error: error?.message,
+      });
+    }
+  }
+
   // DELETE /api/admin/splash/images/:id
   async deleteImage(req: Request, res: Response): Promise<void> {
     try {

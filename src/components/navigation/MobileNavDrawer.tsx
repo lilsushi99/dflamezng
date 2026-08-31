@@ -15,18 +15,21 @@ export const MobileNavDrawer: React.FC<MobileNavDrawerProps> = ({
   onOpenProjects,
   onOpenContact,
 }) => {
-  const [navState, setNavState] = useState(() => ({
-    projectsLabel: publicApiService.getState().navbarProjectsLabel || 'PROJECTS',
-    contactLabel: publicApiService.getState().navbarContactLabel || 'CONTACT',
-    studioName: publicApiService.getState().studioName || publicApiService.getState().photographerName || 'Flames Photography',
-  }));
+  const [navState, setNavState] = useState(() => {
+    const s = publicApiService.getState();
+    return {
+      projectsLabel: s.navbarProjectsLabel || 'PROJECTS',
+      contactLabel: s.navbarContactLabel || 'CONTACT',
+      studioName: s.studioName || s.photographerName || '',
+    };
+  });
 
   useEffect(() => {
     return publicApiService.subscribe((state) => {
       setNavState({
         projectsLabel: state.navbarProjectsLabel || 'PROJECTS',
         contactLabel: state.navbarContactLabel || 'CONTACT',
-        studioName: state.studioName || state.photographerName || 'Flames Photography',
+        studioName: state.studioName || state.photographerName || '',
       });
     });
   }, []);

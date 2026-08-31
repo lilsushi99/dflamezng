@@ -5,6 +5,8 @@ import { AdminSplashPage } from './AdminSplashPage';
 import { AdminHomePage } from './AdminHomePage';
 import { AdminProjectsPage } from './AdminProjectsPage';
 import { AdminFooterPage } from './AdminFooterPage';
+import { SeoManager } from '../../components/admin/SeoManager';
+import { ContactManager } from '../../components/admin/ContactManager';
 import { Loader2 } from 'lucide-react';
 
 interface AdminDashboardProps {
@@ -23,6 +25,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ initialTab = 'sp
       else if (path.includes('/fire/home')) setCurrentTab('home');
       else if (path.includes('/fire/projects')) setCurrentTab('projects');
       else if (path.includes('/fire/footer')) setCurrentTab('footer');
+      else if (path.includes('/fire/seo')) setCurrentTab('seo');
+      else if (path.includes('/fire/contact')) setCurrentTab('contact');
       else if (path === '/fire' || path === '/fire/') setCurrentTab('splash');
     };
 
@@ -74,6 +78,16 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ initialTab = 'sp
           title: 'Footer Legal & Credits',
           subtitle: 'Manage bottom copyright notice, design credit agency labels and hyperlinks.',
         };
+      case 'seo':
+        return {
+          title: 'SEO Strategy & Nigerian Location Hubs',
+          subtitle: 'Manage search engine metadata, Open Graph tags, and 74 targeted Nigerian city/state photography landing pages.',
+        };
+      case 'contact':
+        return {
+          title: 'Studio Locations, Availability & Inquiries',
+          subtitle: 'Manage public studio coordinates, travel availability badges, and incoming client collaboration inquiries.',
+        };
     }
   };
 
@@ -90,6 +104,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ initialTab = 'sp
       {currentTab === 'home' && <AdminHomePage />}
       {currentTab === 'projects' && <AdminProjectsPage />}
       {currentTab === 'footer' && <AdminFooterPage />}
+      {currentTab === 'seo' && <SeoManager />}
+      {currentTab === 'contact' && <ContactManager />}
     </AdminLayout>
   );
 };
+

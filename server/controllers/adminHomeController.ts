@@ -40,10 +40,13 @@ export class AdminHomeController {
   async updateSettings(req: Request, res: Response): Promise<void> {
     try {
       const {
+        logo_type,
         navbar_logo_text,
+        logo_image_path,
         navbar_projects_label,
         navbar_contact_label,
         theme_toggle_visible,
+        theme_mode,
         photographer_name,
         top_track_speed,
         bottom_track_speed,
@@ -52,10 +55,13 @@ export class AdminHomeController {
       } = req.body;
 
       const updated = await settingsRepository.updateHomepageSettings({
+        logo_type: logo_type === 'IMAGE' ? 'IMAGE' : logo_type === 'TEXT' ? 'TEXT' : undefined,
         navbar_logo_text: typeof navbar_logo_text === 'string' ? navbar_logo_text : undefined,
+        logo_image_path: logo_image_path !== undefined ? logo_image_path : undefined,
         navbar_projects_label: typeof navbar_projects_label === 'string' ? navbar_projects_label : undefined,
         navbar_contact_label: typeof navbar_contact_label === 'string' ? navbar_contact_label : undefined,
         theme_toggle_visible: theme_toggle_visible !== undefined ? Boolean(theme_toggle_visible) : undefined,
+        theme_mode: theme_mode === 'LIGHT' ? 'LIGHT' : theme_mode === 'DARK' ? 'DARK' : undefined,
         photographer_name: typeof photographer_name === 'string' ? photographer_name : undefined,
         top_track_speed: top_track_speed !== undefined ? Number(top_track_speed) : undefined,
         bottom_track_speed: bottom_track_speed !== undefined ? Number(bottom_track_speed) : undefined,
@@ -72,6 +78,60 @@ export class AdminHomeController {
       res.status(500).json({
         success: false,
         message: 'Failed to update home screen settings',
+        error: error?.message,
+      });
+    }
+  }
+
+  // POST /api/admin/home/logo/upload (Device file upload for Logo)
+  async uploadLogo(req: Request, res: Response): Promise<void> {
+    try {
+      if (!req.file) {
+        res.status(400).json({
+          success: false,
+          message: 'No logo file was uploaded',
+        });
+        return;
+      }
+
+      const filePath = `/storage/logos/${req.file.filename}`;
+      const updated = await settingsRepository.updateHomepageSettings({
+        logo_image_path: filePath,
+        logo_type: 'IMAGE',
+      });
+
+      res.status(200).json({
+        success: true,
+        message: 'Logo uploaded and published successfully',
+        logo_image_path: filePath,
+        settings: updated,
+      });
+    } catch (error: any) {
+      res.status(500).json({
+        success: false,
+        message: 'Failed to upload logo',
+        error: error?.message,
+      });
+    }
+  }
+
+  // DELETE /api/admin/home/logo
+  async deleteLogo(req: Request, res: Response): Promise<void> {
+    try {
+      const updated = await settingsRepository.updateHomepageSettings({
+        logo_image_path: null,
+        logo_type: 'TEXT',
+      });
+
+      res.status(200).json({
+        success: true,
+        message: 'Logo image removed; reverted to text logo',
+        settings: updated,
+      });
+    } catch (error: any) {
+      res.status(500).json({
+        success: false,
+        message: 'Failed to remove logo image',
         error: error?.message,
       });
     }

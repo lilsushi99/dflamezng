@@ -11,10 +11,11 @@ import {
   Camera,
   Menu,
   X,
+  Globe,
 } from 'lucide-react';
 import { useAdminAuth } from '../../context/AdminAuthContext';
 
-export type AdminTab = 'splash' | 'home' | 'projects' | 'footer';
+export type AdminTab = 'splash' | 'home' | 'projects' | 'footer' | 'seo' | 'contact';
 
 interface AdminLayoutProps {
   currentTab: AdminTab;
@@ -42,7 +43,14 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
     window.dispatchEvent(new PopStateEvent('popstate'));
   };
 
-  const navItems = [
+  const navItems: Array<{
+    id: AdminTab;
+    label: string;
+    icon: any;
+    description: string;
+    disabled: boolean;
+    badge?: string;
+  }> = [
     {
       id: 'splash' as AdminTab,
       label: 'SPLASH SCREEN',
@@ -52,9 +60,9 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
     },
     {
       id: 'home' as AdminTab,
-      label: 'HOME SCREEN',
+      label: 'HOME SCREEN & LOGO',
       icon: LayoutGrid,
-      description: 'Navbar, Image Tracks & Bio',
+      description: 'Navbar, Logo, Image Tracks & Bio',
       disabled: false,
     },
     {
@@ -72,12 +80,18 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
       disabled: false,
     },
     {
-      id: 'contact' as any,
-      label: 'CONTACT',
+      id: 'seo' as AdminTab,
+      label: 'SEO & LOCATIONS',
+      icon: Globe,
+      description: 'Nigerian Cities & Search Engine Tags',
+      disabled: false,
+    },
+    {
+      id: 'contact' as AdminTab,
+      label: 'CONTACT & INQUIRIES',
       icon: Mail,
-      description: 'Client Inquiry System',
-      disabled: true,
-      badge: 'COMING SOON',
+      description: 'Location, Availability & Client Leads',
+      disabled: false,
     },
   ];
 

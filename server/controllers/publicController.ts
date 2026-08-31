@@ -1,8 +1,43 @@
 import { Request, Response } from 'express';
 import { settingsRepository } from '../repositories/settingsRepository';
 import { projectRepository } from '../repositories/projectRepository';
+import { contactRepository } from '../repositories/contactRepository';
 
 export class PublicController {
+  // POST /api/inquiries
+  async submitInquiry(req: Request, res: Response): Promise<void> {
+    try {
+      const { name, email, projectType, timeline, message, budget } = req.body;
+      if (!name || !email || !message) {
+        res.status(400).json({
+          success: false,
+          message: 'Name, email, and message are required',
+        });
+        return;
+      }
+
+      const inquiry = await contactRepository.createInquiry({
+        name: String(name).trim(),
+        email: String(email).trim(),
+        project_type: String(projectType || 'Editorial & Fashion').trim(),
+        timeline: String(timeline || 'Within 1-2 Months').trim(),
+        message: String(message).trim(),
+        budget: budget ? String(budget).trim() : undefined,
+      });
+
+      res.status(201).json({
+        success: true,
+        message: 'Inquiry received successfully',
+        inquiry,
+      });
+    } catch (error: any) {
+      res.status(500).json({
+        success: false,
+        message: 'Failed to submit inquiry',
+        error: error?.message,
+      });
+    }
+  }
   // GET /api/splash
   async getSplash(_req: Request, res: Response): Promise<void> {
     try {

@@ -39,8 +39,8 @@ export const AdminSplashPage: React.FC = () => {
       setImages(data.images);
 
       if (data.settings) {
-        setPhotographerName(data.settings.photographer_name || data.settings.signature_text || 'Flames Photography');
-        setSplashSubtext(data.settings.splash_subtext || 'A visual archive of contemporary Nigerian fashion and fine art photography.');
+        setPhotographerName(data.settings.photographer_name || data.settings.signature_text || '');
+        setSplashSubtext(data.settings.splash_subtext || '');
         setTypewriterEnabled(data.settings.typewriter_enabled !== false);
         setIsEnabled(data.settings.is_enabled !== false);
         setTypingSpeed(data.settings.typing_speed_ms || 65);
@@ -80,6 +80,18 @@ export const AdminSplashPage: React.FC = () => {
     } finally {
       setIsSaving(false);
       setTimeout(() => setFeedback(null), 4000);
+    }
+  };
+
+  const handleSaveSingleImage = async (id: number, index: number) => {
+    try {
+      await adminApiService.updateSplashImage(id, {
+        display_order: index + 1,
+      });
+      setFeedback({ type: 'success', message: `Splash photo #${index + 1} saved successfully` });
+      setTimeout(() => setFeedback(null), 3000);
+    } catch (err: any) {
+      setFeedback({ type: 'error', message: err?.message || 'Failed to save splash photo' });
     }
   };
 
@@ -163,7 +175,7 @@ export const AdminSplashPage: React.FC = () => {
             <div>
               <h3 className="text-base font-semibold text-neutral-100">Splash Opening & Typography</h3>
               <p className="text-xs text-neutral-400">
-                Configure opening sequence name, subtext and typewriter animation.
+                Configure opening sequence name, subtext, typewriter animation, and sequence speeds.
               </p>
             </div>
           </div>
@@ -172,7 +184,7 @@ export const AdminSplashPage: React.FC = () => {
             type="button"
             onClick={() => handleSaveSettings()}
             disabled={isSaving}
-            className="flex items-center justify-center gap-2 px-5 py-2.5 bg-neutral-100 hover:bg-white text-neutral-950 text-xs font-semibold rounded-xl tracking-wider transition-all disabled:opacity-50"
+            className="flex items-center justify-center gap-2 px-5 py-2.5 bg-neutral-100 hover:bg-white text-neutral-950 text-xs font-semibold rounded-xl tracking-wider transition-all disabled:opacity-50 cursor-pointer"
           >
             {isSaving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
             SAVE SPLASH SETTINGS
@@ -213,6 +225,59 @@ export const AdminSplashPage: React.FC = () => {
               <p className="text-[11px] text-neutral-500 mt-1.5">
                 Sub-headline that accompanies the opening signature typewriter.
               </p>
+            </div>
+          </div>
+
+          {/* Animation Speeds Control */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2 border-t border-neutral-800/80">
+            {/* Typewriter Speed */}
+            <div className="p-4 bg-neutral-950/60 border border-neutral-800 rounded-xl space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-mono uppercase tracking-wider text-neutral-200 flex items-center gap-1.5">
+                  <Sliders className="w-3.5 h-3.5 text-amber-400" />
+                  Typewriter Speed
+                </span>
+                <span className="text-xs font-mono text-amber-300 font-semibold">{typingSpeed} ms/char</span>
+              </div>
+              <input
+                type="range"
+                min="20"
+                max="150"
+                step="5"
+                value={typingSpeed}
+                onChange={(e) => setTypingSpeed(Number(e.target.value))}
+                className="w-full accent-amber-400 cursor-pointer"
+              />
+              <div className="flex justify-between text-[10px] text-neutral-500 font-mono">
+                <span>Fast (20ms)</span>
+                <span>Default (65ms)</span>
+                <span>Slow (150ms)</span>
+              </div>
+            </div>
+
+            {/* Stack Duration */}
+            <div className="p-4 bg-neutral-950/60 border border-neutral-800 rounded-xl space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-mono uppercase tracking-wider text-neutral-200 flex items-center gap-1.5">
+                  <Sliders className="w-3.5 h-3.5 text-amber-400" />
+                  Photo Stack Total Duration
+                </span>
+                <span className="text-xs font-mono text-amber-300 font-semibold">{stackDuration} ms</span>
+              </div>
+              <input
+                type="range"
+                min="1500"
+                max="6000"
+                step="100"
+                value={stackDuration}
+                onChange={(e) => setStackDuration(Number(e.target.value))}
+                className="w-full accent-amber-400 cursor-pointer"
+              />
+              <div className="flex justify-between text-[10px] text-neutral-500 font-mono">
+                <span>Brief (1.5s)</span>
+                <span>Default (3.2s)</span>
+                <span>Extended (6.0s)</span>
+              </div>
             </div>
           </div>
 
@@ -265,7 +330,7 @@ export const AdminSplashPage: React.FC = () => {
 
       {/* SECTION 2: SPLASH IMAGES STACK */}
       <section className="bg-neutral-900 border border-neutral-800 rounded-2xl p-6 md:p-8">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-6 border-b border-neutral-800 mb-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-neutral-800 mb-6">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-lg bg-neutral-800 flex items-center justify-center text-amber-400">
               <Layers className="w-4 h-4" />
@@ -275,13 +340,24 @@ export const AdminSplashPage: React.FC = () => {
                 Splash Opening Photo Stack ({images.length})
               </h3>
               <p className="text-xs text-neutral-400">
-                Sequential stack of images layered during the opening hero transition.
+                Unlimited images supported. Save individual photos or save whole batch.
               </p>
             </div>
           </div>
 
-          <div className="text-xs font-mono text-neutral-400 bg-neutral-950 px-3 py-1.5 rounded-lg border border-neutral-800">
-            NATURAL ASPECT RATIOS PRESERVED
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => handleSaveSettings()}
+              disabled={isSaving}
+              className="flex items-center justify-center gap-2 px-4 py-2 bg-amber-400 hover:bg-amber-300 text-neutral-950 text-xs font-semibold rounded-xl tracking-wider transition-all disabled:opacity-50 cursor-pointer"
+            >
+              {isSaving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
+              SAVE ALL CHANGES
+            </button>
+            <div className="text-xs font-mono text-neutral-400 bg-neutral-950 px-3 py-2 rounded-lg border border-neutral-800 hidden sm:block">
+              UNLIMITED STACK
+            </div>
           </div>
         </div>
 
@@ -292,7 +368,7 @@ export const AdminSplashPage: React.FC = () => {
           helperText="Upload photographs from device or paste HTTPS links. Portrait and landscape formats are both preserved."
         />
 
-        {/* Image Grid with natural aspect ratios */}
+        {/* Image Grid with natural aspect ratios & individual Save buttons */}
         {images.length === 0 ? (
           <div className="text-center py-12 border border-dashed border-neutral-800 rounded-xl bg-neutral-950/40">
             <Layers className="w-8 h-8 text-neutral-600 mx-auto mb-2" />
@@ -315,6 +391,7 @@ export const AdminSplashPage: React.FC = () => {
                   onMoveUp={() => handleMoveImage(index, 'up')}
                   onMoveDown={() => handleMoveImage(index, 'down')}
                   onDelete={() => handleDeleteImage(img.id)}
+                  onSave={() => handleSaveSingleImage(img.id, index)}
                 />
               );
             })}

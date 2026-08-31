@@ -20,9 +20,20 @@ export interface PublicSiteState {
   photographerName: string;
   studioName: string;
   professionSubtitle: string;
+  locationPrimary: string;
+  locationSecondary: string;
+  availabilityPrimary: string;
+  availabilitySecondary: string;
+  contactEmail: string;
+  contactPhone: string;
+  isAvailable: boolean;
+  logoType: 'TEXT' | 'IMAGE';
   navbarLogoText: string;
+  logoImagePath: string | null;
   navbarProjectsLabel: string;
   navbarContactLabel: string;
+  themeToggleVisible: boolean;
+  themeMode?: 'DARK' | 'LIGHT';
   topTrackPhotos: PhotoAsset[];
   bottomTrackPhotos: PhotoAsset[];
   projects: ProjectGallery[];
@@ -77,9 +88,20 @@ const INITIAL_EMPTY_STATE: PublicSiteState = {
   photographerName: '',
   studioName: '',
   professionSubtitle: '',
+  locationPrimary: 'Akure / Lagos',
+  locationSecondary: 'Nigeria',
+  availabilityPrimary: 'Open to Travel',
+  availabilitySecondary: 'Worldwide & Commissions',
+  contactEmail: 'studio@goldakingbade.com',
+  contactPhone: '+234 812 345 6789',
+  isAvailable: true,
+  logoType: 'TEXT',
   navbarLogoText: '',
+  logoImagePath: null,
   navbarProjectsLabel: 'PROJECTS',
   navbarContactLabel: 'CONTACT',
+  themeToggleVisible: true,
+  themeMode: 'DARK',
   topTrackPhotos: [],
   bottomTrackPhotos: [],
   projects: [],
@@ -196,6 +218,35 @@ class PublicApiService {
       if (site.studio_name !== undefined) {
         this.state.studioName = site.studio_name;
       }
+      if (site.location_text) {
+        const parts = site.location_text.split('/').map((s: string) => s.trim());
+        if (parts.length > 1) {
+          this.state.locationPrimary = parts.slice(0, -1).join(' / ');
+          this.state.locationSecondary = parts[parts.length - 1];
+        } else {
+          this.state.locationPrimary = site.location_text;
+        }
+      }
+      if (site.availability_text) {
+        const parts = site.availability_text.split('—').map((s: string) => s.trim());
+        if (parts.length > 1) {
+          this.state.availabilityPrimary = parts[0];
+          this.state.availabilitySecondary = parts.slice(1).join(' — ');
+        } else {
+          this.state.availabilityPrimary = site.availability_text;
+        }
+      }
+      if (site.contact_email) {
+        this.state.contactEmail = site.contact_email;
+      }
+      if (site.contact_phone) {
+        this.state.contactPhone = site.contact_phone;
+      }
+      if (site.is_available !== undefined) {
+        this.state.isAvailable = Boolean(site.is_available);
+      }
+      this.state.logoType = home.logo_type === 'IMAGE' ? 'IMAGE' : 'TEXT';
+      this.state.logoImagePath = resolveImageUrl({ file_path: home.logo_image_path, source_type: 'local' }) || null;
       if (home.navbar_logo_text) {
         this.state.navbarLogoText = home.navbar_logo_text;
       } else if (site.photographer_name) {
@@ -206,6 +257,12 @@ class PublicApiService {
       }
       if (home.navbar_contact_label) {
         this.state.navbarContactLabel = home.navbar_contact_label;
+      }
+      if (home.theme_toggle_visible !== undefined) {
+        this.state.themeToggleVisible = Boolean(home.theme_toggle_visible);
+      }
+      if (home.theme_mode) {
+        this.state.themeMode = home.theme_mode;
       }
       if (home.hero_subtext) {
         this.state.professionSubtitle = home.hero_subtext;
@@ -362,6 +419,63 @@ class PublicApiService {
         p.code === `0${slug}`
     );
     return found || null;
+  }
+
+  public async fetchGlobalSeo(): Promise<any> {
+    try {
+      const res = await fetch(`${API_BASE}/seo/global`);
+      if (!res.ok) return null;
+      const data = await res.json();
+      return data.seo || null;
+    } catch {
+      return null;
+    }
+  }
+
+  public async fetchLocations(): Promise<any[]> {
+    try {
+      const res = await fetch(`${API_BASE}/seo/locations`);
+      if (!res.ok) return [];
+      const data = await res.json();
+      return Array.isArray(data.locations) ? data.locations : [];
+    } catch {
+      return [];
+    }
+  }
+
+  public async fetchLocationBySlug(slug: string): Promise<any | null> {
+    try {
+      const res = await fetch(`${API_BASE}/seo/locations/${encodeURIComponent(slug)}`);
+      if (!res.ok) return null;
+      const data = await res.json();
+      return data.location ? data : null;
+    } catch {
+      return null;
+    }
+  }
+
+  public async submitInquiry(payload: {
+    name: string;
+    email: string;
+    projectType: string;
+    timeline: string;
+    message: string;
+    budget?: string;
+  }): Promise<{ success: boolean; message?: string }> {
+    try {
+      const res = await fetch(`${API_BASE}/inquiries`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.message || 'Failed to submit inquiry');
+      }
+      return { success: true, message: data.message };
+    } catch (err: any) {
+      return { success: false, message: err?.message || 'Failed to transmit inquiry' };
+    }
   }
 }
 

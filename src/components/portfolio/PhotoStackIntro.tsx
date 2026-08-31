@@ -44,7 +44,7 @@ export const PhotoStackIntro: React.FC<PhotoStackIntroProps> = ({ onComplete }) 
     });
   }, []);
 
-  const signatureText = splashState.signatureText || splashState.photographerName || 'Flames Photography';
+  const signatureText = splashState.signatureText || splashState.photographerName || '';
   const subtitleText = splashState.subtext;
   const images = splashState.images || [];
   const typingSpeed = splashState.typingSpeedMs || 65;
@@ -62,11 +62,11 @@ export const PhotoStackIntro: React.FC<PhotoStackIntroProps> = ({ onComplete }) 
 
     // Step 1: Progressively stack physical photographic prints if any exist
     if (images.length > 0) {
-      const stepDelay = Math.max(150, Math.floor(stackDuration / (images.length + 1)));
+      const stepDelay = Math.max(120, Math.floor(stackDuration / (images.length + 1)));
       images.forEach((_, index) => {
         const t = setTimeout(() => {
           setVisibleStackCount(index + 1);
-        }, 300 + index * stepDelay);
+        }, 250 + index * stepDelay);
         timers.push(t);
       });
     }
@@ -87,6 +87,27 @@ export const PhotoStackIntro: React.FC<PhotoStackIntroProps> = ({ onComplete }) 
       clearTimeout(completeTimer);
     };
   }, [images.length, stackDuration, splashState.isEnabled]);
+
+  // Dynamic stack calculation supporting unlimited images
+  const getSlotForIndex = (idx: number, total: number) => {
+    const anglePatterns = [-3.5, 3.0, -2.0, 2.5, -1.0, 1.8, -2.8, 3.2, -1.5, 0.8, -3.0, 2.0];
+    const xPatterns = [-18, 16, -10, 14, -6, 8, -12, 11, -8, 7, -15, 12];
+    const yPatterns = [-12, 10, 14, -8, 4, -4, 9, -11, 7, -6, 12, -9];
+    
+    const rotation = idx === total - 1 ? 0 : anglePatterns[idx % anglePatterns.length];
+    const targetX = idx === total - 1 ? 0 : xPatterns[idx % xPatterns.length];
+    const targetY = idx === total - 1 ? 0 : yPatterns[idx % yPatterns.length];
+    const zIndex = 10 + idx;
+
+    return {
+      initialX: 0,
+      initialY: (idx % 2 === 0 ? 1 : -1) * 15,
+      targetX,
+      targetY,
+      rotation,
+      zIndex,
+    };
+  };
 
   return (
     <div
@@ -163,10 +184,10 @@ export const PhotoStackIntro: React.FC<PhotoStackIntroProps> = ({ onComplete }) 
       {images.length > 0 && (
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden">
           {images.map((img, idx) => {
-            const slot = STACK_SLOTS[idx % STACK_SLOTS.length];
+            const slot = getSlotForIndex(idx, images.length);
             const isVisible = idx < visibleStackCount;
             const disperseY = idx % 2 === 0 ? -280 : 280;
-            const disperseX = (idx - 4.5) * 60;
+            const disperseX = (idx - images.length / 2) * 45;
 
             const currentX = isDissolving ? slot.targetX + disperseX : isVisible ? slot.targetX : slot.initialX;
             const currentY = isDissolving ? slot.targetY + disperseY : isVisible ? slot.targetY : slot.initialY;
@@ -186,7 +207,7 @@ export const PhotoStackIntro: React.FC<PhotoStackIntroProps> = ({ onComplete }) 
                     : 'transform 600ms cubic-bezier(0.22, 1, 0.36, 1), opacity 450ms ease-out',
                   opacity: currentOpacity,
                 }}
-                className={`absolute ${slot.width} ${slot.height} bg-[#E2DFD2] dark:bg-[#202020] border border-[#111111]/10 dark:border-[#FEFDF3]/10 shadow-[0_8px_30px_rgba(0,0,0,0.12)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.5)] overflow-hidden`}
+                className="absolute w-48 sm:w-60 md:w-72 lg:w-80 h-64 sm:h-80 md:h-96 lg:h-104 bg-[#E2DFD2] dark:bg-[#202020] border border-[#111111]/10 dark:border-[#FEFDF3]/10 shadow-[0_8px_30px_rgba(0,0,0,0.12)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.5)] overflow-hidden"
               >
                 <img
                   src={img.src}

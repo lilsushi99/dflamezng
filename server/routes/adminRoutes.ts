@@ -5,11 +5,14 @@ import {
   uploadHomepageFront,
   uploadHomepageBack,
   uploadProject,
+  uploadLogo,
 } from '../middleware/uploadMiddleware';
 import { adminSplashController } from '../controllers/adminSplashController';
 import { adminHomeController } from '../controllers/adminHomeController';
 import { adminProjectController } from '../controllers/adminProjectController';
 import { adminFooterController } from '../controllers/adminFooterController';
+import { adminSeoController } from '../controllers/adminSeoController';
+import { adminContactController } from '../controllers/adminContactController';
 
 const router = Router();
 
@@ -36,17 +39,28 @@ router.post('/splash/images/url', (req, res) => adminSplashController.addImageUr
 // PUT /api/admin/splash/images/reorder - reorder images
 router.put('/splash/images/reorder', (req, res) => adminSplashController.reorderImages(req, res));
 
+// PUT /api/admin/splash/images/:id - update individual splash image
+router.put('/splash/images/:id', (req, res) => adminSplashController.updateImage(req, res));
+
 // DELETE /api/admin/splash/images/:id - delete image
 router.delete('/splash/images/:id', (req, res) => adminSplashController.deleteImage(req, res));
 
 // ==========================================
-// 2. HOME SCREEN ROUTES
+// 2. HOME SCREEN & LOGO ROUTES
 // ==========================================
 // GET /api/admin/home - fetch settings, front/back images, social links, project references
 router.get('/home', (req, res) => adminHomeController.getHomeData(req, res));
 
 // PUT /api/admin/home/settings - update navbar and home settings
 router.put('/home/settings', (req, res) => adminHomeController.updateSettings(req, res));
+
+// POST /api/admin/home/logo/upload - upload custom logo image
+router.post('/home/logo/upload', uploadLogo.single('logo'), (req, res) =>
+  adminHomeController.uploadLogo(req, res)
+);
+
+// DELETE /api/admin/home/logo - remove logo image
+router.delete('/home/logo', (req, res) => adminHomeController.deleteLogo(req, res));
 
 // POST /api/admin/homepage/images/upload - upload front/back image from device
 router.post(
@@ -114,5 +128,47 @@ router.get('/footer', (req, res) => adminFooterController.getFooter(req, res));
 
 // PUT /api/admin/footer - update footer settings
 router.put('/footer', (req, res) => adminFooterController.updateFooter(req, res));
+
+// ==========================================
+// 5. SEO & LOCATIONS ROUTES
+// ==========================================
+// GET /api/admin/seo - get global SEO config & stats
+router.get('/seo', (req, res) => adminSeoController.getGlobalSeo(req, res));
+
+// PUT /api/admin/seo/global - update global SEO config
+router.put('/seo/global', (req, res) => adminSeoController.updateGlobalSeo(req, res));
+
+// GET /api/admin/seo/locations - get all SEO location landing pages
+router.get('/seo/locations', (req, res) => adminSeoController.getAllLocations(req, res));
+
+// GET /api/admin/seo/locations/:id - get location page by ID
+router.get('/seo/locations/:id', (req, res) => adminSeoController.getLocationById(req, res));
+
+// POST /api/admin/seo/locations - create new location page
+router.post('/seo/locations', (req, res) => adminSeoController.createLocation(req, res));
+
+// PUT /api/admin/seo/locations/:id - update location page
+router.put('/seo/locations/:id', (req, res) => adminSeoController.updateLocation(req, res));
+
+// DELETE /api/admin/seo/locations/:id - delete location page
+router.delete('/seo/locations/:id', (req, res) => adminSeoController.deleteLocation(req, res));
+
+// ==========================================
+// 6. CONTACT & INQUIRIES ROUTES
+// ==========================================
+// GET /api/admin/contact-settings - get contact settings
+router.get('/contact-settings', (req, res) => adminContactController.getContactSettings(req, res));
+
+// PUT /api/admin/contact-settings - update contact settings
+router.put('/contact-settings', (req, res) => adminContactController.updateContactSettings(req, res));
+
+// GET /api/admin/inquiries - list all client inquiries
+router.get('/inquiries', (req, res) => adminContactController.getInquiries(req, res));
+
+// PUT /api/admin/inquiries/:id - update status / notes
+router.put('/inquiries/:id', (req, res) => adminContactController.updateInquiry(req, res));
+
+// DELETE /api/admin/inquiries/:id - delete inquiry
+router.delete('/inquiries/:id', (req, res) => adminContactController.deleteInquiry(req, res));
 
 export default router;

@@ -16,10 +16,13 @@ export interface HomepageImage {
 
 export interface HomepageSettings {
   id: number;
+  logo_type?: 'TEXT' | 'IMAGE';
   navbar_logo_text?: string;
+  logo_image_path?: string | null;
   navbar_projects_label?: string;
   navbar_contact_label?: string;
   theme_toggle_visible?: boolean;
+  theme_mode?: 'DARK' | 'LIGHT';
   photographer_name?: string;
   top_track_speed: number;
   bottom_track_speed: number;

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowUp, ArrowDown, Trash2, Link2, ExternalLink, HardDrive, Globe } from 'lucide-react';
+import { ArrowUp, ArrowDown, Trash2, Link2, ExternalLink, HardDrive, Globe, Save, Check, Loader2 } from 'lucide-react';
 import { SourceType } from '../../types/admin';
 
 interface ProjectOption {
@@ -19,6 +19,7 @@ interface ImageAspectCardProps {
   onMoveUp: () => void;
   onMoveDown: () => void;
   onDelete: () => void;
+  onSave?: () => Promise<void> | void;
   onProjectChange?: (projectId: number | null) => void;
   trackLabel?: string;
 }
@@ -35,11 +36,14 @@ export const ImageAspectCard: React.FC<ImageAspectCardProps> = ({
   onMoveUp,
   onMoveDown,
   onDelete,
+  onSave,
   onProjectChange,
   trackLabel,
 }) => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
 
   const handleDeleteClick = () => {
     if (confirmDelete) {
@@ -48,6 +52,20 @@ export const ImageAspectCard: React.FC<ImageAspectCardProps> = ({
     } else {
       setConfirmDelete(true);
       setTimeout(() => setConfirmDelete(false), 4000);
+    }
+  };
+
+  const handleIndividualSave = async () => {
+    if (!onSave) return;
+    setIsSaving(true);
+    try {
+      await onSave();
+      setSaveSuccess(true);
+      setTimeout(() => setSaveSuccess(false), 2500);
+    } catch {
+      // Handled by parent
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -89,8 +107,36 @@ export const ImageAspectCard: React.FC<ImageAspectCardProps> = ({
           )}
         </div>
 
-        {/* Reorder Buttons */}
+        {/* Reorder & Save & Delete Buttons */}
         <div className="flex items-center gap-1">
+          {onSave && (
+            <button
+              type="button"
+              onClick={handleIndividualSave}
+              disabled={isSaving}
+              title="Save Image State"
+              className={`flex items-center gap-1 px-2 py-1 rounded text-[10px] font-mono tracking-wider transition-all cursor-pointer ${
+                saveSuccess
+                  ? 'bg-emerald-900/80 text-emerald-200 border border-emerald-700'
+                  : 'bg-neutral-800 hover:bg-neutral-700 text-amber-300 border border-neutral-700'
+              }`}
+            >
+              {isSaving ? (
+                <Loader2 className="w-3 h-3 animate-spin" />
+              ) : saveSuccess ? (
+                <>
+                  <Check className="w-3 h-3 text-emerald-400" />
+                  SAVED
+                </>
+              ) : (
+                <>
+                  <Save className="w-3 h-3" />
+                  SAVE
+                </>
+              )}
+            </button>
+          )}
+
           <button
             type="button"
             onClick={onMoveUp}

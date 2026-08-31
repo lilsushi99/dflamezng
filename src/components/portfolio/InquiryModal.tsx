@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X, Check } from 'lucide-react';
 import { InquiryFormData } from '../../types/portfolio';
+import { publicApiService } from '../../services/publicApiService';
 
 interface InquiryModalProps {
   isOpen: boolean;
@@ -19,16 +20,26 @@ export const InquiryModal: React.FC<InquiryModalProps> = ({ isOpen, onClose }) =
 
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
+    setErrorMessage(null);
+    try {
+      const res = await publicApiService.submitInquiry(formData);
+      if (res.success) {
+        setSubmitted(true);
+      } else {
+        setErrorMessage(res.message || 'Failed to transmit inquiry');
+      }
+    } catch {
       setSubmitted(true);
-    }, 600);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleReset = () => {

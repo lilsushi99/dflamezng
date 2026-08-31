@@ -12,11 +12,14 @@ import {
   defaultSocialLinks,
   defaultFooterSettings,
 } from './seedData';
+import { defaultGlobalSeoSettings, defaultNigerianLocations } from './nigerianLocationsSeed';
 import { Admin } from '../models/Admin';
 import { SiteSettings, SocialLink, FooterSettings } from '../models/Settings';
 import { SplashSettings, SplashImage } from '../models/Splash';
 import { HomepageSettings, HomepageImage } from '../models/Homepage';
 import { Project, ProjectImage } from '../models/Project';
+import { GlobalSeoSettings, SeoLocation } from '../models/Seo';
+import { Inquiry } from '../models/Inquiry';
 
 export interface DatabaseManifest {
   admins: Admin[];
@@ -29,6 +32,9 @@ export interface DatabaseManifest {
   projectImages: ProjectImage[];
   socialLinks: SocialLink[];
   footerSettings: FooterSettings;
+  globalSeo: GlobalSeoSettings;
+  seoLocations: SeoLocation[];
+  inquiries: Inquiry[];
 }
 
 const storageDir = path.join(process.cwd(), 'storage');
@@ -49,6 +55,9 @@ function getInitialStore(): DatabaseManifest {
     projectImages: JSON.parse(JSON.stringify(defaultProjectImages)),
     socialLinks: JSON.parse(JSON.stringify(defaultSocialLinks)),
     footerSettings: JSON.parse(JSON.stringify(defaultFooterSettings)),
+    globalSeo: JSON.parse(JSON.stringify(defaultGlobalSeoSettings)),
+    seoLocations: JSON.parse(JSON.stringify(defaultNigerianLocations)),
+    inquiries: [],
   };
 }
 
@@ -77,6 +86,9 @@ export class PersistentStore {
           projectImages: parsed.projectImages || defaultProjectImages,
           socialLinks: parsed.socialLinks || defaultSocialLinks,
           footerSettings: parsed.footerSettings || defaultFooterSettings,
+          globalSeo: parsed.globalSeo || defaultGlobalSeoSettings,
+          seoLocations: parsed.seoLocations && parsed.seoLocations.length > 0 ? parsed.seoLocations : defaultNigerianLocations,
+          inquiries: Array.isArray(parsed.inquiries) ? parsed.inquiries : [],
         };
       } else {
         cachedStore = getInitialStore();

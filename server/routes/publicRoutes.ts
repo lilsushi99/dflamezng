@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { publicController } from '../controllers/publicController';
+import { publicSeoController } from '../controllers/publicSeoController';
 
 const router = Router();
 
@@ -26,5 +27,20 @@ router.get('/projects/:id', (req, res) => publicController.getProjectById(req, r
 
 // GET /api/footer
 router.get('/footer', (req, res) => publicController.getFooter(req, res));
+
+// POST /api/inquiries
+router.post('/inquiries', (req, res) => publicController.submitInquiry(req, res));
+
+// ==========================================
+// SEO & Dynamic Nigerian Location Routes
+// ==========================================
+// GET /api/seo/global
+router.get('/seo/global', (req, res) => publicSeoController.getGlobalSeo(req, res));
+
+// GET /api/seo/locations
+router.get('/seo/locations', (req, res) => publicSeoController.getLocations(req, res));
+
+// GET /api/seo/locations/:slug
+router.get('/seo/locations/:slug', (req, res) => publicSeoController.getLocationBySlug(req, res));
 
 export default router;
