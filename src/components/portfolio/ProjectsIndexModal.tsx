@@ -1,5 +1,5 @@
-import React from 'react';
-import { X } from 'lucide-react';
+import React, { useState } from 'react';
+import { X, ChevronDown, ChevronUp } from 'lucide-react';
 import { ProjectGallery } from '../../types/portfolio';
 import { ImageAssetService } from '../../services/imageAssetService';
 import { publicApiService } from '../../services/publicApiService';
@@ -15,11 +15,21 @@ export const ProjectsIndexModal: React.FC<ProjectsIndexModalProps> = ({
   onClose,
   onSelectProjectPhoto,
 }) => {
+  const [showAll, setShowAll] = useState(false);
+
   if (!isOpen) return null;
 
+  const state = publicApiService.getState();
   const projects = ImageAssetService.getAllProjects();
   const topPhotos = ImageAssetService.getTopPhotoAssets();
-  const studioName = publicApiService.getState().studioName || publicApiService.getState().photographerName || 'Flames Photography';
+  const studioName = state.studioName || state.photographerName || 'D Flames Photography';
+
+  const subtitle = state.projectsModalSubtitle || 'Selected Body of Work';
+  const title = state.projectsModalTitle || 'Projects & Art Direction';
+  const archiveLabel = state.projectsModalArchiveLabel || `${studioName} Archive`;
+
+  const displayedProjects = showAll ? projects : projects.slice(0, 5);
+  const hasMore = projects.length > 5;
 
   const handleOpenProject = (project: ProjectGallery) => {
     const matched =
@@ -52,10 +62,10 @@ export const ProjectsIndexModal: React.FC<ProjectsIndexModalProps> = ({
 
         <div className="border-b border-[#111111]/15 dark:border-[#FEFDF3]/15 pb-4 mb-8">
           <span className="font-editorial-sans text-[10px] tracking-[0.25em] uppercase opacity-60">
-            Selected Body of Work
+            {subtitle}
           </span>
           <h2 className="font-editorial-serif text-3xl sm:text-4xl md:text-5xl mt-1">
-            Projects & Art Direction
+            {title}
           </h2>
         </div>
 
@@ -64,46 +74,71 @@ export const ProjectsIndexModal: React.FC<ProjectsIndexModalProps> = ({
             No projects in archive
           </div>
         ) : (
-          <div className="divide-y divide-[#111111]/10 dark:divide-[#FEFDF3]/10">
-            {projects.map((project) => (
-              <div
-                key={project.id}
-                onClick={() => handleOpenProject(project)}
-                className="py-6 sm:py-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4 group cursor-pointer transition-opacity hover:opacity-80"
-                role="button"
-                tabIndex={0}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    handleOpenProject(project);
-                  }
-                }}
-              >
-                <div className="flex items-baseline space-x-4 sm:space-x-6">
-                  <span className="font-editorial-sans text-xs sm:text-sm tracking-[0.2em] opacity-40 group-hover:opacity-100 transition-opacity">
-                    {project.code}
-                  </span>
-                  <div>
-                    <h3 className="font-editorial-serif text-2xl sm:text-3xl md:text-4xl group-hover:italic transition-all">
-                      {project.title}
-                    </h3>
-                    <p className="font-editorial-sans text-[11px] tracking-wider opacity-60 mt-1 uppercase">
-                      {project.subtitle}
-                    </p>
+          <div className="space-y-4">
+            <div className="divide-y divide-[#111111]/10 dark:divide-[#FEFDF3]/10">
+              {displayedProjects.map((project) => (
+                <div
+                  key={project.id}
+                  onClick={() => handleOpenProject(project)}
+                  className="py-6 sm:py-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4 group cursor-pointer transition-opacity hover:opacity-80"
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      handleOpenProject(project);
+                    }
+                  }}
+                >
+                  <div className="flex items-baseline space-x-4 sm:space-x-6">
+                    <span className="font-editorial-sans text-xs sm:text-sm tracking-[0.2em] opacity-40 group-hover:opacity-100 transition-opacity">
+                      {project.code}
+                    </span>
+                    <div>
+                      <h3 className="font-editorial-serif text-2xl sm:text-3xl md:text-4xl group-hover:italic transition-all">
+                        {project.title}
+                      </h3>
+                      <p className="font-editorial-sans text-[11px] tracking-wider opacity-60 mt-1 uppercase">
+                        {project.subtitle || project.category}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center space-x-4 self-end sm:self-center font-editorial-sans text-[10px] tracking-[0.2em] uppercase opacity-70">
+                    <span>{project.year}</span>
+                    <span className="group-hover:translate-x-1 transition-transform">→</span>
                   </div>
                 </div>
+              ))}
+            </div>
 
-                <div className="flex items-center space-x-4 self-end sm:self-center font-editorial-sans text-[10px] tracking-[0.2em] uppercase opacity-70">
-                  <span>{project.year}</span>
-                  <span className="group-hover:translate-x-1 transition-transform">→</span>
-                </div>
+            {/* Expand / View Complete Archive Button */}
+            {hasMore && (
+              <div className="pt-4 text-center">
+                <button
+                  type="button"
+                  onClick={() => setShowAll((prev) => !prev)}
+                  className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full border border-current font-editorial-sans text-[10px] tracking-[0.25em] uppercase opacity-75 hover:opacity-100 transition-all cursor-pointer"
+                >
+                  {showAll ? (
+                    <>
+                      <span>Show Top 5 Projects</span>
+                      <ChevronUp className="w-3.5 h-3.5" />
+                    </>
+                  ) : (
+                    <>
+                      <span>View Complete Archive ({projects.length} Projects)</span>
+                      <ChevronDown className="w-3.5 h-3.5" />
+                    </>
+                  )}
+                </button>
               </div>
-            ))}
+            )}
           </div>
         )}
 
         <div className="mt-8 pt-6 border-t border-[#111111]/15 dark:border-[#FEFDF3]/15 flex items-center justify-between font-editorial-sans text-[10px] tracking-[0.2em] uppercase opacity-60">
-          <span>{studioName} Archive</span>
-          <span>{projects.length} Selected Project{projects.length === 1 ? '' : 's'}</span>
+          <span>{archiveLabel}</span>
+          <span>{projects.length} Published Project{projects.length === 1 ? '' : 's'}</span>
         </div>
       </div>
     </div>

@@ -48,6 +48,12 @@ router.delete('/splash/images/:id', (req, res) => adminSplashController.deleteIm
 // ==========================================
 // 2. HOME SCREEN & LOGO ROUTES
 // ==========================================
+// GET /api/admin/site-settings - fetch global site settings
+router.get('/site-settings', (req, res) => adminHomeController.getSiteSettings(req, res));
+
+// PUT /api/admin/site-settings - update global site settings
+router.put('/site-settings', (req, res) => adminHomeController.updateSiteSettings(req, res));
+
 // GET /api/admin/home - fetch settings, front/back images, social links, project references
 router.get('/home', (req, res) => adminHomeController.getHomeData(req, res));
 
@@ -95,16 +101,28 @@ router.put('/social-links/reorder/batch', (req, res) => adminHomeController.reor
 router.delete('/social-links/:id', (req, res) => adminHomeController.deleteSocialLink(req, res));
 
 // ==========================================
-// 3. PROJECTS ROUTES
+// 3. PROJECTS & CATEGORIES ROUTES
 // ==========================================
 // GET /api/admin/projects - list all projects
 router.get('/projects', (req, res) => adminProjectController.getAllProjects(req, res));
+
+// POST /api/admin/projects - create a new project
+router.post('/projects', (req, res) => adminProjectController.createProject(req, res));
 
 // GET /api/admin/projects/:id - single project details
 router.get('/projects/:id', (req, res) => adminProjectController.getProjectById(req, res));
 
 // PUT /api/admin/projects/:id - update project details
 router.put('/projects/:id', (req, res) => adminProjectController.updateProject(req, res));
+
+// DELETE /api/admin/projects/:id - delete a project
+router.delete('/projects/:id', (req, res) => adminProjectController.deleteProject(req, res));
+
+// Categories CRUD
+router.get('/categories', (req, res) => adminProjectController.getCategories(req, res));
+router.post('/categories', (req, res) => adminProjectController.createCategory(req, res));
+router.put('/categories/:id', (req, res) => adminProjectController.updateCategory(req, res));
+router.delete('/categories/:id', (req, res) => adminProjectController.deleteCategory(req, res));
 
 // POST /api/admin/projects/:id/images/upload - upload gallery image from device
 router.post('/projects/:id/images/upload', uploadProject.single('image'), (req, res) =>

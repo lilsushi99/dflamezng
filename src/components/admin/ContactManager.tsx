@@ -32,6 +32,10 @@ export const ContactManager: React.FC = () => {
     availability_text: string;
     studio_name: string;
     photographer_name: string;
+    about_title?: string;
+    about_statement?: string;
+    about_story?: string;
+    about_services?: string;
   }>({
     contact_email: 'studio@goldakingbade.com',
     contact_phone: '+234 812 345 6789',
@@ -40,6 +44,10 @@ export const ContactManager: React.FC = () => {
     availability_text: 'Open to Travel — Worldwide & Commissions',
     studio_name: 'GOLD AKINGBADE STUDIO',
     photographer_name: 'Gold Akingbade',
+    about_title: 'ABOUT THE STUDIO',
+    about_statement: 'Good Akinbade is a Nigerian fashion, portrait, and editorial art direction photographer based in Akure and Lagos.',
+    about_story: 'Blending classical African aesthetics with contemporary high-fashion narrative, the studio creates timeless visual archives for international lookbooks, publications, and private collections.',
+    about_services: 'Fashion Lookbooks, Editorial Campaigns, Portraiture, Creative Direction, Commercial Visual Production',
   });
 
   // Inquiries State
@@ -49,9 +57,10 @@ export const ContactManager: React.FC = () => {
   const fetchData = async () => {
     setIsLoading(true);
     try {
-      const [settingsRes, inquiriesRes] = await Promise.all([
+      const [settingsRes, inquiriesRes, siteSettingsRes] = await Promise.all([
         adminApiService.getContactSettings(),
         adminApiService.getInquiries(),
+        adminApiService.getSiteSettings().catch(() => ({})),
       ]);
       if (settingsRes) {
         setContactSettings({
@@ -61,7 +70,11 @@ export const ContactManager: React.FC = () => {
           is_available: settingsRes.is_available !== false,
           availability_text: settingsRes.availability_text || 'Open to Travel — Worldwide & Commissions',
           studio_name: settingsRes.studio_name || 'GOLD AKINGBADE STUDIO',
-          photographer_name: settingsRes.photographer_name || 'Gold Akingbade',
+          photographer_name: settingsRes.photographer_name || 'Good Akinbade',
+          about_title: siteSettingsRes?.about_title || 'ABOUT THE STUDIO',
+          about_statement: siteSettingsRes?.about_statement || 'Good Akinbade is a Nigerian fashion, portrait, and editorial art direction photographer based in Akure and Lagos.',
+          about_story: siteSettingsRes?.about_story || 'Blending classical African aesthetics with contemporary high-fashion narrative, the studio creates timeless visual archives for international lookbooks, publications, and private collections.',
+          about_services: siteSettingsRes?.about_services || 'Fashion Lookbooks, Editorial Campaigns, Portraiture, Creative Direction, Commercial Visual Production',
         });
       }
       if (inquiriesRes) {
@@ -83,8 +96,21 @@ export const ContactManager: React.FC = () => {
     setIsSaving(true);
     setFeedback(null);
     try {
-      await adminApiService.updateContactSettings(contactSettings);
-      setFeedback({ type: 'success', message: 'Studio contacts & availability published successfully' });
+      await Promise.all([
+        adminApiService.updateContactSettings(contactSettings),
+        adminApiService.updateSiteSettings({
+          about_title: contactSettings.about_title,
+          about_statement: contactSettings.about_statement,
+          about_story: contactSettings.about_story,
+          about_services: contactSettings.about_services,
+          location_text: contactSettings.location_text,
+          is_available: contactSettings.is_available,
+          availability_text: contactSettings.availability_text,
+          contact_email: contactSettings.contact_email,
+          contact_phone: contactSettings.contact_phone,
+        }),
+      ]);
+      setFeedback({ type: 'success', message: 'Studio contacts, biography & availability published successfully' });
     } catch (err: any) {
       setFeedback({ type: 'error', message: err?.message || 'Failed to save contact settings' });
     } finally {
@@ -283,6 +309,70 @@ export const ContactManager: React.FC = () => {
                     </span>
                   </div>
                 </label>
+              </div>
+            </div>
+          </section>
+
+          {/* About / Studio Manifesto Section */}
+          <section className="bg-neutral-900 border border-neutral-800 rounded-2xl p-6 md:p-8 space-y-6">
+            <div className="border-b border-neutral-800 pb-4">
+              <h3 className="text-base font-semibold text-neutral-100">About the Studio & Curatorial Manifesto</h3>
+              <p className="text-xs text-neutral-400">
+                Official biography, artistic philosophy, and services rendered across editorial and commercial portfolios.
+              </p>
+            </div>
+
+            <div className="space-y-5">
+              <div>
+                <label className="block text-xs font-mono uppercase tracking-wider text-neutral-300 mb-2">
+                  Section Header Title
+                </label>
+                <input
+                  type="text"
+                  value={contactSettings.about_title || ''}
+                  onChange={(e) => setContactSettings({ ...contactSettings, about_title: e.target.value })}
+                  placeholder="ABOUT THE STUDIO"
+                  className="w-full bg-neutral-950 border border-neutral-700 rounded-xl px-4 py-2.5 text-sm text-neutral-100 focus:outline-none focus:border-amber-400 font-mono uppercase text-xs"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-mono uppercase tracking-wider text-neutral-300 mb-2">
+                  Core Artistic Statement / Hook
+                </label>
+                <textarea
+                  rows={2}
+                  value={contactSettings.about_statement || ''}
+                  onChange={(e) => setContactSettings({ ...contactSettings, about_statement: e.target.value })}
+                  placeholder="Good Akinbade is a Nigerian fashion, portrait, and editorial art direction photographer based in Akure and Lagos."
+                  className="w-full bg-neutral-950 border border-neutral-700 rounded-xl px-4 py-2.5 text-sm text-neutral-100 focus:outline-none focus:border-amber-400 font-serif"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-mono uppercase tracking-wider text-neutral-300 mb-2">
+                  Studio Story & Curatorial Background
+                </label>
+                <textarea
+                  rows={4}
+                  value={contactSettings.about_story || ''}
+                  onChange={(e) => setContactSettings({ ...contactSettings, about_story: e.target.value })}
+                  placeholder="Blending classical African aesthetics with contemporary high-fashion narrative, the studio creates timeless visual archives for international lookbooks, publications, and private collections."
+                  className="w-full bg-neutral-950 border border-neutral-700 rounded-xl px-4 py-2.5 text-sm text-neutral-100 focus:outline-none focus:border-amber-400 font-serif"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-mono uppercase tracking-wider text-neutral-300 mb-2">
+                  Creative Services & Capabilities
+                </label>
+                <input
+                  type="text"
+                  value={contactSettings.about_services || ''}
+                  onChange={(e) => setContactSettings({ ...contactSettings, about_services: e.target.value })}
+                  placeholder="Fashion Lookbooks, Editorial Campaigns, Portraiture, Creative Direction, Commercial Visual Production"
+                  className="w-full bg-neutral-950 border border-neutral-700 rounded-xl px-4 py-2.5 text-sm text-neutral-100 focus:outline-none focus:border-amber-400 font-mono text-xs"
+                />
               </div>
             </div>
           </section>

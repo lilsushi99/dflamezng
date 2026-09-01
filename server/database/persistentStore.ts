@@ -18,8 +18,10 @@ import { SiteSettings, SocialLink, FooterSettings } from '../models/Settings';
 import { SplashSettings, SplashImage } from '../models/Splash';
 import { HomepageSettings, HomepageImage } from '../models/Homepage';
 import { Project, ProjectImage } from '../models/Project';
+import { Category } from '../models/Category';
 import { GlobalSeoSettings, SeoLocation } from '../models/Seo';
 import { Inquiry } from '../models/Inquiry';
+import { defaultCategories } from './seedData';
 
 export interface DatabaseManifest {
   admins: Admin[];
@@ -30,6 +32,7 @@ export interface DatabaseManifest {
   homepageImages: HomepageImage[];
   projects: Project[];
   projectImages: ProjectImage[];
+  categories: Category[];
   socialLinks: SocialLink[];
   footerSettings: FooterSettings;
   globalSeo: GlobalSeoSettings;
@@ -53,6 +56,7 @@ function getInitialStore(): DatabaseManifest {
     homepageImages: JSON.parse(JSON.stringify(defaultHomepageImages)),
     projects: JSON.parse(JSON.stringify(defaultProjects)),
     projectImages: JSON.parse(JSON.stringify(defaultProjectImages)),
+    categories: JSON.parse(JSON.stringify(defaultCategories)),
     socialLinks: JSON.parse(JSON.stringify(defaultSocialLinks)),
     footerSettings: JSON.parse(JSON.stringify(defaultFooterSettings)),
     globalSeo: JSON.parse(JSON.stringify(defaultGlobalSeoSettings)),
@@ -77,13 +81,14 @@ export class PersistentStore {
         const parsed = JSON.parse(fileContent);
         cachedStore = {
           admins: parsed.admins || defaultAdmins,
-          siteSettings: parsed.siteSettings || defaultSiteSettings,
-          splashSettings: parsed.splashSettings || defaultSplashSettings,
+          siteSettings: parsed.siteSettings ? { ...defaultSiteSettings, ...parsed.siteSettings } : defaultSiteSettings,
+          splashSettings: parsed.splashSettings ? { ...defaultSplashSettings, ...parsed.splashSettings } : defaultSplashSettings,
           splashImages: parsed.splashImages || defaultSplashImages,
-          homepageSettings: parsed.homepageSettings || defaultHomepageSettings,
+          homepageSettings: parsed.homepageSettings ? { ...defaultHomepageSettings, ...parsed.homepageSettings } : defaultHomepageSettings,
           homepageImages: parsed.homepageImages || defaultHomepageImages,
           projects: parsed.projects || defaultProjects,
           projectImages: parsed.projectImages || defaultProjectImages,
+          categories: parsed.categories && parsed.categories.length > 0 ? parsed.categories : defaultCategories,
           socialLinks: parsed.socialLinks || defaultSocialLinks,
           footerSettings: parsed.footerSettings || defaultFooterSettings,
           globalSeo: parsed.globalSeo || defaultGlobalSeoSettings,

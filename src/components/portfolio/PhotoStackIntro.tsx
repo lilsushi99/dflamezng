@@ -88,11 +88,16 @@ export const PhotoStackIntro: React.FC<PhotoStackIntroProps> = ({ onComplete }) 
     };
   }, [images.length, stackDuration, splashState.isEnabled]);
 
-  // Dynamic stack calculation supporting unlimited images
+  // Dynamic stack calculation supporting unlimited images with realistic physical photographic stacking
   const getSlotForIndex = (idx: number, total: number) => {
-    const anglePatterns = [-3.5, 3.0, -2.0, 2.5, -1.0, 1.8, -2.8, 3.2, -1.5, 0.8, -3.0, 2.0];
-    const xPatterns = [-18, 16, -10, 14, -6, 8, -12, 11, -8, 7, -15, 12];
-    const yPatterns = [-12, 10, 14, -8, 4, -4, 9, -11, 7, -6, 12, -9];
+    // Subtle rotation angles mimicking hand-stacked photographic paper
+    const anglePatterns = [-3.0, 2.5, -1.8, 2.2, -1.2, 1.5, -2.4, 2.8, -1.0, 0.6, -2.5, 1.8];
+    // Balanced x/y offsets keeping stack centered without drifting off-screen
+    const xPatterns = [-14, 12, -8, 11, -5, 7, -10, 9, -6, 5, -12, 10];
+    const yPatterns = [-10, 8, 11, -6, 3, -4, 7, -9, 5, -5, 9, -7];
+    
+    // Each successive photograph stacked on top is subtly smaller (e.g. 1.5% decrease per layer, capped at 0.88)
+    const scaleFactor = Math.max(0.88, 1 - (idx * 0.016));
     
     const rotation = idx === total - 1 ? 0 : anglePatterns[idx % anglePatterns.length];
     const targetX = idx === total - 1 ? 0 : xPatterns[idx % xPatterns.length];
@@ -105,6 +110,7 @@ export const PhotoStackIntro: React.FC<PhotoStackIntroProps> = ({ onComplete }) 
       targetX,
       targetY,
       rotation,
+      scaleFactor,
       zIndex,
     };
   };
@@ -154,7 +160,7 @@ export const PhotoStackIntro: React.FC<PhotoStackIntroProps> = ({ onComplete }) 
       <div className="absolute z-40 text-center pointer-events-none px-4 max-w-4xl mx-auto">
         <h1
           id="typewriter-photographer-name"
-          className="font-editorial-serif font-light text-5xl sm:text-7xl md:text-8xl lg:text-9xl tracking-tight leading-[0.9] text-inherit"
+          className="font-editorial-serif font-light text-5xl sm:text-7xl md:text-8xl lg:text-9xl tracking-tight leading-[0.9] text-inherit drop-shadow-sm"
         >
           {splashState.typewriterEnabled ? (
             signatureText.split('').map((char, i) => (
@@ -192,7 +198,7 @@ export const PhotoStackIntro: React.FC<PhotoStackIntroProps> = ({ onComplete }) 
             const currentX = isDissolving ? slot.targetX + disperseX : isVisible ? slot.targetX : slot.initialX;
             const currentY = isDissolving ? slot.targetY + disperseY : isVisible ? slot.targetY : slot.initialY;
             const currentRotation = isVisible ? (isDissolving ? 0 : slot.rotation) : 0;
-            const currentScale = isDissolving ? 0.85 : isVisible ? 1 : 0.92;
+            const currentScale = isDissolving ? 0.8 : isVisible ? slot.scaleFactor : slot.scaleFactor * 0.95;
             const currentOpacity = isDissolving ? 0 : isVisible ? 0.98 : 0;
 
             return (
@@ -204,26 +210,28 @@ export const PhotoStackIntro: React.FC<PhotoStackIntroProps> = ({ onComplete }) 
                   transform: `translate3d(${currentX}px, ${currentY}px, 0) rotate(${currentRotation}deg) scale(${currentScale})`,
                   transition: isDissolving
                     ? 'transform 800ms cubic-bezier(0.16, 1, 0.3, 1), opacity 650ms ease-out'
-                    : 'transform 600ms cubic-bezier(0.22, 1, 0.36, 1), opacity 450ms ease-out',
+                    : 'transform 650ms cubic-bezier(0.22, 1, 0.36, 1), opacity 450ms ease-out',
                   opacity: currentOpacity,
                 }}
-                className="absolute w-48 sm:w-60 md:w-72 lg:w-80 h-64 sm:h-80 md:h-96 lg:h-104 bg-[#E2DFD2] dark:bg-[#202020] border border-[#111111]/10 dark:border-[#FEFDF3]/10 shadow-[0_8px_30px_rgba(0,0,0,0.12)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.5)] overflow-hidden"
+                className="absolute w-52 sm:w-64 md:w-76 lg:w-84 h-70 sm:h-84 md:h-100 lg:h-110 p-2 sm:p-2.5 bg-[#FAF8F5] dark:bg-[#1C1C1C] border border-[#111111]/15 dark:border-[#FEFDF3]/15 shadow-[0_12px_36px_rgba(0,0,0,0.16)] dark:shadow-[0_16px_40px_rgba(0,0,0,0.6)]"
               >
-                <img
-                  src={img.src}
-                  alt={signatureText}
-                  loading="eager"
-                  decoding="async"
-                  referrerPolicy="no-referrer"
-                  onLoad={() => setImagesLoaded((prev) => ({ ...prev, [img.id]: true }))}
-                  onError={() => {
-                    setImagesLoaded((prev) => ({ ...prev, [img.id]: true }));
-                  }}
-                  className={`w-full h-full object-cover transition-opacity duration-500 ${
-                    imagesLoaded[img.id] ? 'opacity-100' : 'opacity-90'
-                  }`}
-                  draggable={false}
-                />
+                <div className="w-full h-full overflow-hidden bg-neutral-900/10 dark:bg-neutral-900 flex items-center justify-center">
+                  <img
+                    src={img.src}
+                    alt={signatureText}
+                    loading="eager"
+                    decoding="async"
+                    referrerPolicy="no-referrer"
+                    onLoad={() => setImagesLoaded((prev) => ({ ...prev, [img.id]: true }))}
+                    onError={() => {
+                      setImagesLoaded((prev) => ({ ...prev, [img.id]: true }));
+                    }}
+                    className={`w-full h-full object-cover transition-opacity duration-500 ${
+                      imagesLoaded[img.id] ? 'opacity-100' : 'opacity-90'
+                    }`}
+                    draggable={false}
+                  />
+                </div>
               </div>
             );
           })}

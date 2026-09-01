@@ -27,6 +27,13 @@ export interface PublicSiteState {
   contactEmail: string;
   contactPhone: string;
   isAvailable: boolean;
+  aboutTitle?: string;
+  aboutStatement?: string;
+  aboutStory?: string;
+  aboutServices?: string;
+  projectsModalSubtitle?: string;
+  projectsModalTitle?: string;
+  projectsModalArchiveLabel?: string;
   logoType: 'TEXT' | 'IMAGE';
   navbarLogoText: string;
   logoImagePath: string | null;
@@ -244,6 +251,27 @@ class PublicApiService {
       }
       if (site.is_available !== undefined) {
         this.state.isAvailable = Boolean(site.is_available);
+      }
+      if (site.about_title !== undefined) {
+        this.state.aboutTitle = site.about_title;
+      }
+      if (site.about_statement !== undefined) {
+        this.state.aboutStatement = site.about_statement;
+      }
+      if (site.about_story !== undefined) {
+        this.state.aboutStory = site.about_story;
+      }
+      if (site.about_services !== undefined) {
+        this.state.aboutServices = site.about_services;
+      }
+      if (site.projects_modal_subtitle !== undefined) {
+        this.state.projectsModalSubtitle = site.projects_modal_subtitle;
+      }
+      if (site.projects_modal_title !== undefined) {
+        this.state.projectsModalTitle = site.projects_modal_title;
+      }
+      if (site.projects_modal_archive_label !== undefined) {
+        this.state.projectsModalArchiveLabel = site.projects_modal_archive_label;
       }
       this.state.logoType = home.logo_type === 'IMAGE' ? 'IMAGE' : 'TEXT';
       this.state.logoImagePath = resolveImageUrl({ file_path: home.logo_image_path, source_type: 'local' }) || null;

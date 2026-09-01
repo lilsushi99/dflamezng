@@ -448,6 +448,41 @@ export class AdminHomeController {
       });
     }
   }
+
+  // GET /api/admin/site-settings
+  async getSiteSettings(req: Request, res: Response): Promise<void> {
+    try {
+      const siteSettings = await settingsRepository.getSiteSettings();
+      res.status(200).json({
+        success: true,
+        siteSettings,
+      });
+    } catch (error: any) {
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch site settings',
+        error: error?.message,
+      });
+    }
+  }
+
+  // PUT /api/admin/site-settings
+  async updateSiteSettings(req: Request, res: Response): Promise<void> {
+    try {
+      const updated = await settingsRepository.updateSiteSettings(req.body);
+      res.status(200).json({
+        success: true,
+        message: 'Site settings updated successfully',
+        siteSettings: updated,
+      });
+    } catch (error: any) {
+      res.status(500).json({
+        success: false,
+        message: 'Failed to update site settings',
+        error: error?.message,
+      });
+    }
+  }
 }
 
 export const adminHomeController = new AdminHomeController();

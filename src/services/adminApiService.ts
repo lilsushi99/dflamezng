@@ -183,6 +183,24 @@ export class AdminApiService {
     return data.settings;
   }
 
+  async getSiteSettings(): Promise<any> {
+    const res = await fetchWithAuth(`${API_BASE}/admin/site-settings`);
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Failed to fetch site settings');
+    return data.siteSettings;
+  }
+
+  async updateSiteSettings(settings: any): Promise<any> {
+    const res = await fetchWithAuth(`${API_BASE}/admin/site-settings`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(settings),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Failed to update site settings');
+    return data.siteSettings;
+  }
+
   async uploadHomepageImage(file: File, track: TrackType, projectId?: number | null): Promise<HomepageImage> {
     const formData = new FormData();
     formData.append('image', file);
@@ -282,7 +300,7 @@ export class AdminApiService {
   }
 
   // ==========================================
-  // 3. PROJECTS
+  // 3. PROJECTS & CATEGORIES
   // ==========================================
   async getProjects(): Promise<Project[]> {
     const res = await fetchWithAuth(`${API_BASE}/admin/projects`);
@@ -291,11 +309,67 @@ export class AdminApiService {
     return data.projects;
   }
 
+  async createProject(payload: Partial<Project>): Promise<Project> {
+    const res = await fetchWithAuth(`${API_BASE}/admin/projects`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Failed to create project');
+    return data.project;
+  }
+
+  async deleteProject(id: number): Promise<void> {
+    const res = await fetchWithAuth(`${API_BASE}/admin/projects/${id}`, {
+      method: 'DELETE',
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Failed to delete project');
+  }
+
   async getProject(id: number): Promise<Project> {
     const res = await fetchWithAuth(`${API_BASE}/admin/projects/${id}`);
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || 'Failed to fetch project');
     return data.project;
+  }
+
+  async getCategories(): Promise<any[]> {
+    const res = await fetchWithAuth(`${API_BASE}/admin/categories`);
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Failed to fetch categories');
+    return data.categories;
+  }
+
+  async createCategory(payload: { name: string; slug?: string; description?: string }): Promise<any> {
+    const res = await fetchWithAuth(`${API_BASE}/admin/categories`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Failed to create category');
+    return data.category;
+  }
+
+  async updateCategory(id: number, payload: { name?: string; slug?: string; description?: string }): Promise<any> {
+    const res = await fetchWithAuth(`${API_BASE}/admin/categories/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Failed to update category');
+    return data.category;
+  }
+
+  async deleteCategory(id: number): Promise<void> {
+    const res = await fetchWithAuth(`${API_BASE}/admin/categories/${id}`, {
+      method: 'DELETE',
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Failed to delete category');
   }
 
   async updateProject(id: number, payload: Partial<Project>): Promise<Project> {

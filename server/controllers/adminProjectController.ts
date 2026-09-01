@@ -217,6 +217,164 @@ export class AdminProjectController {
       });
     }
   }
+
+  // POST /api/admin/projects
+  async createProject(req: Request, res: Response): Promise<void> {
+    try {
+      const { name, subtext, year, category, story } = req.body;
+      if (!name || typeof name !== 'string' || !name.trim()) {
+        res.status(400).json({
+          success: false,
+          message: 'Project name is required',
+        });
+        return;
+      }
+
+      const newProject = await projectRepository.createProject({
+        name: name.trim(),
+        subtext: subtext ? String(subtext).trim() : '',
+        year: year ? String(year).trim() : String(new Date().getFullYear()),
+        category: category ? String(category).trim().toUpperCase() : 'PORTRAIT',
+        story: story ? String(story).trim() : '',
+      });
+
+      res.status(201).json({
+        success: true,
+        message: 'Project created successfully',
+        project: newProject,
+      });
+    } catch (error: any) {
+      res.status(500).json({
+        success: false,
+        message: 'Failed to create project',
+        error: error?.message,
+      });
+    }
+  }
+
+  // DELETE /api/admin/projects/:id
+  async deleteProject(req: Request, res: Response): Promise<void> {
+    try {
+      const id = Number(req.params.id);
+      const deleted = await projectRepository.deleteProject(id);
+      if (!deleted) {
+        res.status(404).json({
+          success: false,
+          message: 'Project not found',
+        });
+        return;
+      }
+
+      res.status(200).json({
+        success: true,
+        message: 'Project deleted successfully',
+      });
+    } catch (error: any) {
+      res.status(500).json({
+        success: false,
+        message: 'Failed to delete project',
+        error: error?.message,
+      });
+    }
+  }
+
+  // ==========================================
+  // CATEGORIES
+  // ==========================================
+  async getCategories(req: Request, res: Response): Promise<void> {
+    try {
+      const categories = await projectRepository.findAllCategories();
+      res.status(200).json({
+        success: true,
+        categories,
+      });
+    } catch (error: any) {
+      res.status(500).json({
+        success: false,
+        message: 'Failed to retrieve categories',
+        error: error?.message,
+      });
+    }
+  }
+
+  async createCategory(req: Request, res: Response): Promise<void> {
+    try {
+      const { name, slug, description } = req.body;
+      if (!name || typeof name !== 'string' || !name.trim()) {
+        res.status(400).json({
+          success: false,
+          message: 'Category name is required',
+        });
+        return;
+      }
+
+      const cat = await projectRepository.createCategory({
+        name: name.trim(),
+        slug: slug ? String(slug).trim() : undefined,
+        description: description ? String(description).trim() : undefined,
+      });
+
+      res.status(201).json({
+        success: true,
+        message: 'Category created successfully',
+        category: cat,
+      });
+    } catch (error: any) {
+      res.status(500).json({
+        success: false,
+        message: 'Failed to create category',
+        error: error?.message,
+      });
+    }
+  }
+
+  async updateCategory(req: Request, res: Response): Promise<void> {
+    try {
+      const id = Number(req.params.id);
+      const { name, slug, description } = req.body;
+      const updated = await projectRepository.updateCategory(id, { name, slug, description });
+
+      if (!updated) {
+        res.status(404).json({
+          success: false,
+          message: 'Category not found',
+        });
+        return;
+      }
+
+      res.status(200).json({
+        success: true,
+        message: 'Category updated successfully',
+        category: updated,
+      });
+    } catch (error: any) {
+      res.status(500).json({
+        success: false,
+        message: 'Failed to update category',
+        error: error?.message,
+      });
+    }
+  }
+
+  async deleteCategory(req: Request, res: Response): Promise<void> {
+    try {
+      const id = Number(req.params.id);
+      const result = await projectRepository.deleteCategory(id);
+
+      if (!result.success) {
+        res.status(400).json(result);
+        return;
+      }
+
+      res.status(200).json(result);
+    } catch (error: any) {
+      res.status(500).json({
+        success: false,
+        message: 'Failed to delete category',
+        error: error?.message,
+      });
+    }
+  }
 }
 
 export const adminProjectController = new AdminProjectController();

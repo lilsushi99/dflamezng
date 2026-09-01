@@ -20,7 +20,7 @@ interface ImageAspectCardProps {
   onMoveDown: () => void;
   onDelete: () => void;
   onSave?: () => Promise<void> | void;
-  onProjectChange?: (projectId: number | null) => void;
+  onProjectChange?: (projectId: number | null) => Promise<void> | void;
   trackLabel?: string;
 }
 
@@ -45,6 +45,16 @@ export const ImageAspectCard: React.FC<ImageAspectCardProps> = ({
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
 
+  // Project link state
+  const [selectedProjectId, setSelectedProjectId] = useState<number | null>(projectId ?? null);
+  const [isSavingProject, setIsSavingProject] = useState(false);
+  const [projectSaveSuccess, setProjectSaveSuccess] = useState(false);
+
+  // Sync if prop changes
+  React.useEffect(() => {
+    setSelectedProjectId(projectId ?? null);
+  }, [projectId]);
+
   const handleDeleteClick = () => {
     if (confirmDelete) {
       setIsDeleting(true);
@@ -66,6 +76,20 @@ export const ImageAspectCard: React.FC<ImageAspectCardProps> = ({
       // Handled by parent
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handleSaveProjectAssignment = async () => {
+    if (!onProjectChange) return;
+    setIsSavingProject(true);
+    try {
+      await onProjectChange(selectedProjectId);
+      setProjectSaveSuccess(true);
+      setTimeout(() => setProjectSaveSuccess(false), 2500);
+    } catch {
+      // Handled by parent
+    } finally {
+      setIsSavingProject(false);
     }
   };
 
@@ -187,28 +211,63 @@ export const ImageAspectCard: React.FC<ImageAspectCardProps> = ({
         />
       </div>
 
-      {/* Optional Project Link Dropdown (for Homepage Front/Back tracks) */}
+      {/* Optional Project Link Dropdown with dedicated Save Assignment button */}
       {projects && onProjectChange && (
-        <div className="bg-neutral-950/90 p-3 border-t border-neutral-800/80">
-          <label className="block text-[10px] uppercase tracking-wider font-mono text-neutral-400 mb-1 flex items-center gap-1">
-            <Link2 className="w-3 h-3 text-amber-400" />
-            Link to Project:
+        <div className="bg-neutral-950/90 p-3 border-t border-neutral-800/80 space-y-2">
+          <label className="block text-[10px] uppercase tracking-wider font-mono text-neutral-400 flex items-center justify-between">
+            <span className="flex items-center gap-1">
+              <Link2 className="w-3 h-3 text-amber-400" />
+              Link to Project:
+            </span>
+            {projectId && (
+              <span className="text-[10px] text-amber-400/90 font-mono">
+                Currently: #{projectId}
+              </span>
+            )}
           </label>
-          <select
-            value={projectId ?? ''}
-            onChange={(e) => {
-              const val = e.target.value;
-              onProjectChange(val ? Number(val) : null);
-            }}
-            className="w-full bg-neutral-900 border border-neutral-700 rounded-md px-2.5 py-1.5 text-xs text-neutral-200 focus:outline-none focus:border-amber-400"
-          >
-            <option value="">(No Linked Project / Standalone Photo)</option>
-            {projects.map((p) => (
-              <option key={p.id} value={p.id}>
-                Project {p.id}: {p.name}
-              </option>
-            ))}
-          </select>
+          <div className="flex items-center gap-2">
+            <select
+              value={selectedProjectId ?? ''}
+              onChange={(e) => {
+                const val = e.target.value;
+                setSelectedProjectId(val ? Number(val) : null);
+              }}
+              className="flex-1 bg-neutral-900 border border-neutral-700 rounded-md px-2.5 py-1.5 text-xs text-neutral-200 focus:outline-none focus:border-amber-400"
+            >
+              <option value="">(No Linked Project / Standalone)</option>
+              {projects.map((p) => (
+                <option key={p.id} value={p.id}>
+                  Project {p.id}: {p.name}
+                </option>
+              ))}
+            </select>
+            <button
+              type="button"
+              onClick={handleSaveProjectAssignment}
+              disabled={isSavingProject || selectedProjectId === (projectId ?? null)}
+              className={`shrink-0 px-2.5 py-1.5 rounded-md text-[10px] font-mono tracking-wider font-semibold flex items-center gap-1 transition-all cursor-pointer ${
+                projectSaveSuccess
+                  ? 'bg-emerald-800 text-white border border-emerald-600'
+                  : selectedProjectId !== (projectId ?? null)
+                  ? 'bg-amber-500 hover:bg-amber-400 text-neutral-950 font-bold animate-pulse'
+                  : 'bg-neutral-800 text-neutral-400 border border-neutral-700 opacity-60 hover:opacity-90'
+              }`}
+            >
+              {isSavingProject ? (
+                <Loader2 className="w-3 h-3 animate-spin" />
+              ) : projectSaveSuccess ? (
+                <>
+                  <Check className="w-3 h-3 text-emerald-300" />
+                  SAVED
+                </>
+              ) : (
+                <>
+                  <Save className="w-3 h-3" />
+                  SAVE ASSIGNMENT
+                </>
+              )}
+            </button>
+          </div>
         </div>
       )}
     </div>

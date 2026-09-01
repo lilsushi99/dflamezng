@@ -8,6 +8,13 @@ export interface SiteSettings {
   location_text: string;
   is_available: boolean;
   availability_text: string;
+  about_title?: string;
+  about_statement?: string;
+  about_story?: string;
+  about_services?: string;
+  projects_modal_subtitle?: string;
+  projects_modal_title?: string;
+  projects_modal_archive_label?: string;
   created_at: Date;
   updated_at: Date;
 }
