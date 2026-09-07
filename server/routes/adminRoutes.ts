@@ -2,10 +2,12 @@ import { Router } from 'express';
 import { requireAdminAuth } from '../middleware/authMiddleware';
 import {
   uploadSplash,
+  uploadHomepage,
   uploadHomepageFront,
   uploadHomepageBack,
   uploadProject,
   uploadLogo,
+  rootStoragePath,
 } from '../middleware/uploadMiddleware';
 import { adminSplashController } from '../controllers/adminSplashController';
 import { adminHomeController } from '../controllers/adminHomeController';
@@ -71,14 +73,7 @@ router.delete('/home/logo', (req, res) => adminHomeController.deleteLogo(req, re
 // POST /api/admin/homepage/images/upload - upload front/back image from device
 router.post(
   '/homepage/images/upload',
-  (req, res, next) => {
-    const track = (req.query.track || req.body.track || 'FRONT').toString().toUpperCase();
-    if (track === 'BACK') {
-      uploadHomepageBack.single('image')(req, res, next);
-    } else {
-      uploadHomepageFront.single('image')(req, res, next);
-    }
-  },
+  uploadHomepage.single('image'),
   (req, res) => adminHomeController.uploadImage(req, res)
 );
 

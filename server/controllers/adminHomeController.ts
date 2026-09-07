@@ -1,4 +1,6 @@
 import { Request, Response } from 'express';
+import fs from 'fs';
+import path from 'path';
 import { settingsRepository } from '../repositories/settingsRepository';
 import { projectRepository } from '../repositories/projectRepository';
 
@@ -68,6 +70,16 @@ export class AdminHomeController {
         hero_quote: hero_quote !== undefined ? hero_quote : undefined,
         hero_subtext: hero_subtext !== undefined ? hero_subtext : undefined,
       });
+
+      if (typeof photographer_name === 'string' && photographer_name.trim()) {
+        try {
+          await settingsRepository.updateSiteSettings({
+            photographer_name: photographer_name.trim(),
+          });
+        } catch {
+          // ignore error if site settings fails
+        }
+      }
 
       res.status(200).json({
         success: true,
@@ -148,14 +160,31 @@ export class AdminHomeController {
         return;
       }
 
-      const track = (req.body.track || 'FRONT').toUpperCase() === 'BACK' ? 'BACK' : 'FRONT';
+      const trackParam = ((req.query.track as string) || req.body.track || 'FRONT').toString().toUpperCase();
+      const track = trackParam === 'BACK' ? 'BACK' : 'FRONT';
+      const expectedFolder = track === 'BACK' ? 'back' : 'front';
       const projectId = req.body.project_id && req.body.project_id !== 'null' && req.body.project_id !== 'none'
         ? Number(req.body.project_id)
         : null;
 
-      const filePath = track === 'BACK'
-        ? `/storage/homepage/back/${req.file.filename}`
-        : `/storage/homepage/front/${req.file.filename}`;
+      // Verify physical disk destination matches requested track
+      const currentFolder = path.basename(req.file.destination || path.dirname(req.file.path));
+      const filename = req.file.filename;
+
+      if (currentFolder.toLowerCase() !== expectedFolder) {
+        const targetDir = path.join(process.cwd(), 'storage', 'homepage', expectedFolder);
+        if (!fs.existsSync(targetDir)) {
+          fs.mkdirSync(targetDir, { recursive: true });
+        }
+        const targetPath = path.join(targetDir, filename);
+        if (fs.existsSync(req.file.path) && req.file.path !== targetPath) {
+          fs.renameSync(req.file.path, targetPath);
+          req.file.destination = targetDir;
+          req.file.path = targetPath;
+        }
+      }
+
+      const filePath = `/storage/homepage/${expectedFolder}/${filename}`;
 
       const newImage = await settingsRepository.addHomepageImage({
         file_path: filePath,

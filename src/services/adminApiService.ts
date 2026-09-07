@@ -207,10 +207,13 @@ export class AdminApiService {
     formData.append('track', track);
     if (projectId) formData.append('project_id', String(projectId));
 
-    const res = await fetchWithAuth(`${API_BASE}/admin/homepage/images/upload`, {
-      method: 'POST',
-      body: formData,
-    });
+    const res = await fetchWithAuth(
+      `${API_BASE}/admin/homepage/images/upload?track=${encodeURIComponent(track)}`,
+      {
+        method: 'POST',
+        body: formData,
+      }
+    );
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || 'Failed to upload homepage image');
     return data.image;

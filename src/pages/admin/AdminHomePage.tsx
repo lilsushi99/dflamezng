@@ -1,72 +1,87 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Save,
   Loader2,
   CheckCircle2,
   AlertCircle,
   Compass,
-  Sliders,
   Share2,
   Plus,
   Trash2,
-  Edit2,
-  ExternalLink,
   Layers,
-  Link2,
+  UploadCloud,
+  Image as ImageIcon,
+  Type,
+  Sun,
+  Moon,
 } from 'lucide-react';
-import { HomepageSettings, HomepageImage, SocialLink } from '../../types/admin';
+import { HomepageImage, SocialLink } from '../../types/admin';
+import { useTheme } from '../../context/ThemeContext';
 import { adminApiService } from '../../services/adminApiService';
 import { ImageUploadDropzone } from '../../components/admin/ImageUploadDropzone';
 import { ImageAspectCard } from '../../components/admin/ImageAspectCard';
-import { LogoManager } from '../../components/admin/LogoManager';
 
 export const AdminHomePage: React.FC = () => {
+  const { theme, setTheme } = useTheme();
   const [isLoading, setIsLoading] = useState(true);
-  const [isSavingSettings, setIsSavingSettings] = useState(false);
-  const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(
-    null
-  );
+  const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
-  // Settings state
-  const [navbarLogoText, setNavbarLogoText] = useState('God Akinbade');
+  // Section A: Navbar & Theme
+  const [logoType, setLogoType] = useState<'TEXT' | 'IMAGE'>('TEXT');
+  const [navbarLogoText, setNavbarLogoText] = useState('Gold Akinbade');
+  const [logoImagePath, setLogoImagePath] = useState<string | null>(null);
+  const [isUploadingLogo, setIsUploadingLogo] = useState(false);
+  const [isDeletingLogo, setIsDeletingLogo] = useState(false);
   const [navbarProjectsLabel, setNavbarProjectsLabel] = useState('PROJECTS');
   const [navbarContactLabel, setNavbarContactLabel] = useState('CONTACT');
   const [themeToggleVisible, setThemeToggleVisible] = useState(true);
-  const [photographerName, setPhotographerName] = useState('Gold Akingbade');
-  const [heroQuote, setHeroQuote] = useState('');
-  const [heroSubtext, setHeroSubtext] = useState('');
+  const [themeMode, setThemeMode] = useState<'LIGHT' | 'DARK'>('LIGHT');
+  const [isSavingNavbar, setIsSavingNavbar] = useState(false);
+  const logoInputRef = useRef<HTMLInputElement | null>(null);
 
-  // Image tracks & projects
+  // Section B: Front Track
   const [frontImages, setFrontImages] = useState<HomepageImage[]>([]);
-  const [backImages, setBackImages] = useState<HomepageImage[]>([]);
-  const [projectsList, setProjectsList] = useState<{ id: number; name: string }[]>([]);
+  const [isSavingFrontTrack, setIsSavingFrontTrack] = useState(false);
 
-  // Social Links state
+  // Section C: Creative Identity & Social Links
+  const [photographerName, setPhotographerName] = useState('Gold Akinbade');
+  const [heroSubtext, setHeroSubtext] = useState('Fashion Photographer & Art Director');
+  const [isSavingIdentity, setIsSavingIdentity] = useState(false);
   const [socialLinks, setSocialLinks] = useState<SocialLink[]>([]);
   const [newSocialLabel, setNewSocialLabel] = useState('');
   const [newSocialUrl, setNewSocialUrl] = useState('');
   const [newSocialKey, setNewSocialKey] = useState('instagram');
   const [isAddingSocial, setIsAddingSocial] = useState(false);
 
+  // Section D: Back Track
+  const [backImages, setBackImages] = useState<HomepageImage[]>([]);
+  const [isSavingBackTrack, setIsSavingBackTrack] = useState(false);
+
+  // Shared project list
+  const [projectsList, setProjectsList] = useState<{ id: number; name: string }[]>([]);
+
   const fetchHomeData = async () => {
     setIsLoading(true);
     try {
       const data = await adminApiService.getHomeData();
       if (data.settings) {
-        setNavbarLogoText(data.settings.navbar_logo_text || 'God Akinbade');
-        setNavbarProjectsLabel(data.settings.navbar_projects_label || 'PROJECTS');
-        setNavbarContactLabel(data.settings.navbar_contact_label || 'CONTACT');
-        setThemeToggleVisible(data.settings.theme_toggle_visible !== false);
-        setPhotographerName(data.settings.photographer_name || 'Gold Akingbade');
-        setHeroQuote(data.settings.hero_quote || '');
-        setHeroSubtext(data.settings.hero_subtext || '');
+        const s = data.settings;
+        setLogoType(s.logo_type === 'IMAGE' ? 'IMAGE' : 'TEXT');
+        setNavbarLogoText(s.navbar_logo_text || 'Gold Akinbade');
+        setLogoImagePath(s.logo_image_path || null);
+        setNavbarProjectsLabel(s.navbar_projects_label || 'PROJECTS');
+        setNavbarContactLabel(s.navbar_contact_label || 'CONTACT');
+        setThemeToggleVisible(s.theme_toggle_visible !== false);
+        setThemeMode(s.theme_mode === 'DARK' ? 'DARK' : 'LIGHT');
+        setPhotographerName(s.photographer_name || 'Gold Akinbade');
+        setHeroSubtext(s.hero_subtext || 'Fashion Photographer & Art Director');
       }
       setFrontImages(data.frontImages || []);
       setBackImages(data.backImages || []);
       setSocialLinks(data.socialLinks || []);
       setProjectsList(data.projects || []);
     } catch (err: any) {
-      setFeedback({ type: 'error', message: err?.message || 'Failed to load home screen data' });
+      setFeedback({ type: 'error', message: err?.message || 'Failed to load home screen configuration' });
     } finally {
       setIsLoading(false);
     }
@@ -76,42 +91,97 @@ export const AdminHomePage: React.FC = () => {
     fetchHomeData();
   }, []);
 
-  const handleSaveSettings = async (e?: React.FormEvent) => {
+  const showToast = (type: 'success' | 'error', message: string) => {
+    setFeedback({ type, message });
+    setTimeout(() => {
+      setFeedback((current) => (current?.message === message ? null : current));
+    }, 4500);
+  };
+
+  // ==========================================
+  // SECTION A: NAVBAR HANDLERS
+  // ==========================================
+  const handleSaveNavbar = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    setIsSavingSettings(true);
-    setFeedback(null);
+    setIsSavingNavbar(true);
 
     try {
       await adminApiService.updateHomeSettings({
+        logo_type: logoType,
         navbar_logo_text: navbarLogoText.trim(),
+        logo_image_path: logoImagePath,
         navbar_projects_label: navbarProjectsLabel.trim(),
         navbar_contact_label: navbarContactLabel.trim(),
         theme_toggle_visible: themeToggleVisible,
-        photographer_name: photographerName.trim(),
-        hero_quote: heroQuote.trim(),
-        hero_subtext: heroSubtext.trim(),
+        theme_mode: themeMode,
       });
 
-      setFeedback({ type: 'success', message: 'Home settings & typography saved successfully' });
+      showToast('success', 'Top navigation bar settings saved successfully');
     } catch (err: any) {
-      setFeedback({ type: 'error', message: err?.message || 'Failed to save home settings' });
+      showToast('error', err?.message || 'Failed to save navbar settings');
     } finally {
-      setIsSavingSettings(false);
-      setTimeout(() => setFeedback(null), 4000);
+      setIsSavingNavbar(false);
     }
   };
 
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploadingLogo(true);
+    try {
+      const res = await adminApiService.uploadLogo(file);
+      setLogoImagePath(res.logo_image_path);
+      setLogoType('IMAGE');
+      showToast('success', 'Logo graphic uploaded successfully');
+    } catch (err: any) {
+      showToast('error', err?.message || 'Failed to upload logo image');
+    } finally {
+      setIsUploadingLogo(false);
+      if (logoInputRef.current) logoInputRef.current.value = '';
+    }
+  };
+
+  const handleDeleteLogo = async () => {
+    setIsDeletingLogo(true);
+    try {
+      await adminApiService.deleteLogo();
+      setLogoImagePath(null);
+      setLogoType('TEXT');
+      showToast('success', 'Custom logo graphic removed, reverted to text logo');
+    } catch (err: any) {
+      showToast('error', err?.message || 'Failed to delete logo graphic');
+    } finally {
+      setIsDeletingLogo(false);
+    }
+  };
+
+  const handleSelectThemeMode = (mode: 'LIGHT' | 'DARK') => {
+    setThemeMode(mode);
+    setTheme(mode.toLowerCase() as 'light' | 'dark');
+  };
+
   // ==========================================
-  // FRONT IMAGES HANDLERS
+  // SECTION B: FRONT TRACK HANDLERS
   // ==========================================
   const handleUploadFrontFile = async (file: File) => {
-    const newImg = await adminApiService.uploadHomepageImage(file, 'FRONT');
-    setFrontImages((prev) => [...prev, newImg]);
+    try {
+      const newImg = await adminApiService.uploadHomepageImage(file, 'FRONT');
+      setFrontImages((prev) => [...prev, newImg]);
+      showToast('success', 'Front track image uploaded successfully');
+    } catch (err: any) {
+      showToast('error', err?.message || 'Failed to upload front track image');
+    }
   };
 
   const handleAddFrontUrl = async (url: string) => {
-    const newImg = await adminApiService.addHomepageImageUrl(url, 'FRONT');
-    setFrontImages((prev) => [...prev, newImg]);
+    try {
+      const newImg = await adminApiService.addHomepageImageUrl(url, 'FRONT');
+      setFrontImages((prev) => [...prev, newImg]);
+      showToast('success', 'Front track image URL added');
+    } catch (err: any) {
+      showToast('error', err?.message || 'Failed to add image URL');
+    }
   };
 
   const handleMoveFrontImage = async (index: number, direction: 'up' | 'down') => {
@@ -137,9 +207,9 @@ export const AdminHomePage: React.FC = () => {
     try {
       await adminApiService.deleteHomepageImage(id);
       setFrontImages((prev) => prev.filter((img) => img.id !== id));
-      setFeedback({ type: 'success', message: 'Front track image removed' });
+      showToast('success', 'Front track photograph removed');
     } catch (err: any) {
-      setFeedback({ type: 'error', message: err?.message || 'Failed to delete image' });
+      showToast('error', err?.message || 'Failed to delete front image');
     }
   };
 
@@ -147,24 +217,112 @@ export const AdminHomePage: React.FC = () => {
     try {
       const updated = await adminApiService.updateHomepageImage(imageId, { project_id: projectId });
       setFrontImages((prev) => prev.map((img) => (img.id === imageId ? updated : img)));
-      setFeedback({ type: 'success', message: 'Linked project updated for image' });
-      setTimeout(() => setFeedback(null), 3000);
+      showToast('success', 'Linked project updated for image');
     } catch (err: any) {
-      setFeedback({ type: 'error', message: 'Failed to link project to image' });
+      showToast('error', 'Failed to link project to front image');
+    }
+  };
+
+  const handleSaveFrontTrack = async () => {
+    setIsSavingFrontTrack(true);
+    try {
+      if (frontImages.length > 0) {
+        await adminApiService.reorderHomepageImages('FRONT', frontImages.map((img) => img.id));
+      }
+      showToast('success', 'Front track saved successfully');
+    } catch (err: any) {
+      showToast('error', err?.message || 'Failed to save front track');
+    } finally {
+      setIsSavingFrontTrack(false);
     }
   };
 
   // ==========================================
-  // BACK IMAGES HANDLERS
+  // SECTION C: CREATIVE IDENTITY & SOCIAL HANDLERS
+  // ==========================================
+  const handleSaveIdentity = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    setIsSavingIdentity(true);
+
+    try {
+      await adminApiService.updateHomeSettings({
+        photographer_name: photographerName.trim(),
+        hero_subtext: heroSubtext.trim(),
+      });
+
+      showToast('success', 'Creative identity and professional subtext saved successfully');
+    } catch (err: any) {
+      showToast('error', err?.message || 'Failed to save creative identity');
+    } finally {
+      setIsSavingIdentity(false);
+    }
+  };
+
+  const handleAddSocialLink = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newSocialLabel.trim() || !newSocialUrl.trim()) return;
+
+    setIsAddingSocial(true);
+    try {
+      const created = await adminApiService.addSocialLink({
+        platform_key: newSocialKey,
+        label: newSocialLabel.trim(),
+        url: newSocialUrl.trim(),
+        display_order: socialLinks.length + 1,
+        is_active: true,
+      });
+
+      setSocialLinks((prev) => [...prev, created]);
+      setNewSocialLabel('');
+      setNewSocialUrl('');
+      showToast('success', `Added social handle for ${created.label}`);
+    } catch (err: any) {
+      showToast('error', err?.message || 'Failed to add social link');
+    } finally {
+      setIsAddingSocial(false);
+    }
+  };
+
+  const handleDeleteSocialLink = async (id: number) => {
+    try {
+      await adminApiService.deleteSocialLink(id);
+      setSocialLinks((prev) => prev.filter((link) => link.id !== id));
+      showToast('success', 'Social handle removed');
+    } catch (err: any) {
+      showToast('error', err?.message || 'Failed to delete social link');
+    }
+  };
+
+  const handleToggleSocialActive = async (id: number, currentActive: boolean) => {
+    try {
+      const updated = await adminApiService.updateSocialLink(id, { is_active: !currentActive });
+      setSocialLinks((prev) => prev.map((link) => (link.id === id ? updated : link)));
+    } catch (err: any) {
+      showToast('error', 'Failed to update social link status');
+    }
+  };
+
+  // ==========================================
+  // SECTION D: BACK TRACK HANDLERS
   // ==========================================
   const handleUploadBackFile = async (file: File) => {
-    const newImg = await adminApiService.uploadHomepageImage(file, 'BACK');
-    setBackImages((prev) => [...prev, newImg]);
+    try {
+      const newImg = await adminApiService.uploadHomepageImage(file, 'BACK');
+      setBackImages((prev) => [...prev, newImg]);
+      showToast('success', 'Back track image uploaded successfully');
+    } catch (err: any) {
+      showToast('error', err?.message || 'Failed to upload back track image');
+    }
   };
 
   const handleAddBackUrl = async (url: string) => {
-    const newImg = await adminApiService.addHomepageImageUrl(url, 'BACK');
-    setBackImages((prev) => [...prev, newImg]);
+    try {
+      const newImg = await adminApiService.addHomepageImageUrl(url, 'BACK');
+      setBackImages((prev) => [...prev, newImg]);
+      showToast('success', 'Back track image URL added');
+    } catch (err: any) {
+      showToast('error', err?.message || 'Failed to add image URL');
+    }
   };
 
   const handleMoveBackImage = async (index: number, direction: 'up' | 'down') => {
@@ -190,9 +348,9 @@ export const AdminHomePage: React.FC = () => {
     try {
       await adminApiService.deleteHomepageImage(id);
       setBackImages((prev) => prev.filter((img) => img.id !== id));
-      setFeedback({ type: 'success', message: 'Back track image removed' });
+      showToast('success', 'Back track photograph removed');
     } catch (err: any) {
-      setFeedback({ type: 'error', message: err?.message || 'Failed to delete image' });
+      showToast('error', err?.message || 'Failed to delete back image');
     }
   };
 
@@ -200,57 +358,23 @@ export const AdminHomePage: React.FC = () => {
     try {
       const updated = await adminApiService.updateHomepageImage(imageId, { project_id: projectId });
       setBackImages((prev) => prev.map((img) => (img.id === imageId ? updated : img)));
-      setFeedback({ type: 'success', message: 'Linked project updated for image' });
-      setTimeout(() => setFeedback(null), 3000);
+      showToast('success', 'Linked project updated for image');
     } catch (err: any) {
-      setFeedback({ type: 'error', message: 'Failed to link project to image' });
+      showToast('error', 'Failed to link project to back image');
     }
   };
 
-  // ==========================================
-  // SOCIAL LINKS HANDLERS
-  // ==========================================
-  const handleAddSocialLink = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newSocialLabel.trim() || !newSocialUrl.trim()) return;
-
-    setIsAddingSocial(true);
+  const handleSaveBackTrack = async () => {
+    setIsSavingBackTrack(true);
     try {
-      const created = await adminApiService.addSocialLink({
-        platform_key: newSocialKey,
-        label: newSocialLabel.trim(),
-        url: newSocialUrl.trim(),
-        display_order: socialLinks.length + 1,
-        is_active: true,
-      });
-
-      setSocialLinks((prev) => [...prev, created]);
-      setNewSocialLabel('');
-      setNewSocialUrl('');
-      setFeedback({ type: 'success', message: `Added social link for ${created.label}` });
+      if (backImages.length > 0) {
+        await adminApiService.reorderHomepageImages('BACK', backImages.map((img) => img.id));
+      }
+      showToast('success', 'Back Image Track saved successfully');
     } catch (err: any) {
-      setFeedback({ type: 'error', message: err?.message || 'Failed to add social link' });
+      showToast('error', err?.message || 'Failed to save back image track');
     } finally {
-      setIsAddingSocial(false);
-      setTimeout(() => setFeedback(null), 3000);
-    }
-  };
-
-  const handleDeleteSocialLink = async (id: number) => {
-    try {
-      await adminApiService.deleteSocialLink(id);
-      setSocialLinks((prev) => prev.filter((link) => link.id !== id));
-    } catch (err: any) {
-      setFeedback({ type: 'error', message: err?.message || 'Failed to delete social link' });
-    }
-  };
-
-  const handleToggleSocialActive = async (id: number, currentActive: boolean) => {
-    try {
-      const updated = await adminApiService.updateSocialLink(id, { is_active: !currentActive });
-      setSocialLinks((prev) => prev.map((link) => (link.id === id ? updated : link)));
-    } catch (err: any) {
-      setFeedback({ type: 'error', message: 'Failed to update social link status' });
+      setIsSavingBackTrack(false);
     }
   };
 
@@ -264,14 +388,14 @@ export const AdminHomePage: React.FC = () => {
   }
 
   return (
-    <div className="space-y-12 pb-12">
+    <div className="space-y-12 pb-16">
       {/* Toast Feedback */}
       {feedback && (
         <div
           className={`flex items-center gap-3 p-4 rounded-xl border text-xs font-mono tracking-wide animate-fade-in ${
             feedback.type === 'success'
-              ? 'bg-emerald-950/50 border-emerald-800 text-emerald-300'
-              : 'bg-red-950/50 border-red-800 text-red-300'
+              ? 'bg-emerald-950/60 border-emerald-800 text-emerald-300'
+              : 'bg-red-950/60 border-red-800 text-red-300'
           }`}
         >
           {feedback.type === 'success' ? (
@@ -284,7 +408,7 @@ export const AdminHomePage: React.FC = () => {
       )}
 
       {/* ==========================================
-          SECTION A: NAVBAR CONFIGURATION
+          SECTION A: NAVBAR & BRAND IDENTITY
          ========================================== */}
       <section className="bg-neutral-900 border border-neutral-800 rounded-2xl p-6 md:p-8">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-neutral-800 mb-6">
@@ -295,52 +419,190 @@ export const AdminHomePage: React.FC = () => {
             <div>
               <h3 className="text-base font-semibold text-neutral-100">Section A: Top Navigation Bar</h3>
               <p className="text-xs text-neutral-400">
-                Configure brand mark, menu label text, and theme toggle visibility.
+                Configure brand logo (Text or Image), navigation links, and theme mode.
               </p>
             </div>
           </div>
 
           <button
             type="button"
-            onClick={() => handleSaveSettings()}
-            disabled={isSavingSettings}
+            onClick={() => handleSaveNavbar()}
+            disabled={isSavingNavbar}
             className="flex items-center justify-center gap-2 px-5 py-2.5 bg-neutral-100 hover:bg-white text-neutral-950 text-xs font-semibold rounded-xl tracking-wider transition-all disabled:opacity-50"
           >
-            {isSavingSettings ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
+            {isSavingNavbar ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
             SAVE NAVBAR
           </button>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {/* Logo Text */}
-          <div>
-            <label className="block text-xs font-mono uppercase tracking-wider text-neutral-300 mb-2">
-              Navbar Logo Text
-            </label>
-            <input
-              type="text"
-              value={navbarLogoText}
-              onChange={(e) => setNavbarLogoText(e.target.value)}
-              placeholder="God Akinbade"
-              className="w-full bg-neutral-950 border border-neutral-700 rounded-xl px-4 py-2.5 text-sm text-neutral-100 focus:outline-none focus:border-amber-400 font-serif"
-            />
+        {/* LOGO TYPE SELECTION */}
+        <div className="mb-8 p-5 bg-neutral-950/70 border border-neutral-800 rounded-xl space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <h4 className="text-xs font-mono uppercase tracking-wider text-neutral-200">Brand Logo Format</h4>
+              <p className="text-[11px] text-neutral-400">
+                Select whether to display typographic text or an uploaded graphic logo in the navbar.
+              </p>
+            </div>
+
+            <div className="inline-flex p-1 bg-neutral-900 border border-neutral-800 rounded-lg">
+              <button
+                type="button"
+                onClick={() => setLogoType('TEXT')}
+                className={`flex items-center gap-2 px-3.5 py-1.5 rounded-md text-xs font-medium transition-all ${
+                  logoType === 'TEXT'
+                    ? 'bg-amber-400 text-neutral-950 font-semibold shadow-sm'
+                    : 'text-neutral-400 hover:text-neutral-200'
+                }`}
+              >
+                <Type className="w-3.5 h-3.5" />
+                Text Logo
+              </button>
+              <button
+                type="button"
+                onClick={() => setLogoType('IMAGE')}
+                className={`flex items-center gap-2 px-3.5 py-1.5 rounded-md text-xs font-medium transition-all ${
+                  logoType === 'IMAGE'
+                    ? 'bg-amber-400 text-neutral-950 font-semibold shadow-sm'
+                    : 'text-neutral-400 hover:text-neutral-200'
+                }`}
+              >
+                <ImageIcon className="w-3.5 h-3.5" />
+                Image Logo
+              </button>
+            </div>
           </div>
 
-          {/* Projects Link Label */}
+          {/* Conditional Logo Input */}
+          {logoType === 'TEXT' ? (
+            <div className="pt-3 border-t border-neutral-800/80">
+              <label className="block text-xs font-mono uppercase tracking-wider text-neutral-300 mb-2">
+                Navbar Text Logo
+              </label>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
+                <input
+                  type="text"
+                  value={navbarLogoText}
+                  onChange={(e) => setNavbarLogoText(e.target.value)}
+                  placeholder="e.g. Gold Akinbade"
+                  className="w-full bg-neutral-900 border border-neutral-700 rounded-xl px-4 py-2.5 text-sm text-neutral-100 focus:outline-none focus:border-amber-400 font-serif"
+                />
+                <div className="flex items-center gap-3">
+                  <div className="flex-1 bg-neutral-900/90 border border-neutral-800 px-4 py-2.5 rounded-xl flex items-center justify-between">
+                    <span className="text-[10px] font-mono text-neutral-500 uppercase">Dark Preview:</span>
+                    <span className="font-editorial-serif text-sm font-light text-neutral-100 tracking-tight">
+                      {navbarLogoText || 'Creative Logo'}
+                    </span>
+                  </div>
+                  <div className="flex-1 bg-neutral-100 border border-neutral-300 px-4 py-2.5 rounded-xl flex items-center justify-between">
+                    <span className="text-[10px] font-mono text-neutral-600 uppercase">Light Preview:</span>
+                    <span className="font-editorial-serif text-sm font-light text-neutral-950 tracking-tight">
+                      {navbarLogoText || 'Creative Logo'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="pt-3 border-t border-neutral-800/80 space-y-4">
+              <input
+                type="file"
+                ref={logoInputRef}
+                onChange={handleLogoUpload}
+                accept="image/png,image/svg+xml,image/webp,image/jpeg"
+                className="hidden"
+              />
+
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div>
+                  <label className="block text-xs font-mono uppercase tracking-wider text-neutral-300 mb-1">
+                    Upload Logo Graphic (SVG, PNG, or WebP)
+                  </label>
+                  <p className="text-[11px] text-neutral-400">
+                    Recommended: Transparent PNG or crisp vector SVG, minimum height 48px.
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => logoInputRef.current?.click()}
+                    disabled={isUploadingLogo}
+                    className="flex items-center gap-2 px-4 py-2 bg-neutral-800 hover:bg-neutral-700 text-neutral-100 rounded-lg text-xs font-medium transition-colors disabled:opacity-50"
+                  >
+                    {isUploadingLogo ? (
+                      <Loader2 className="w-3.5 h-3.5 animate-spin text-amber-400" />
+                    ) : (
+                      <UploadCloud className="w-3.5 h-3.5 text-amber-400" />
+                    )}
+                    {logoImagePath ? 'Replace Logo' : 'Choose File'}
+                  </button>
+
+                  {logoImagePath && (
+                    <button
+                      type="button"
+                      onClick={handleDeleteLogo}
+                      disabled={isDeletingLogo}
+                      className="flex items-center gap-1.5 px-3 py-2 bg-red-950/40 hover:bg-red-900/60 border border-red-800/60 text-red-300 rounded-lg text-xs font-medium transition-colors disabled:opacity-50"
+                    >
+                      {isDeletingLogo ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
+                      Remove Logo
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Logo Preview Canvas */}
+              {logoImagePath ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                  <div className="p-4 bg-neutral-900 border border-neutral-800 rounded-xl flex flex-col items-center justify-center gap-2">
+                    <span className="text-[10px] font-mono uppercase text-neutral-500">Dark Background</span>
+                    <div className="h-14 flex items-center justify-center">
+                      <img
+                        src={logoImagePath}
+                        alt="Logo Preview Dark"
+                        className="max-h-12 max-w-full object-contain"
+                      />
+                    </div>
+                  </div>
+                  <div className="p-4 bg-neutral-100 border border-neutral-300 rounded-xl flex flex-col items-center justify-center gap-2">
+                    <span className="text-[10px] font-mono uppercase text-neutral-600">Light Background</span>
+                    <div className="h-14 flex items-center justify-center">
+                      <img
+                        src={logoImagePath}
+                        alt="Logo Preview Light"
+                        className="max-h-12 max-w-full object-contain"
+                      />
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="p-6 border border-dashed border-neutral-800 rounded-xl text-center bg-neutral-900/50">
+                  <p className="text-xs text-neutral-400">No image uploaded yet. Click "Choose File" above to upload.</p>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* LINK LABELS */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
           <div>
             <label className="block text-xs font-mono uppercase tracking-wider text-neutral-300 mb-2">
-              Projects Link Label
+              Project Link Label
             </label>
             <input
               type="text"
               value={navbarProjectsLabel}
               onChange={(e) => setNavbarProjectsLabel(e.target.value)}
               placeholder="PROJECTS"
-              className="w-full bg-neutral-950 border border-neutral-700 rounded-xl px-4 py-2.5 text-sm text-neutral-100 focus:outline-none focus:border-amber-400 font-mono"
+              className="w-full bg-neutral-950 border border-neutral-700 rounded-xl px-4 py-2.5 text-sm text-neutral-100 focus:outline-none focus:border-amber-400 font-mono tracking-wider"
             />
+            <span className="text-[11px] text-neutral-500 mt-1 block">
+              Default: PROJECTS. Displayed in the public navbar.
+            </span>
           </div>
 
-          {/* Contact Link Label */}
           <div>
             <label className="block text-xs font-mono uppercase tracking-wider text-neutral-300 mb-2">
               Contact Link Label
@@ -350,43 +612,82 @@ export const AdminHomePage: React.FC = () => {
               value={navbarContactLabel}
               onChange={(e) => setNavbarContactLabel(e.target.value)}
               placeholder="CONTACT"
-              className="w-full bg-neutral-950 border border-neutral-700 rounded-xl px-4 py-2.5 text-sm text-neutral-100 focus:outline-none focus:border-amber-400 font-mono"
+              className="w-full bg-neutral-950 border border-neutral-700 rounded-xl px-4 py-2.5 text-sm text-neutral-100 focus:outline-none focus:border-amber-400 font-mono tracking-wider"
             />
+            <span className="text-[11px] text-neutral-500 mt-1 block">
+              Default: CONTACT. Displayed in the public navbar.
+            </span>
           </div>
         </div>
 
-        {/* Theme Toggle Visibility */}
-        <div className="mt-6 pt-6 border-t border-neutral-800 flex items-center justify-between p-4 bg-neutral-950/60 border border-neutral-800 rounded-xl">
-          <div>
-            <span className="text-xs font-mono uppercase tracking-wider text-neutral-200 block">
-              Light / Dark Theme Toggle Switch
-            </span>
-            <span className="text-[11px] text-neutral-500">
-              When enabled, visitors can switch between Editorial Dark and Clean Light modes
-            </span>
-          </div>
-          <label className="relative inline-flex items-center cursor-pointer">
-            <input
-              type="checkbox"
-              checked={themeToggleVisible}
-              onChange={(e) => setThemeToggleVisible(e.target.checked)}
-              className="sr-only peer"
-            />
-            <div className="w-11 h-6 bg-neutral-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-neutral-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-400"></div>
-          </label>
-        </div>
+        {/* LIGHT / DARK MODE CONTROLS */}
+        <div className="p-5 bg-neutral-950/70 border border-neutral-800 rounded-xl space-y-5">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <h4 className="text-xs font-mono uppercase tracking-wider text-neutral-200">
+                Default Palette Theme
+              </h4>
+              <p className="text-[11px] text-neutral-400">
+                Choose the default visual appearance for the portfolio. Switching here updates the active canvas in real time.
+              </p>
+            </div>
 
-        {/* Brand Logo Customization (Text vs Image Upload) */}
-        <div className="mt-6 pt-6 border-t border-neutral-800">
-          <LogoManager />
+            <div className="inline-flex p-1 bg-neutral-900 border border-neutral-800 rounded-xl">
+              <button
+                type="button"
+                onClick={() => handleSelectThemeMode('LIGHT')}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-medium transition-all ${
+                  themeMode === 'LIGHT'
+                    ? 'bg-amber-400 text-neutral-950 font-semibold shadow-sm'
+                    : 'text-neutral-400 hover:text-neutral-200'
+                }`}
+              >
+                <Sun className="w-3.5 h-3.5" />
+                Light Mode
+              </button>
+              <button
+                type="button"
+                onClick={() => handleSelectThemeMode('DARK')}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-medium transition-all ${
+                  themeMode === 'DARK'
+                    ? 'bg-amber-400 text-neutral-950 font-semibold shadow-sm'
+                    : 'text-neutral-400 hover:text-neutral-200'
+                }`}
+              >
+                <Moon className="w-3.5 h-3.5" />
+                Dark Mode
+              </button>
+            </div>
+          </div>
+
+          <div className="pt-4 border-t border-neutral-800/80 flex items-center justify-between">
+            <div>
+              <span className="text-xs font-mono uppercase tracking-wider text-neutral-200 block">
+                Visitor Light / Dark Mode Toggle
+              </span>
+              <span className="text-[11px] text-neutral-500 block">
+                When enabled, visitors see the theme toggle switch in the navbar to alternate between Light and Dark mode.
+              </span>
+            </div>
+
+            <label className="relative inline-flex items-center cursor-pointer shrink-0">
+              <input
+                type="checkbox"
+                checked={themeToggleVisible}
+                onChange={(e) => setThemeToggleVisible(e.target.checked)}
+                className="sr-only peer"
+              />
+              <div className="w-11 h-6 bg-neutral-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-neutral-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-400"></div>
+            </label>
+          </div>
         </div>
       </section>
 
       {/* ==========================================
-          SECTION B: FRONT IMAGES (Parallax Track 1)
+          SECTION B: FRONT IMAGES (Foreground Track)
          ========================================== */}
       <section className="bg-neutral-900 border border-neutral-800 rounded-2xl p-6 md:p-8">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-6 border-b border-neutral-800 mb-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-6 border-b border-neutral-800 mb-6">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-lg bg-neutral-800 flex items-center justify-center text-amber-400">
               <Layers className="w-4 h-4" />
@@ -396,20 +697,31 @@ export const AdminHomePage: React.FC = () => {
                 Section B: Front Image Track ({frontImages.length})
               </h3>
               <p className="text-xs text-neutral-400">
-                Foreground scrolling photograph track. Each image can optionally link to a full project archive.
+                Foreground photograph track. Each image can link directly to a project archive.
               </p>
             </div>
           </div>
 
-          <div className="text-xs font-mono text-neutral-400 bg-neutral-950 px-3 py-1.5 rounded-lg border border-neutral-800">
-            NATURAL RATIOS PRESERVED
+          <div className="flex items-center gap-3">
+            <span className="hidden sm:inline-block text-[10px] font-mono text-neutral-400 bg-neutral-950 px-3 py-1.5 rounded-lg border border-neutral-800">
+              NATURAL RATIOS PRESERVED
+            </span>
+            <button
+              type="button"
+              onClick={handleSaveFrontTrack}
+              disabled={isSavingFrontTrack}
+              className="flex items-center gap-2 px-4 py-2 bg-neutral-100 hover:bg-white text-neutral-950 text-xs font-semibold rounded-xl tracking-wider transition-all disabled:opacity-50"
+            >
+              {isSavingFrontTrack ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
+              SAVE FRONT TRACK
+            </button>
           </div>
         </div>
 
         <ImageUploadDropzone
           onUploadFile={handleUploadFrontFile}
           onAddUrl={handleAddFrontUrl}
-          helperText="Upload foreground track photograph (Device or URL). Original aspect ratios preserved."
+          helperText="Upload foreground track photograph (Device or URL). Original photographic aspect ratios preserved."
         />
 
         {frontImages.length === 0 ? (
@@ -444,7 +756,7 @@ export const AdminHomePage: React.FC = () => {
       </section>
 
       {/* ==========================================
-          SECTION C: MAIN TEXT & SOCIAL LINKS
+          SECTION C: CREATIVE IDENTITY & SOCIAL LINKS
          ========================================== */}
       <section className="bg-neutral-900 border border-neutral-800 rounded-2xl p-6 md:p-8">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-neutral-800 mb-6">
@@ -454,71 +766,64 @@ export const AdminHomePage: React.FC = () => {
             </div>
             <div>
               <h3 className="text-base font-semibold text-neutral-100">
-                Section C: Main Photographer Name & Social Links
+                Section C: Creative Identity & Social Channels
               </h3>
               <p className="text-xs text-neutral-400">
-                Edit hero biographical text and configure direct portfolio & social links.
+                Set primary creative name, professional subtext, and manage external social handles.
               </p>
             </div>
           </div>
 
           <button
             type="button"
-            onClick={() => handleSaveSettings()}
-            disabled={isSavingSettings}
+            onClick={() => handleSaveIdentity()}
+            disabled={isSavingIdentity}
             className="flex items-center justify-center gap-2 px-5 py-2.5 bg-neutral-100 hover:bg-white text-neutral-950 text-xs font-semibold rounded-xl tracking-wider transition-all disabled:opacity-50"
           >
-            {isSavingSettings ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
-            SAVE HERO TEXT
+            {isSavingIdentity ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
+            SAVE CREATIVE IDENTITY
           </button>
         </div>
 
-        {/* Hero Name & Quotes */}
+        {/* Central Identity: Name & Professional Subtext */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
           <div>
             <label className="block text-xs font-mono uppercase tracking-wider text-neutral-300 mb-2">
-              Main Photographer Name
+              Main Creative Name / Brand Name
             </label>
             <input
               type="text"
               value={photographerName}
               onChange={(e) => setPhotographerName(e.target.value)}
-              placeholder="Gold Akingbade"
+              placeholder="e.g. Gold Akinbade"
               className="w-full bg-neutral-950 border border-neutral-700 rounded-xl px-4 py-2.5 text-sm text-neutral-100 focus:outline-none focus:border-amber-400 font-serif"
             />
+            <span className="text-[11px] text-neutral-500 mt-1 block">
+              Displayed prominently as the central masthead signature on the homepage.
+            </span>
           </div>
 
           <div>
             <label className="block text-xs font-mono uppercase tracking-wider text-neutral-300 mb-2">
-              Hero Archival Subtext
+              Professional Subtext
             </label>
             <input
               type="text"
               value={heroSubtext}
               onChange={(e) => setHeroSubtext(e.target.value)}
-              placeholder="Monochrome and pigmented archival studies across West African landscapes."
+              placeholder="e.g. Fashion Photographer & Art Director"
               className="w-full bg-neutral-950 border border-neutral-700 rounded-xl px-4 py-2.5 text-sm text-neutral-100 focus:outline-none focus:border-amber-400"
             />
-          </div>
-
-          <div className="md:col-span-2">
-            <label className="block text-xs font-mono uppercase tracking-wider text-neutral-300 mb-2">
-              Hero Statement / Quote
-            </label>
-            <textarea
-              rows={2}
-              value={heroQuote}
-              onChange={(e) => setHeroQuote(e.target.value)}
-              placeholder="A study of identity, architectural movement and quiet confidence..."
-              className="w-full bg-neutral-950 border border-neutral-700 rounded-xl px-4 py-2.5 text-sm text-neutral-100 focus:outline-none focus:border-amber-400 resize-none font-serif italic"
-            />
+            <span className="text-[11px] text-neutral-500 mt-1 block">
+              Professional description displayed cleanly beneath the main creative name.
+            </span>
           </div>
         </div>
 
         {/* Social Links Manager */}
         <div className="border-t border-neutral-800 pt-6">
           <h4 className="text-xs font-mono uppercase tracking-wider text-neutral-300 mb-4">
-            Manage Social & Portfolio Channels ({socialLinks.length})
+            Manage Social & Portfolio Handles ({socialLinks.length})
           </h4>
 
           {/* Add Social Link Form */}
@@ -539,6 +844,7 @@ export const AdminHomePage: React.FC = () => {
                   <option value="pinterest">Pinterest</option>
                   <option value="whatsapp">WhatsApp</option>
                   <option value="vimeo">Vimeo</option>
+                  <option value="behance">Behance</option>
                   <option value="custom">Custom Channel</option>
                 </select>
               </div>
@@ -552,7 +858,7 @@ export const AdminHomePage: React.FC = () => {
                   required
                   value={newSocialLabel}
                   onChange={(e) => setNewSocialLabel(e.target.value)}
-                  placeholder="e.g. INSTAGRAM or PIXIESET"
+                  placeholder="e.g. INSTAGRAM or BEHANCE"
                   className="w-full bg-neutral-900 border border-neutral-700 rounded-lg px-3 py-2 text-xs text-neutral-200 font-mono uppercase"
                 />
               </div>
@@ -566,7 +872,7 @@ export const AdminHomePage: React.FC = () => {
                   required
                   value={newSocialUrl}
                   onChange={(e) => setNewSocialUrl(e.target.value)}
-                  placeholder="https://instagram.com/..."
+                  placeholder="https://..."
                   className="w-full bg-neutral-900 border border-neutral-700 rounded-lg px-3 py-2 text-xs text-neutral-200 font-mono"
                 />
               </div>
@@ -604,7 +910,7 @@ export const AdminHomePage: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => handleToggleSocialActive(link.id, link.is_active)}
-                    className={`px-2 py-1 rounded text-[10px] font-mono font-medium tracking-wide transition-colors ${
+                    className={`px-2.5 py-1 rounded text-[10px] font-mono font-medium tracking-wide transition-colors ${
                       link.is_active
                         ? 'bg-emerald-950/80 text-emerald-400 border border-emerald-800/60'
                         : 'bg-neutral-800 text-neutral-500'
@@ -628,10 +934,10 @@ export const AdminHomePage: React.FC = () => {
       </section>
 
       {/* ==========================================
-          SECTION D: BACK IMAGES (Parallax Track 2)
+          SECTION D: BACK IMAGES (Background Track)
          ========================================== */}
       <section className="bg-neutral-900 border border-neutral-800 rounded-2xl p-6 md:p-8">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-6 border-b border-neutral-800 mb-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-6 border-b border-neutral-800 mb-6">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-lg bg-neutral-800 flex items-center justify-center text-amber-400">
               <Layers className="w-4 h-4" />
@@ -641,20 +947,31 @@ export const AdminHomePage: React.FC = () => {
                 Section D: Back Image Track ({backImages.length})
               </h3>
               <p className="text-xs text-neutral-400">
-                Background scrolling photograph track. Each image can optionally link to a full project archive.
+                Background scrolling photograph track. Each image can link directly to a project archive.
               </p>
             </div>
           </div>
 
-          <div className="text-xs font-mono text-neutral-400 bg-neutral-950 px-3 py-1.5 rounded-lg border border-neutral-800">
-            NATURAL RATIOS PRESERVED
+          <div className="flex items-center gap-3">
+            <span className="hidden sm:inline-block text-[10px] font-mono text-neutral-400 bg-neutral-950 px-3 py-1.5 rounded-lg border border-neutral-800">
+              NATURAL RATIOS PRESERVED
+            </span>
+            <button
+              type="button"
+              onClick={handleSaveBackTrack}
+              disabled={isSavingBackTrack}
+              className="flex items-center gap-2 px-4 py-2 bg-neutral-100 hover:bg-white text-neutral-950 text-xs font-semibold rounded-xl tracking-wider transition-all disabled:opacity-50"
+            >
+              {isSavingBackTrack ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
+              SAVE BACK TRACK
+            </button>
           </div>
         </div>
 
         <ImageUploadDropzone
           onUploadFile={handleUploadBackFile}
           onAddUrl={handleAddBackUrl}
-          helperText="Upload background track photograph (Device or URL). Original aspect ratios preserved."
+          helperText="Upload background track photograph (Device or URL). Original photographic aspect ratios preserved."
         />
 
         {backImages.length === 0 ? (

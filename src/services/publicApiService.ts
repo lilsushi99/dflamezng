@@ -219,7 +219,9 @@ class PublicApiService {
       const site = data.siteSettings || {};
       const home = data.settings || {};
 
-      if (site.photographer_name !== undefined) {
+      if (home.photographer_name) {
+        this.state.photographerName = home.photographer_name;
+      } else if (site.photographer_name !== undefined) {
         this.state.photographerName = site.photographer_name;
       }
       if (site.studio_name !== undefined) {

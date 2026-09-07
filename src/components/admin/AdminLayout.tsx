@@ -55,21 +55,21 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
       id: 'splash' as AdminTab,
       label: 'SPLASH SCREEN',
       icon: Sparkles,
-      description: 'Name, Typewriter & Opening Stack',
+      description: 'Opening Identity & Photo Stack',
       disabled: false,
     },
     {
       id: 'home' as AdminTab,
       label: 'HOME SCREEN & LOGO',
       icon: LayoutGrid,
-      description: 'Navbar, Logo, Image Tracks & Bio',
+      description: 'Navbar, Tracks & Creative Bio',
       disabled: false,
     },
     {
       id: 'projects' as AdminTab,
       label: 'PROJECTS',
       icon: FolderKanban,
-      description: '5 Projects & Gallery Archives',
+      description: '5 Projects & Creative Monographs',
       disabled: false,
     },
     {
@@ -101,7 +101,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-neutral-950 text-neutral-100 flex flex-col md:flex-row antialiased font-sans selection:bg-amber-400 selection:text-neutral-950">
+    <div className="min-h-screen md:h-screen md:overflow-hidden bg-neutral-950 text-neutral-100 flex flex-col md:flex-row antialiased font-sans selection:bg-amber-400 selection:text-neutral-950">
       {/* MOBILE TOP BAR */}
       <div className="md:hidden flex items-center justify-between px-4 py-3 bg-neutral-900 border-b border-neutral-800 sticky top-0 z-30">
         <div className="flex items-center gap-2.5">
@@ -110,9 +110,9 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
           </div>
           <div>
             <h1 className="text-xs font-semibold tracking-wider uppercase text-neutral-100 font-mono">
-              FLAMES CMS
+              CREATIVE CMS
             </h1>
-            <p className="text-[10px] text-neutral-400 font-mono">Curator Control Panel</p>
+            <p className="text-[10px] text-neutral-400 font-mono">Portfolio Platform</p>
           </div>
         </div>
 
@@ -185,18 +185,18 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
         </div>
       )}
 
-      {/* DESKTOP LEFT SIDEBAR */}
-      <aside className="hidden md:flex w-72 bg-neutral-900 border-r border-neutral-800/80 flex-col shrink-0">
+      {/* DESKTOP LEFT SIDEBAR: FIXED/STICKY & INDEPENDENTLY SCROLLABLE */}
+      <aside className="hidden md:flex w-72 bg-neutral-900 border-r border-neutral-800/80 flex-col shrink-0 md:sticky md:top-0 md:h-screen md:max-h-screen">
         {/* Brand Header */}
-        <div className="p-6 border-b border-neutral-800 flex items-center gap-3">
+        <div className="p-6 border-b border-neutral-800 flex items-center gap-3 shrink-0">
           <div className="w-10 h-10 rounded-lg bg-neutral-800 border border-neutral-700 flex items-center justify-center text-amber-400">
             <Camera className="w-5 h-5" />
           </div>
           <div>
             <h1 className="text-sm font-semibold tracking-wider uppercase text-neutral-100 font-mono">
-              FLAMES CMS
+              CREATIVE CMS
             </h1>
-            <p className="text-[11px] text-neutral-400 font-mono">Curator Control Panel</p>
+            <p className="text-[11px] text-neutral-400 font-mono">Portfolio Platform</p>
           </div>
         </div>
 
@@ -237,7 +237,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
                 key={item.id}
                 type="button"
                 onClick={() => onSelectTab(item.id)}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-all ${
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-all cursor-pointer ${
                   isActive
                     ? 'bg-neutral-100 text-neutral-950 font-medium shadow-sm'
                     : 'text-neutral-300 hover:text-neutral-100 hover:bg-neutral-800/80'
@@ -246,7 +246,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
                 <Icon className={`w-4 h-4 ${isActive ? 'text-neutral-950' : 'text-neutral-400'}`} />
                 <div className="flex-1">
                   <div className="text-xs font-semibold tracking-wider font-mono uppercase">{item.label}</div>
-                  <div className={`text-[10px] ${isActive ? 'text-neutral-700' : 'text-neutral-300'}`}>
+                  <div className={`text-[10px] ${isActive ? 'text-neutral-700' : 'text-neutral-400'}`}>
                     {item.description}
                   </div>
                 </div>
@@ -256,7 +256,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
         </nav>
 
         {/* Footer info & session */}
-        <div className="p-4 border-t border-neutral-800/80 bg-neutral-950/60 space-y-3">
+        <div className="p-4 border-t border-neutral-800/80 bg-neutral-950/60 space-y-3 shrink-0">
           {/* Active Admin Identity */}
           <div className="flex items-center justify-between bg-neutral-900/90 border border-neutral-800 p-2.5 rounded-lg">
             <div className="flex items-center gap-2">
@@ -265,14 +265,14 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
                 <div className="text-xs font-medium text-neutral-200">
                   {user?.display_name || user?.username || 'Authenticated Admin'}
                 </div>
-                <div className="text-[10px] text-neutral-300 font-mono">Lead Curator</div>
+                <div className="text-[10px] text-neutral-400 font-mono">Lead Curator</div>
               </div>
             </div>
             <button
               type="button"
               onClick={logout}
               title="Log out"
-              className="p-1.5 text-neutral-400 hover:text-red-400 hover:bg-neutral-800 rounded transition-colors"
+              className="p-1.5 text-neutral-400 hover:text-red-400 hover:bg-neutral-800 rounded transition-colors cursor-pointer"
             >
               <LogOut className="w-4 h-4" />
             </button>
@@ -282,7 +282,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
           <button
             type="button"
             onClick={handlePublicSiteNavigation}
-            className="w-full flex items-center justify-center gap-2 py-2 px-3 bg-neutral-800 hover:bg-neutral-700 text-neutral-300 hover:text-white rounded-lg text-xs font-mono tracking-wide transition-all border border-neutral-700/60"
+            className="w-full flex items-center justify-center gap-2 py-2 px-3 bg-neutral-800 hover:bg-neutral-700 text-neutral-300 hover:text-white rounded-lg text-xs font-mono tracking-wide transition-all border border-neutral-700/60 cursor-pointer"
           >
             <span>VIEW PUBLIC SITE</span>
             <ExternalLink className="w-3.5 h-3.5" />
@@ -291,7 +291,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
       </aside>
 
       {/* RIGHT MAIN CONTENT AREA */}
-      <main className="flex-1 flex flex-col min-w-0 overflow-y-auto">
+      <main className="flex-1 flex flex-col min-w-0 md:h-full md:overflow-y-auto">
         {/* Top Sticky Bar */}
         <header className="sticky top-0 z-10 bg-neutral-950/90 backdrop-blur-md border-b border-neutral-800/80 px-4 sm:px-6 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>

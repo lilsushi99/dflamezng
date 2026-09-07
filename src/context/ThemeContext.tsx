@@ -40,9 +40,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   useEffect(() => {
     try {
-      if (hasUserPreference) {
-        localStorage.setItem(THEME_STORAGE_KEY, theme);
-      }
+      localStorage.setItem(THEME_STORAGE_KEY, theme);
     } catch {
       // Ignore storage errors
     }
@@ -58,7 +56,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       document.body.style.backgroundColor = '#FEFDF3';
       document.body.style.color = '#111111';
     }
-  }, [theme, hasUserPreference]);
+  }, [theme]);
 
   const toggleTheme = () => {
     setHasUserPreference(true);

@@ -65,8 +65,37 @@ const limits = {
   fileSize: 30 * 1024 * 1024, // 30MB
 };
 
+export const rootStoragePath = rootStorageDir;
+
 export const uploadSplash = multer({
   storage: createStorage('splash'),
+  fileFilter: imageFileFilter,
+  limits,
+});
+
+export const uploadHomepage = multer({
+  storage: multer.diskStorage({
+    destination: (req: Request, _file: Express.Multer.File, cb) => {
+      const trackParam = (
+        (req.query.track as string) ||
+        (req.body && req.body.track) ||
+        'front'
+      ).toString().toLowerCase();
+      const subFolder = trackParam === 'back' ? 'back' : 'front';
+      const targetDir = path.join(rootStorageDir, 'homepage', subFolder);
+      if (!fs.existsSync(targetDir)) {
+        fs.mkdirSync(targetDir, { recursive: true });
+      }
+      cb(null, targetDir);
+    },
+    filename: (_req: Request, file: Express.Multer.File, cb) => {
+      const sanitizedName = file.originalname.replace(/[^a-zA-Z0-9.-]/g, '_');
+      const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
+      const ext = path.extname(sanitizedName) || '.jpg';
+      const baseName = path.basename(sanitizedName, ext).substring(0, 30);
+      cb(null, `${baseName}-${uniqueSuffix}${ext}`);
+    },
+  }),
   fileFilter: imageFileFilter,
   limits,
 });
