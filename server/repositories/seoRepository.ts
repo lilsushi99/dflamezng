@@ -11,9 +11,14 @@ export class SeoRepository {
         );
         if (rows && rows[0]) {
           const store = PersistentStore.getStore();
-          store.globalSeo = rows[0];
+          const seo = {
+            ...rows[0],
+            meta_title: rows[0].site_title,
+            meta_keywords: rows[0].primary_keywords,
+          };
+          store.globalSeo = seo;
           PersistentStore.saveStore();
-          return rows[0];
+          return seo;
         }
       } catch (e) {
         console.warn('[SeoRepository] DB error in getGlobalSeo, falling back to persistent store:', e);
@@ -21,12 +26,21 @@ export class SeoRepository {
     }
 
     const store = PersistentStore.getStore();
+    if (!store.globalSeo.meta_title) {
+      store.globalSeo.meta_title = store.globalSeo.site_title;
+    }
+    if (!store.globalSeo.meta_keywords) {
+      store.globalSeo.meta_keywords = store.globalSeo.primary_keywords;
+    }
     return store.globalSeo;
   }
 
   async updateGlobalSeo(data: Partial<GlobalSeoSettings>): Promise<GlobalSeoSettings> {
     const store = PersistentStore.getStore();
     const current = store.globalSeo;
+
+    const resolvedTitle = data.site_title ?? data.meta_title ?? current.site_title;
+    const resolvedKeywords = data.primary_keywords ?? data.meta_keywords ?? current.primary_keywords;
 
     if (isDatabaseConnected()) {
       try {
@@ -46,9 +60,9 @@ export class SeoRepository {
             updated_at = NOW() 
           WHERE id = 1`,
           [
-            data.site_title ?? current.site_title,
+            resolvedTitle,
             data.meta_description ?? current.meta_description,
-            data.primary_keywords ?? current.primary_keywords,
+            resolvedKeywords,
             data.secondary_keywords ?? current.secondary_keywords,
             data.canonical_url ?? current.canonical_url,
             data.og_title ?? current.og_title,
@@ -64,9 +78,11 @@ export class SeoRepository {
       }
     }
 
-    if (data.site_title !== undefined) current.site_title = data.site_title;
+    current.site_title = resolvedTitle;
+    current.meta_title = resolvedTitle;
     if (data.meta_description !== undefined) current.meta_description = data.meta_description;
-    if (data.primary_keywords !== undefined) current.primary_keywords = data.primary_keywords;
+    current.primary_keywords = resolvedKeywords;
+    current.meta_keywords = resolvedKeywords;
     if (data.secondary_keywords !== undefined) current.secondary_keywords = data.secondary_keywords;
     if (data.canonical_url !== undefined) current.canonical_url = data.canonical_url;
     if (data.og_title !== undefined) current.og_title = data.og_title;
@@ -85,7 +101,7 @@ export class SeoRepository {
     if (isDatabaseConnected()) {
       try {
         const rows = await query<SeoLocation>(
-          'SELECT id, location_name, state, url_slug, seo_title, meta_description, primary_keyword, secondary_keywords, location_content, services_offered, og_title, og_description, og_image_url, canonical_url, is_published, is_indexable, sitemap_priority, created_at, updated_at FROM seo_locations ORDER BY state ASC, location_name ASC'
+          'SELECT id, location_name, state, professional_type, url_slug, seo_title, meta_description, primary_keyword, secondary_keywords, location_content, services_offered, og_title, og_description, og_image_url, canonical_url, is_published, is_indexable, sitemap_priority, created_at, updated_at FROM seo_locations ORDER BY state ASC, location_name ASC'
         );
         if (rows && rows.length > 0) {
           const store = PersistentStore.getStore();
@@ -109,13 +125,13 @@ export class SeoRepository {
 
   async getLocationBySlug(slug: string): Promise<SeoLocation | null> {
     if (!slug) return null;
-    const cleanSlug = slug.trim().toLowerCase();
+    const cleanSlug = slug.trim().toLowerCase().replace(/^\/+/, '').replace(/^location\//, '');
 
     if (isDatabaseConnected()) {
       try {
         const rows = await query<SeoLocation>(
-          'SELECT id, location_name, state, url_slug, seo_title, meta_description, primary_keyword, secondary_keywords, location_content, services_offered, og_title, og_description, og_image_url, canonical_url, is_published, is_indexable, sitemap_priority, created_at, updated_at FROM seo_locations WHERE url_slug = ? LIMIT 1',
-          [cleanSlug]
+          'SELECT id, location_name, state, professional_type, url_slug, seo_title, meta_description, primary_keyword, secondary_keywords, location_content, services_offered, og_title, og_description, og_image_url, canonical_url, is_published, is_indexable, sitemap_priority, created_at, updated_at FROM seo_locations WHERE url_slug = ? OR url_slug = ? OR url_slug = ? LIMIT 1',
+          [cleanSlug, `/${cleanSlug}`, `photographer-in-${cleanSlug}`]
         );
         if (rows && rows[0]) {
           return rows[0];
@@ -126,9 +142,15 @@ export class SeoRepository {
     }
 
     const store = PersistentStore.getStore();
-    const found = store.seoLocations.find(
-      (loc) => loc.url_slug.toLowerCase() === cleanSlug || loc.url_slug.toLowerCase() === `photographer-in-${cleanSlug}`
-    );
+    const found = store.seoLocations.find((loc) => {
+      const storedSlug = (loc.url_slug || '').trim().toLowerCase().replace(/^\/+/, '').replace(/^location\//, '');
+      return (
+        storedSlug === cleanSlug ||
+        storedSlug === `photographer-in-${cleanSlug}` ||
+        cleanSlug === `photographer-in-${storedSlug}` ||
+        loc.location_name.toLowerCase().replace(/[^a-z0-9]+/g, '-') === cleanSlug
+      );
+    });
     return found || null;
   }
 
@@ -142,30 +164,32 @@ export class SeoRepository {
     const store = PersistentStore.getStore();
     let newId = store.seoLocations.length > 0 ? Math.max(...store.seoLocations.map((l) => l.id)) + 1 : 1;
 
-    let slug = data.url_slug ? data.url_slug.trim().toLowerCase() : `photographer-in-${data.location_name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
-    if (!slug.startsWith('photographer-in-') && !slug.includes('/')) {
-      slug = `photographer-in-${slug}`;
-    }
+    let slug = data.url_slug
+      ? data.url_slug.trim().toLowerCase().replace(/^\/+/, '').replace(/^location\//, '')
+      : `${(data.professional_type || 'creative').toLowerCase().replace(/[^a-z0-9]+/g, '-')}-in-${data.location_name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
+
+    const profType = data.professional_type || 'Photographer & Art Director';
 
     if (isDatabaseConnected()) {
       try {
         const res = await execute(
           `INSERT INTO seo_locations (
-            location_name, state, url_slug, seo_title, meta_description, 
+            location_name, state, professional_type, url_slug, seo_title, meta_description, 
             primary_keyword, secondary_keywords, location_content, services_offered, 
             og_title, og_description, og_image_url, is_published, is_indexable, 
             sitemap_priority, created_at, updated_at
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())`,
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())`,
           [
             data.location_name,
             data.state,
+            profType,
             slug,
             data.seo_title,
             data.meta_description,
             data.primary_keyword,
             data.secondary_keywords,
             data.location_content,
-            data.services_offered,
+            Array.isArray(data.services_offered) ? JSON.stringify(data.services_offered) : data.services_offered,
             data.og_title || data.seo_title,
             data.og_description || data.meta_description,
             data.og_image_url || null,
@@ -186,6 +210,7 @@ export class SeoRepository {
       id: newId,
       location_name: data.location_name,
       state: data.state,
+      professional_type: profType,
       url_slug: slug,
       seo_title: data.seo_title,
       meta_description: data.meta_description,
@@ -215,12 +240,17 @@ export class SeoRepository {
     const current = store.seoLocations.find((l) => l.id === id);
     if (!current) return null;
 
+    const slug = data.url_slug !== undefined
+      ? data.url_slug.trim().toLowerCase().replace(/^\/+/, '').replace(/^location\//, '')
+      : current.url_slug;
+
     if (isDatabaseConnected()) {
       try {
         await execute(
           `UPDATE seo_locations SET 
             location_name = COALESCE(?, location_name), 
             state = COALESCE(?, state), 
+            professional_type = COALESCE(?, professional_type),
             url_slug = COALESCE(?, url_slug), 
             seo_title = COALESCE(?, seo_title), 
             meta_description = COALESCE(?, meta_description), 
@@ -239,13 +269,16 @@ export class SeoRepository {
           [
             data.location_name ?? current.location_name,
             data.state ?? current.state,
-            data.url_slug ?? current.url_slug,
+            data.professional_type ?? current.professional_type,
+            slug,
             data.seo_title ?? current.seo_title,
             data.meta_description ?? current.meta_description,
             data.primary_keyword ?? current.primary_keyword,
             data.secondary_keywords ?? current.secondary_keywords,
             data.location_content ?? current.location_content,
-            data.services_offered ?? current.services_offered,
+            data.services_offered !== undefined
+              ? (Array.isArray(data.services_offered) ? JSON.stringify(data.services_offered) : data.services_offered)
+              : current.services_offered,
             data.og_title ?? current.og_title,
             data.og_description ?? current.og_description,
             data.og_image_url !== undefined ? data.og_image_url : current.og_image_url,
@@ -262,7 +295,8 @@ export class SeoRepository {
 
     if (data.location_name !== undefined) current.location_name = data.location_name;
     if (data.state !== undefined) current.state = data.state;
-    if (data.url_slug !== undefined) current.url_slug = data.url_slug;
+    if (data.professional_type !== undefined) current.professional_type = data.professional_type;
+    current.url_slug = slug;
     if (data.seo_title !== undefined) current.seo_title = data.seo_title;
     if (data.meta_description !== undefined) current.meta_description = data.meta_description;
     if (data.primary_keyword !== undefined) current.primary_keyword = data.primary_keyword;

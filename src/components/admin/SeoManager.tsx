@@ -45,6 +45,7 @@ export const SeoManager: React.FC = () => {
   const [locationForm, setLocationForm] = useState<{
     location_name: string;
     state: string;
+    professional_type: string;
     url_slug: string;
     seo_title: string;
     meta_description: string;
@@ -58,6 +59,7 @@ export const SeoManager: React.FC = () => {
   }>({
     location_name: '',
     state: '',
+    professional_type: 'Fashion & Editorial Photographer',
     url_slug: '',
     seo_title: '',
     meta_description: '',
@@ -83,7 +85,13 @@ export const SeoManager: React.FC = () => {
         adminApiService.getGlobalSeo(),
         adminApiService.getAllLocations(),
       ]);
-      if (globalRes && globalRes.seo) setGlobalSeo(globalRes.seo);
+      if (globalRes && globalRes.seo) {
+        setGlobalSeo({
+          ...globalRes.seo,
+          meta_title: globalRes.seo.meta_title || globalRes.seo.site_title || '',
+          meta_keywords: globalRes.seo.meta_keywords || globalRes.seo.primary_keywords || '',
+        });
+      }
       if (locationsRes) setLocations(locationsRes);
     } catch (err: any) {
       setFeedback({ type: 'error', message: err?.message || 'Failed to load SEO data' });
@@ -101,8 +109,19 @@ export const SeoManager: React.FC = () => {
     setIsSaving(true);
     setFeedback(null);
     try {
-      const updated = await adminApiService.updateGlobalSeo(globalSeo);
-      setGlobalSeo(updated);
+      const payload: GlobalSeoSettings = {
+        ...globalSeo,
+        site_title: globalSeo.meta_title || globalSeo.site_title,
+        meta_title: globalSeo.meta_title || globalSeo.site_title,
+        primary_keywords: globalSeo.meta_keywords || globalSeo.primary_keywords,
+        meta_keywords: globalSeo.meta_keywords || globalSeo.primary_keywords,
+      };
+      const updated = await adminApiService.updateGlobalSeo(payload);
+      setGlobalSeo({
+        ...updated,
+        meta_title: updated.meta_title || updated.site_title || '',
+        meta_keywords: updated.meta_keywords || updated.primary_keywords || '',
+      });
       setFeedback({ type: 'success', message: 'Global SEO parameters & metadata updated successfully' });
     } catch (err: any) {
       setFeedback({ type: 'error', message: err?.message || 'Failed to save global SEO' });
@@ -117,6 +136,7 @@ export const SeoManager: React.FC = () => {
     setLocationForm({
       location_name: '',
       state: '',
+      professional_type: 'Fashion & Editorial Photographer',
       url_slug: '',
       seo_title: '',
       meta_description: '',
@@ -142,6 +162,7 @@ export const SeoManager: React.FC = () => {
     setLocationForm({
       location_name: loc.location_name,
       state: loc.state,
+      professional_type: loc.professional_type || 'Fashion & Editorial Photographer',
       url_slug: loc.url_slug.startsWith('/') ? loc.url_slug.substring(1) : loc.url_slug,
       seo_title: loc.seo_title,
       meta_description: loc.meta_description,
@@ -160,15 +181,20 @@ export const SeoManager: React.FC = () => {
     if (!locationForm.location_name) return;
     const city = locationForm.location_name.trim();
     const state = locationForm.state ? ` ${locationForm.state.trim()}` : '';
-    const generatedSlug = `${city.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-fashion-photographer`;
+    const profType = locationForm.professional_type || 'Fashion & Editorial Photographer';
+    const profSlug = profType
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-|-$/g, '');
+    const generatedSlug = `${city.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${profSlug}`;
     setLocationForm((prev) => ({
       ...prev,
       url_slug: prev.url_slug || generatedSlug,
-      seo_title: `${city} Fashion & Portrait Photographer | Editorial Photography`,
-      meta_description: `Award-winning fashion and editorial portrait photography services in ${city}${state}, Nigeria by Gold Akingbade. Available for campaigns and commissions.`,
-      primary_keyword: `${city} Fashion Photographer`,
-      secondary_keywords: `${city} Portrait Photographer, Editorial Photography in ${city}, Lookbook Photography ${state}`,
-      location_content: `Gold Akingbade produces distinct visual narratives across ${city} and the wider ${state || 'Nigeria'} region. Combining deep tonal balance, editorial precision, and intimate portraiture, each commission captures the authentic character and artistic pulse of the area.`,
+      seo_title: `${city} ${profType} | Editorial & Commercial Portfolio`,
+      meta_description: `Award-winning ${profType.toLowerCase()} studio in ${city}${state}, Nigeria. Available for creative direction, campaigns, and commissioned projects.`,
+      primary_keyword: `${city} ${profType}`,
+      secondary_keywords: `${city} Creative Studio, ${profType} in ${city}, Portfolio Commissions ${state}`,
+      location_content: `Executing curated visual narratives and artistic commissions across ${city} and the wider ${state || 'Nigeria'} region. Combining deep tonal balance, editorial precision, and cultural authenticity, each project reflects the unique spirit and character of the territory.`,
     }));
   };
 
@@ -415,7 +441,7 @@ export const SeoManager: React.FC = () => {
               </div>
 
               <form onSubmit={handleSaveLocation} className="space-y-4">
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
                   <div>
                     <label className="block text-xs font-mono uppercase text-neutral-300 mb-1">City / Hub Name *</label>
                     <input
@@ -440,6 +466,17 @@ export const SeoManager: React.FC = () => {
                   </div>
 
                   <div>
+                    <label className="block text-xs font-mono uppercase text-neutral-300 mb-1">Discipline / Role</label>
+                    <input
+                      type="text"
+                      value={locationForm.professional_type}
+                      onChange={(e) => setLocationForm({ ...locationForm, professional_type: e.target.value })}
+                      placeholder="e.g. Fashion & Editorial Photographer"
+                      className="w-full bg-neutral-900 border border-neutral-700 rounded-xl px-3 py-2 text-xs text-neutral-100 font-sans"
+                    />
+                  </div>
+
+                  <div>
                     <label className="block text-xs font-mono uppercase text-neutral-300 mb-1">URL Slug *</label>
                     <input
                       type="text"
@@ -450,6 +487,31 @@ export const SeoManager: React.FC = () => {
                       className="w-full bg-neutral-900 border border-neutral-700 rounded-xl px-3 py-2 text-xs text-neutral-100 font-mono"
                     />
                   </div>
+                </div>
+
+                {/* Quick Discipline Presets */}
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-[10px] font-mono text-neutral-400 uppercase">Quick Presets:</span>
+                  {[
+                    'Fashion & Editorial Photographer',
+                    'Creative Director & Art Director',
+                    'Brand & Graphic Designer',
+                    'Visual Artist & Illustrator',
+                    'Documentary Cinematographer',
+                  ].map((preset) => (
+                    <button
+                      key={preset}
+                      type="button"
+                      onClick={() => setLocationForm((prev) => ({ ...prev, professional_type: preset }))}
+                      className={`text-[10px] font-mono px-2 py-0.5 rounded border transition-colors cursor-pointer ${
+                        locationForm.professional_type === preset
+                          ? 'bg-amber-400/20 border-amber-400/50 text-amber-300'
+                          : 'bg-neutral-900 border-neutral-800 text-neutral-400 hover:text-neutral-200'
+                      }`}
+                    >
+                      {preset}
+                    </button>
+                  ))}
                 </div>
 
                 <div>
@@ -561,6 +623,11 @@ export const SeoManager: React.FC = () => {
                         <span className="text-sm font-semibold text-neutral-100">{loc.location_name}</span>
                         {loc.state && (
                           <span className="text-xs text-neutral-400 font-mono">({loc.state})</span>
+                        )}
+                        {loc.professional_type && (
+                          <span className="text-[10px] font-mono bg-neutral-900 border border-neutral-700 text-neutral-300 px-2 py-0.5 rounded">
+                            {loc.professional_type}
+                          </span>
                         )}
                         <span className="text-[10px] font-mono bg-neutral-800 text-amber-300 px-2 py-0.5 rounded">
                           /location/{cleanSlug}

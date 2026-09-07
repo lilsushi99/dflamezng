@@ -63,6 +63,8 @@ export interface GlobalSeoSettings {
   google_site_verification: string | null;
   robots_indexing: boolean;
   schema_type: string;
+  meta_title?: string;
+  meta_keywords?: string;
   created_at?: string;
   updated_at?: string;
 }
@@ -71,6 +73,7 @@ export interface SeoLocation {
   id: number;
   location_name: string;
   state: string;
+  professional_type?: string;
   url_slug: string;
   seo_title: string;
   meta_description: string;

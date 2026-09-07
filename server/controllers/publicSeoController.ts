@@ -42,8 +42,14 @@ export class PublicSeoController {
   // GET /api/seo/locations/:slug
   async getLocationBySlug(req: Request, res: Response): Promise<void> {
     try {
-      const { slug } = req.params;
-      const location = await seoRepository.getLocationBySlug(slug);
+      const rawSlug = req.params.slug;
+      if (!rawSlug) {
+        res.status(400).json({ success: false, message: 'Slug parameter is required' });
+        return;
+      }
+
+      const decodedSlug = decodeURIComponent(rawSlug).trim().toLowerCase().replace(/^\/+/, '').replace(/^location\//, '');
+      const location = await seoRepository.getLocationBySlug(decodedSlug);
 
       if (!location || !location.is_published) {
         res.status(404).json({ success: false, message: 'Location page not found' });
@@ -101,6 +107,14 @@ export class PublicSeoController {
       xml += `    <priority>1.0</priority>\n`;
       xml += `  </url>\n`;
 
+      // Inquiries Page
+      xml += `  <url>\n`;
+      xml += `    <loc>${baseUrl}/collaborate</loc>\n`;
+      xml += `    <lastmod>${now}</lastmod>\n`;
+      xml += `    <changefreq>monthly</changefreq>\n`;
+      xml += `    <priority>0.8</priority>\n`;
+      xml += `  </url>\n`;
+
       // Project Pages
       for (const p of projects) {
         xml += `  <url>\n`;
@@ -111,12 +125,12 @@ export class PublicSeoController {
         xml += `  </url>\n`;
       }
 
-      // Location Pages
+      // Location Hub Pages
       for (const loc of locations) {
         if (loc.is_indexable) {
-          const locSlug = loc.url_slug.startsWith('/') ? loc.url_slug.substring(1) : loc.url_slug;
+          const cleanSlug = (loc.url_slug || '').replace(/^\/+/, '').replace(/^location\//, '');
           xml += `  <url>\n`;
-          xml += `    <loc>${baseUrl}/${locSlug}</loc>\n`;
+          xml += `    <loc>${baseUrl}/location/${cleanSlug}</loc>\n`;
           xml += `    <lastmod>${now}</lastmod>\n`;
           xml += `    <changefreq>weekly</changefreq>\n`;
           xml += `    <priority>${loc.sitemap_priority || 0.8}</priority>\n`;

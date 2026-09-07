@@ -5,10 +5,12 @@ import { HomePage } from './pages/HomePage';
 import { GalleryPage } from './pages/GalleryPage';
 import { CollaborationFormPage } from './pages/CollaborationFormPage';
 import { LocationLandingPage } from './pages/LocationLandingPage';
+import { NotFoundPage } from './pages/NotFoundPage';
 import { AdminLoginPage } from './pages/admin/AdminLoginPage';
 import { AdminDashboard } from './pages/admin/AdminDashboard';
 import { AdminTab } from './components/admin/AdminLayout';
 import { Loader2 } from 'lucide-react';
+import { publicApiService } from './services/publicApiService';
 
 interface AdminPortalRouterProps {
   path: string;
@@ -63,14 +65,20 @@ export default function App() {
     setCurrentPath(path);
     if (path === '/') {
       setIntroCompleted(true);
-      document.title = 'Gold Akingbade — Fashion & Editorial Photography';
     }
   };
 
   useEffect(() => {
     if (currentPath === '/') {
-      document.title = 'Gold Akingbade — Fashion & Editorial Photography';
-    } else if (currentPath.startsWith('/admin')) {
+      publicApiService.fetchGlobalSeo().then((seo) => {
+        if (seo?.site_title) {
+          document.title = seo.site_title;
+        } else {
+          const name = publicApiService.getState().photographerName || 'Creative Portfolio';
+          document.title = `${name} — Creative Portfolio & Monograph`;
+        }
+      });
+    } else if (currentPath.startsWith('/admin') || currentPath.startsWith('/fire')) {
       document.title = 'Flames CMS — Admin Portal';
     }
   }, [currentPath]);
@@ -104,6 +112,8 @@ export default function App() {
     currentPath === '/inquiry' ||
     currentPath === '/form';
 
+  const isHomeRoute = currentPath === '/' || currentPath === '';
+
   // Legacy /admin redirect to /fire
   useEffect(() => {
     if (currentPath.startsWith('/admin')) {
@@ -127,7 +137,7 @@ export default function App() {
     );
   }
 
-  // PUBLIC WEBSITE (Unmodified, exactly as originally designed)
+  // PUBLIC WEBSITE
   return (
     <ThemeProvider>
       <div className="w-full min-h-screen bg-[#FEFDF3] dark:bg-[#111111] text-[#111111] dark:text-[#FEFDF3] transition-colors duration-400">
@@ -142,15 +152,21 @@ export default function App() {
             slug={locationSlug}
             onNavigateHome={() => navigateTo('/')}
             onNavigateProject={(slug) => navigateTo(`/gallery/${slug}`)}
+            onNavigateCollaborate={() => navigateTo('/collaborate')}
           />
         ) : isCollaborateRoute ? (
           <CollaborationFormPage onNavigateHome={() => navigateTo('/')} />
-        ) : (
+        ) : isHomeRoute ? (
           <HomePage
             onNavigateGallery={(slug) => navigateTo(`/gallery/${slug}`)}
             onNavigateCollaborate={() => navigateTo('/collaborate')}
             introCompleted={introCompleted}
             onMarkIntroComplete={() => setIntroCompleted(true)}
+          />
+        ) : (
+          <NotFoundPage
+            onNavigateHome={() => navigateTo('/')}
+            onNavigateCollaborate={() => navigateTo('/collaborate')}
           />
         )}
       </div>

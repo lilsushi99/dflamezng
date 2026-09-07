@@ -5,7 +5,8 @@ import { GalleryImage, ProjectGallery } from '../types/portfolio';
 import { GalleryHeader } from '../components/gallery/GalleryHeader';
 import { HorizontalProjectGallery } from '../components/gallery/HorizontalProjectGallery';
 import { GalleryImageViewer } from '../components/gallery/GalleryImageViewer';
-import { ArrowLeft } from 'lucide-react';
+import { applySeoTags } from '../utils/seoHelper';
+import { ArrowLeft, Loader2 } from 'lucide-react';
 
 interface GalleryPageProps {
   projectSlug: string;
@@ -21,17 +22,40 @@ export const GalleryPage: React.FC<GalleryPageProps> = ({
   const [project, setProject] = useState<ProjectGallery | null>(() =>
     ImageAssetService.getProjectBySlug(projectSlug)
   );
+  const [isLoaded, setIsLoaded] = useState<boolean>(() => publicApiService.getState().isLoaded);
   const [focusedImage, setFocusedImage] = useState<GalleryImage | null>(null);
 
   useEffect(() => {
     const updateProject = () => {
+      const state = publicApiService.getState();
+      setIsLoaded(state.isLoaded);
       const nextProject = ImageAssetService.getProjectBySlug(projectSlug);
       setProject(nextProject);
-      const photographer = publicApiService.getState().photographerName || 'Flames Photography';
+      const photographer = state.photographerName || 'Creative Portfolio';
+
       if (nextProject) {
-        document.title = `${nextProject.title} — ${photographer}`;
-      } else {
-        document.title = `Project Not Found — ${photographer}`;
+        applySeoTags({
+          title: `${nextProject.title} — ${photographer}`,
+          description:
+            nextProject.description ||
+            nextProject.story ||
+            `Visual monograph and creative series: ${nextProject.title} (${nextProject.year}).`,
+          keywords: `${nextProject.title}, ${nextProject.category}, ${photographer}, visual artist portfolio`,
+          canonicalUrl: `${window.location.origin}/gallery/${nextProject.slug || nextProject.id}`,
+          ogTitle: `${nextProject.title} — ${photographer}`,
+          ogDescription: nextProject.description || nextProject.story,
+          ogImage: nextProject.images?.[0]?.src || null,
+          jsonLd: {
+            '@context': 'https://schema.org',
+            '@type': 'VisualArtwork',
+            name: nextProject.title,
+            creator: { '@type': 'Person', name: photographer },
+            dateCreated: nextProject.year,
+            artform: nextProject.category,
+          },
+        });
+      } else if (state.isLoaded) {
+        document.title = `Project Not Located — ${photographer}`;
       }
     };
 
@@ -43,6 +67,15 @@ export const GalleryPage: React.FC<GalleryPageProps> = ({
     window.scrollTo({ top: 0, behavior: 'smooth' });
     return () => unsubscribe();
   }, [projectSlug]);
+
+  if (!isLoaded) {
+    return (
+      <div className="min-h-screen bg-[#FEFDF3] dark:bg-[#111111] flex flex-col items-center justify-center text-neutral-400">
+        <Loader2 className="w-8 h-8 text-amber-500 animate-spin mb-4" />
+        <p className="text-xs font-mono tracking-widest uppercase">Loading Visual Monograph...</p>
+      </div>
+    );
+  }
 
   if (!project) {
     return (

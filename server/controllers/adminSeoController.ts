@@ -5,8 +5,14 @@ export class AdminSeoController {
   // GET /api/admin/seo
   async getGlobalSeo(req: Request, res: Response): Promise<void> {
     try {
-      const seo = await seoRepository.getGlobalSeo();
+      const rawSeo = await seoRepository.getGlobalSeo();
       const locations = await seoRepository.getAllLocations();
+
+      const seo = {
+        ...rawSeo,
+        meta_title: rawSeo.site_title,
+        meta_keywords: rawSeo.primary_keywords,
+      };
 
       res.status(200).json({
         success: true,
@@ -28,8 +34,10 @@ export class AdminSeoController {
     try {
       const {
         site_title,
+        meta_title,
         meta_description,
         primary_keywords,
+        meta_keywords,
         secondary_keywords,
         canonical_url,
         og_title,
@@ -40,24 +48,33 @@ export class AdminSeoController {
         schema_type,
       } = req.body;
 
+      const resolvedTitle = site_title || meta_title;
+      const resolvedKeywords = primary_keywords || meta_keywords;
+
       const updated = await seoRepository.updateGlobalSeo({
-        site_title: typeof site_title === 'string' ? site_title : undefined,
-        meta_description: typeof meta_description === 'string' ? meta_description : undefined,
-        primary_keywords: typeof primary_keywords === 'string' ? primary_keywords : undefined,
-        secondary_keywords: typeof secondary_keywords === 'string' ? secondary_keywords : undefined,
-        canonical_url: typeof canonical_url === 'string' ? canonical_url : undefined,
-        og_title: typeof og_title === 'string' ? og_title : undefined,
-        og_description: typeof og_description === 'string' ? og_description : undefined,
+        site_title: typeof resolvedTitle === 'string' ? resolvedTitle.trim() : undefined,
+        meta_title: typeof resolvedTitle === 'string' ? resolvedTitle.trim() : undefined,
+        meta_description: typeof meta_description === 'string' ? meta_description.trim() : undefined,
+        primary_keywords: typeof resolvedKeywords === 'string' ? resolvedKeywords.trim() : undefined,
+        meta_keywords: typeof resolvedKeywords === 'string' ? resolvedKeywords.trim() : undefined,
+        secondary_keywords: typeof secondary_keywords === 'string' ? secondary_keywords.trim() : undefined,
+        canonical_url: typeof canonical_url === 'string' ? canonical_url.trim() : undefined,
+        og_title: typeof og_title === 'string' ? og_title.trim() : undefined,
+        og_description: typeof og_description === 'string' ? og_description.trim() : undefined,
         og_image_url: og_image_url !== undefined ? og_image_url : undefined,
         google_site_verification: google_site_verification !== undefined ? google_site_verification : undefined,
         robots_indexing: robots_indexing !== undefined ? Boolean(robots_indexing) : undefined,
-        schema_type: typeof schema_type === 'string' ? schema_type : undefined,
+        schema_type: typeof schema_type === 'string' ? schema_type.trim() : undefined,
       });
 
       res.status(200).json({
         success: true,
         message: 'Global SEO settings updated successfully',
-        seo: updated,
+        seo: {
+          ...updated,
+          meta_title: updated.site_title,
+          meta_keywords: updated.primary_keywords,
+        },
       });
     } catch (error: any) {
       res.status(500).json({
@@ -110,6 +127,7 @@ export class AdminSeoController {
       const {
         location_name,
         state,
+        professional_type,
         url_slug,
         seo_title,
         meta_description,
@@ -135,16 +153,19 @@ export class AdminSeoController {
         return;
       }
 
+      const profType = professional_type?.trim() || 'Photographer & Art Director';
+
       const created = await seoRepository.createLocation({
         location_name: location_name.trim(),
         state: state.trim(),
+        professional_type: profType,
         url_slug: url_slug?.trim(),
-        seo_title: seo_title || `Professional Photographer in ${location_name}, ${state} | Flame Photography`,
-        meta_description: meta_description || `Award-winning commercial, fashion, portrait, and documentary photography services in ${location_name}, ${state}.`,
-        primary_keyword: primary_keyword || `Photographer in ${location_name}`,
-        secondary_keywords: secondary_keywords || `${location_name} photography, ${state} wedding photographer, editorial photographer ${location_name}`,
-        location_content: location_content || `Premier photography and visual production services across ${location_name}, ${state}. Available for editorial assignments, corporate portraits, and bespoke event coverage.`,
-        services_offered: services_offered || ['Editorial & Fashion Photography', 'Executive Portraits & Headshots', 'Documentary & Events', 'Commercial Campaigns'],
+        seo_title: seo_title || `${profType} in ${location_name}, ${state} | Creative Monograph`,
+        meta_description: meta_description || `Award-winning ${profType.toLowerCase()} services and visual commissions across ${location_name}, ${state}.`,
+        primary_keyword: primary_keyword || `${profType} in ${location_name}`,
+        secondary_keywords: secondary_keywords || `${location_name} visual arts, ${state} creative director, editorial commissions ${location_name}`,
+        location_content: location_content || `Premier creative visual and portfolio productions across ${location_name}, ${state}. Available for commissioned editorial projects, brand monographs, and artistic collaborations.`,
+        services_offered: services_offered || ['Editorial & Creative Direction', 'Fine Art Visual Monographs', 'Brand Campaigns & Lookbooks', 'Commissioned Portfolios'],
         related_projects: related_projects || [1, 2],
         og_title: og_title || seo_title,
         og_description: og_description || meta_description,
