@@ -3,6 +3,17 @@ import { SplashSettings, SplashImage } from '../models/Splash';
 import { HomepageSettings, HomepageImage, TrackType } from '../models/Homepage';
 import { isDatabaseConnected, query, execute } from '../database/db';
 import { PersistentStore } from '../database/persistentStore';
+import { defaultHomepageSettings } from '../database/seedData';
+
+function stripUndefined<T extends Record<string, any>>(obj: T): Partial<T> {
+  const result: Partial<T> = {};
+  for (const key of Object.keys(obj) as Array<keyof T>) {
+    if (obj[key] !== undefined) {
+      result[key] = obj[key];
+    }
+  }
+  return result;
+}
 
 export class SettingsRepository {
   // ==========================================
@@ -255,7 +266,7 @@ export class SettingsRepository {
         const rows = await query<HomepageSettings>('SELECT * FROM homepage_settings LIMIT 1');
         if (rows[0]) {
           const store = PersistentStore.getStore();
-          store.homepageSettings = { ...store.homepageSettings, ...rows[0] };
+          store.homepageSettings = { ...defaultHomepageSettings, ...store.homepageSettings, ...rows[0] };
           PersistentStore.saveStore();
           return store.homepageSettings;
         }
@@ -263,12 +274,14 @@ export class SettingsRepository {
         console.warn('[SettingsRepository] Falling back to persistent store for homepage_settings:', e);
       }
     }
-    return PersistentStore.getStore().homepageSettings;
+    const store = PersistentStore.getStore();
+    return { ...defaultHomepageSettings, ...(store.homepageSettings || {}) };
   }
 
   async updateHomepageSettings(data: Partial<HomepageSettings>): Promise<HomepageSettings> {
     const store = PersistentStore.getStore();
-    const current = store.homepageSettings;
+    const current = { ...defaultHomepageSettings, ...(store.homepageSettings || {}) };
+    const cleaned = stripUndefined(data);
 
     if (isDatabaseConnected()) {
       try {
@@ -280,6 +293,7 @@ export class SettingsRepository {
             navbar_projects_label = ?,
             navbar_contact_label = ?,
             theme_toggle_visible = ?,
+            theme_mode = ?,
             photographer_name = ?,
             top_track_speed = ?, 
             bottom_track_speed = ?, 
@@ -288,17 +302,18 @@ export class SettingsRepository {
             updated_at = NOW() 
           WHERE id = ?`,
           [
-            data.logo_type ?? current.logo_type ?? 'TEXT',
-            data.navbar_logo_text ?? current.navbar_logo_text,
-            data.logo_image_path !== undefined ? data.logo_image_path : current.logo_image_path,
-            data.navbar_projects_label ?? current.navbar_projects_label,
-            data.navbar_contact_label ?? current.navbar_contact_label,
-            data.theme_toggle_visible ?? current.theme_toggle_visible,
-            data.photographer_name ?? current.photographer_name,
-            data.top_track_speed ?? current.top_track_speed,
-            data.bottom_track_speed ?? current.bottom_track_speed,
-            data.hero_quote ?? current.hero_quote,
-            data.hero_subtext ?? current.hero_subtext,
+            cleaned.logo_type ?? current.logo_type ?? 'TEXT',
+            cleaned.navbar_logo_text ?? current.navbar_logo_text,
+            cleaned.logo_image_path !== undefined ? cleaned.logo_image_path : current.logo_image_path,
+            cleaned.navbar_projects_label ?? current.navbar_projects_label,
+            cleaned.navbar_contact_label ?? current.navbar_contact_label,
+            cleaned.theme_toggle_visible ?? current.theme_toggle_visible,
+            cleaned.theme_mode ?? current.theme_mode ?? 'LIGHT',
+            cleaned.photographer_name ?? current.photographer_name,
+            cleaned.top_track_speed ?? current.top_track_speed,
+            cleaned.bottom_track_speed ?? current.bottom_track_speed,
+            cleaned.hero_quote ?? current.hero_quote,
+            cleaned.hero_subtext ?? current.hero_subtext,
             current.id || 1,
           ]
         );
@@ -309,7 +324,7 @@ export class SettingsRepository {
 
     store.homepageSettings = {
       ...current,
-      ...data,
+      ...cleaned,
       updated_at: new Date(),
     };
     PersistentStore.saveStore();

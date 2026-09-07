@@ -7,6 +7,7 @@ import { AdminProjectsPage } from './AdminProjectsPage';
 import { AdminFooterPage } from './AdminFooterPage';
 import { SeoManager } from '../../components/admin/SeoManager';
 import { ContactManager } from '../../components/admin/ContactManager';
+import { AdminErrorBoundary } from '../../components/admin/AdminErrorBoundary';
 import { Loader2 } from 'lucide-react';
 
 interface AdminDashboardProps {
@@ -100,12 +101,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ initialTab = 'sp
       title={headerInfo.title}
       subtitle={headerInfo.subtitle}
     >
-      {currentTab === 'splash' && <AdminSplashPage />}
-      {currentTab === 'home' && <AdminHomePage />}
-      {currentTab === 'projects' && <AdminProjectsPage />}
-      {currentTab === 'footer' && <AdminFooterPage />}
-      {currentTab === 'seo' && <SeoManager />}
-      {currentTab === 'contact' && <ContactManager />}
+      <AdminErrorBoundary key={currentTab}>
+        {currentTab === 'splash' && <AdminSplashPage />}
+        {currentTab === 'home' && <AdminHomePage />}
+        {currentTab === 'projects' && <AdminProjectsPage />}
+        {currentTab === 'footer' && <AdminFooterPage />}
+        {currentTab === 'seo' && <SeoManager />}
+        {currentTab === 'contact' && <ContactManager />}
+      </AdminErrorBoundary>
     </AdminLayout>
   );
 };

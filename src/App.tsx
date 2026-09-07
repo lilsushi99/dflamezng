@@ -123,17 +123,19 @@ export default function App() {
     }
   }, [currentPath]);
 
-  // If in admin routes (/fire), render in admin container with AdminAuthProvider
+  // If in admin routes (/fire), render in admin container with ThemeProvider & AdminAuthProvider
   if (isFireRoute) {
     return (
-      <AdminAuthProvider>
-        <AdminPortalRouter
-          path={currentPath}
-          isFireLogin={isFireLogin || isFireBase}
-          initialTab={getAdminTabFromPath()}
-          onNavigate={(path) => navigateTo(path)}
-        />
-      </AdminAuthProvider>
+      <ThemeProvider>
+        <AdminAuthProvider>
+          <AdminPortalRouter
+            path={currentPath}
+            isFireLogin={isFireLogin || isFireBase}
+            initialTab={getAdminTabFromPath()}
+            onNavigate={(path) => navigateTo(path)}
+          />
+        </AdminAuthProvider>
+      </ThemeProvider>
     );
   }
 
