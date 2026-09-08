@@ -41,7 +41,10 @@ export async function handleHtmlRequest(
   let canonicalUrl = `${baseUrl}${urlPath === '/' ? '' : urlPath}`;
   let ogTitle = globalSeo.og_title || pageTitle;
   let ogDesc = globalSeo.og_description || metaDesc;
-  let ogImage = globalSeo.og_image_url || `${baseUrl}/storage/uploads/cover.jpg`;
+  const resolveAbsolute = (p?: string | null) =>
+    p ? (p.startsWith('http://') || p.startsWith('https://') ? p : `${baseUrl}${p.startsWith('/') ? '' : '/'}${p}`) : null;
+  let ogImage = resolveAbsolute(globalSeo.og_image_url) || `${baseUrl}/storage/uploads/cover.jpg`;
+  const faviconPath = resolveAbsolute(globalSeo.favicon_path);
   let ogType = 'website';
   let robots = globalSeo.robots_indexing ? 'index, follow' : 'noindex, nofollow';
   let jsonLd: Record<string, any> | null = null;
@@ -92,7 +95,7 @@ export async function handleHtmlRequest(
       ogDesc = metaDesc;
       ogType = 'article';
       if (foundProject.images && foundProject.images.length > 0) {
-        ogImage = foundProject.images[0].file_path || foundProject.images[0].external_url || ogImage;
+        ogImage = resolveAbsolute(foundProject.images[0].file_path || foundProject.images[0].external_url) || ogImage;
       }
       jsonLd = {
         '@context': 'https://schema.org',
@@ -126,7 +129,7 @@ export async function handleHtmlRequest(
       canonicalUrl = `${baseUrl}/location/${location.url_slug}`;
       ogTitle = location.og_title || location.seo_title;
       ogDesc = location.og_description || location.meta_description;
-      ogImage = location.og_image_url || ogImage;
+      ogImage = resolveAbsolute(location.og_image_url) || ogImage;
       robots = location.is_indexable ? 'index, follow' : 'noindex, nofollow';
 
       const profType = location.professional_type || 'Photographer & Art Director';
@@ -197,6 +200,14 @@ export async function handleHtmlRequest(
     tags.push(`<meta name="google-site-verification" content="${escapeHtml(globalSeo.google_site_verification)}" />`);
   }
 
+  if (faviconPath) {
+    const ext = faviconPath.split('.').pop()?.toLowerCase();
+    const faviconType =
+      ext === 'svg' ? 'image/svg+xml' : ext === 'ico' ? 'image/x-icon' : 'image/png';
+    tags.push(`<link rel="icon" type="${faviconType}" href="${escapeHtml(faviconPath)}" />`);
+    tags.push(`<link rel="shortcut icon" href="${escapeHtml(faviconPath)}" />`);
+  }
+
   if (jsonLd) {
     tags.push(`<script type="application/ld+json" id="portfolio-seo-jsonld">${JSON.stringify(jsonLd, null, 2)}</script>`);
   }
@@ -208,7 +219,8 @@ export async function handleHtmlRequest(
     .replace(/<meta\s+property=["']og:title["'][^>]*>/gi, '')
     .replace(/<meta\s+property=["']og:description["'][^>]*>/gi, '')
     .replace(/<meta\s+name=["']keywords["'][^>]*>/gi, '')
-    .replace(/<link\s+rel=["']canonical["'][^>]*>/gi, '');
+    .replace(/<link\s+rel=["']canonical["'][^>]*>/gi, '')
+    .replace(/<link\s+rel=["'](icon|shortcut icon)["'][^>]*>/gi, '');
 
   const injectionBlock = `\n    ${tags.join('\n    ')}\n  </head>`;
   html = html.replace('</head>', injectionBlock);

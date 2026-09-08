@@ -11,7 +11,9 @@ import {
   CheckCircle2,
   AlertCircle,
   MapPin,
-  Sparkles,
+  Wand2,
+  Upload,
+  Image as ImageIcon,
 } from 'lucide-react';
 import { GlobalSeoSettings, SeoLocation } from '../../types/admin';
 import { adminApiService } from '../../services/adminApiService';
@@ -30,10 +32,13 @@ export const SeoManager: React.FC = () => {
     og_title: '',
     og_description: '',
     og_image_url: '',
+    favicon_path: '',
     canonical_url: '',
     robots_rules: 'User-agent: *\nAllow: /\nSitemap: /sitemap.xml',
     schema_json: '',
   });
+  const [isUploadingFavicon, setIsUploadingFavicon] = useState(false);
+  const [isUploadingOgImage, setIsUploadingOgImage] = useState(false);
 
   // Locations state
   const [locations, setLocations] = useState<SeoLocation[]>([]);
@@ -127,6 +132,42 @@ export const SeoManager: React.FC = () => {
       setFeedback({ type: 'error', message: err?.message || 'Failed to save global SEO' });
     } finally {
       setIsSaving(false);
+      setTimeout(() => setFeedback(null), 3500);
+    }
+  };
+
+  const handleUploadFavicon = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setIsUploadingFavicon(true);
+    setFeedback(null);
+    try {
+      const result = await adminApiService.uploadFavicon(file);
+      setGlobalSeo((prev) => ({ ...prev, favicon_path: result.favicon_path }));
+      setFeedback({ type: 'success', message: 'Favicon uploaded and published successfully' });
+    } catch (err: any) {
+      setFeedback({ type: 'error', message: err?.message || 'Failed to upload favicon' });
+    } finally {
+      setIsUploadingFavicon(false);
+      e.target.value = '';
+      setTimeout(() => setFeedback(null), 3500);
+    }
+  };
+
+  const handleUploadOgImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setIsUploadingOgImage(true);
+    setFeedback(null);
+    try {
+      const result = await adminApiService.uploadOgImage(file);
+      setGlobalSeo((prev) => ({ ...prev, og_image_url: result.og_image_url }));
+      setFeedback({ type: 'success', message: 'Social sharing image uploaded and published successfully' });
+    } catch (err: any) {
+      setFeedback({ type: 'error', message: err?.message || 'Failed to upload social sharing image' });
+    } finally {
+      setIsUploadingOgImage(false);
+      e.target.value = '';
       setTimeout(() => setFeedback(null), 3500);
     }
   };
@@ -385,6 +426,123 @@ export const SeoManager: React.FC = () => {
               </div>
             </div>
           </section>
+
+          {/* Social Sharing & Favicon */}
+          <section className="bg-neutral-900 border border-neutral-800 rounded-2xl p-6 space-y-5">
+            <div>
+              <h3 className="text-sm font-semibold text-neutral-100 tracking-wide">
+                Social Sharing & Favicon
+              </h3>
+              <p className="text-xs text-neutral-400">
+                Controls how the site appears when shared on social platforms, and the browser tab icon.
+                Images must be uploaded from your device — no external URLs.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-xs font-mono uppercase tracking-wider text-neutral-300 mb-2">
+                  Social Sharing Title
+                </label>
+                <input
+                  type="text"
+                  value={globalSeo.og_title}
+                  onChange={(e) => setGlobalSeo({ ...globalSeo, og_title: e.target.value })}
+                  placeholder="Gold Akingbade | Fashion & Fine Art Photographer"
+                  className="w-full bg-neutral-950 border border-neutral-700 rounded-xl px-4 py-2.5 text-sm text-neutral-100 focus:outline-none focus:border-amber-400 font-sans"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-mono uppercase tracking-wider text-neutral-300 mb-2">
+                  Social Sharing Description
+                </label>
+                <input
+                  type="text"
+                  value={globalSeo.og_description}
+                  onChange={(e) => setGlobalSeo({ ...globalSeo, og_description: e.target.value })}
+                  placeholder="A study of identity through contemporary Nigerian photography."
+                  className="w-full bg-neutral-950 border border-neutral-700 rounded-xl px-4 py-2.5 text-sm text-neutral-100 focus:outline-none focus:border-amber-400 font-sans"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-1">
+              {/* Favicon upload */}
+              <div>
+                <label className="block text-xs font-mono uppercase tracking-wider text-neutral-300 mb-2">
+                  Favicon
+                </label>
+                <div className="flex items-center gap-4 bg-neutral-950 border border-neutral-700 rounded-xl px-4 py-3">
+                  <div className="w-10 h-10 rounded-lg bg-neutral-900 border border-neutral-800 flex items-center justify-center overflow-hidden shrink-0">
+                    {globalSeo.favicon_path ? (
+                      <img src={globalSeo.favicon_path} alt="Favicon" className="w-full h-full object-contain" />
+                    ) : (
+                      <Globe className="w-4 h-4 text-neutral-600" />
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs text-neutral-400 truncate">
+                      {globalSeo.favicon_path ? 'Custom favicon active' : 'No favicon uploaded yet'}
+                    </p>
+                  </div>
+                  <label className="shrink-0 cursor-pointer flex items-center gap-1.5 px-3 py-2 bg-neutral-800 hover:bg-neutral-700 text-neutral-200 text-[11px] font-mono uppercase tracking-wider rounded-lg transition-colors">
+                    {isUploadingFavicon ? (
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    ) : (
+                      <Upload className="w-3.5 h-3.5" />
+                    )}
+                    Upload
+                    <input
+                      type="file"
+                      accept="image/png,image/x-icon,image/svg+xml,.ico"
+                      onChange={handleUploadFavicon}
+                      disabled={isUploadingFavicon}
+                      className="hidden"
+                    />
+                  </label>
+                </div>
+                <p className="text-[11px] text-neutral-500 mt-1.5">PNG, ICO or SVG. Replaces the default browser icon.</p>
+              </div>
+
+              {/* OG / Social share image upload */}
+              <div>
+                <label className="block text-xs font-mono uppercase tracking-wider text-neutral-300 mb-2">
+                  Social Share Image
+                </label>
+                <div className="flex items-center gap-4 bg-neutral-950 border border-neutral-700 rounded-xl px-4 py-3">
+                  <div className="w-10 h-10 rounded-lg bg-neutral-900 border border-neutral-800 flex items-center justify-center overflow-hidden shrink-0">
+                    {globalSeo.og_image_url ? (
+                      <img src={globalSeo.og_image_url} alt="Social share preview" className="w-full h-full object-cover" />
+                    ) : (
+                      <ImageIcon className="w-4 h-4 text-neutral-600" />
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs text-neutral-400 truncate">
+                      {globalSeo.og_image_url ? 'Custom share image active' : 'No image uploaded yet'}
+                    </p>
+                  </div>
+                  <label className="shrink-0 cursor-pointer flex items-center gap-1.5 px-3 py-2 bg-neutral-800 hover:bg-neutral-700 text-neutral-200 text-[11px] font-mono uppercase tracking-wider rounded-lg transition-colors">
+                    {isUploadingOgImage ? (
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    ) : (
+                      <Upload className="w-3.5 h-3.5" />
+                    )}
+                    Upload
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      onChange={handleUploadOgImage}
+                      disabled={isUploadingOgImage}
+                      className="hidden"
+                    />
+                  </label>
+                </div>
+                <p className="text-[11px] text-neutral-500 mt-1.5">Shown as the preview image when the site is shared on social platforms.</p>
+              </div>
+            </div>
+          </section>
         </form>
       )}
 
@@ -435,7 +593,7 @@ export const SeoManager: React.FC = () => {
                   onClick={handleAutoGenerateFields}
                   className="flex items-center gap-1.5 px-3 py-1.5 bg-neutral-800 hover:bg-neutral-700 text-amber-300 text-xs font-mono rounded-lg transition-colors cursor-pointer border border-neutral-700"
                 >
-                  <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                  <Wand2 className="w-3.5 h-3.5 text-amber-400" />
                   Auto-Generate Copy from City
                 </button>
               </div>

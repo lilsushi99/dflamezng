@@ -1,7 +1,6 @@
 import fs from 'fs';
 import path from 'path';
 import {
-  defaultAdmins,
   defaultSiteSettings,
   defaultSplashSettings,
   defaultSplashImages,
@@ -13,7 +12,6 @@ import {
   defaultFooterSettings,
 } from './seedData';
 import { defaultGlobalSeoSettings, defaultNigerianLocations } from './nigerianLocationsSeed';
-import { Admin } from '../models/Admin';
 import { SiteSettings, SocialLink, FooterSettings } from '../models/Settings';
 import { SplashSettings, SplashImage } from '../models/Splash';
 import { HomepageSettings, HomepageImage } from '../models/Homepage';
@@ -24,7 +22,6 @@ import { Inquiry } from '../models/Inquiry';
 import { defaultCategories } from './seedData';
 
 export interface DatabaseManifest {
-  admins: Admin[];
   siteSettings: SiteSettings;
   splashSettings: SplashSettings;
   splashImages: SplashImage[];
@@ -48,7 +45,6 @@ let cachedStore: DatabaseManifest | null = null;
 
 function getInitialStore(): DatabaseManifest {
   return {
-    admins: JSON.parse(JSON.stringify(defaultAdmins)),
     siteSettings: JSON.parse(JSON.stringify(defaultSiteSettings)),
     splashSettings: JSON.parse(JSON.stringify(defaultSplashSettings)),
     splashImages: JSON.parse(JSON.stringify(defaultSplashImages)),
@@ -80,7 +76,6 @@ export class PersistentStore {
         const fileContent = fs.readFileSync(manifestFilePath, 'utf-8');
         const parsed = JSON.parse(fileContent);
         cachedStore = {
-          admins: parsed.admins || defaultAdmins,
           siteSettings: parsed.siteSettings ? { ...defaultSiteSettings, ...parsed.siteSettings } : defaultSiteSettings,
           splashSettings: parsed.splashSettings ? { ...defaultSplashSettings, ...parsed.splashSettings } : defaultSplashSettings,
           splashImages: parsed.splashImages || defaultSplashImages,

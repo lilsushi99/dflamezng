@@ -2,6 +2,8 @@ import { SourceType } from './Project';
 
 export type TrackType = 'FRONT' | 'BACK';
 
+export type TextCaseMode = 'as_written' | 'sentence' | 'upper' | 'lower';
+
 export interface HomepageImage {
   id: number;
   file_path: string | null;
@@ -24,6 +26,8 @@ export interface HomepageSettings {
   theme_toggle_visible?: boolean;
   theme_mode?: 'DARK' | 'LIGHT';
   photographer_name?: string;
+  main_text_case?: TextCaseMode;
+  subtext_case?: TextCaseMode;
   top_track_speed: number;
   bottom_track_speed: number;
   hero_quote: string | null;

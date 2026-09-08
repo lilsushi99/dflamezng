@@ -11,6 +11,7 @@ const directories = [
   path.join(rootStorageDir, 'homepage', 'back'),
   path.join(rootStorageDir, 'projects'),
   path.join(rootStorageDir, 'logos'),
+  path.join(rootStorageDir, 'seo'),
 ];
 
 directories.forEach((dir) => {
@@ -140,4 +141,32 @@ export const uploadLogo = multer({
     }
   },
   limits: { fileSize: 10 * 1024 * 1024 },
+});
+
+export const uploadFavicon = multer({
+  storage: createStorage('seo'),
+  fileFilter: (
+    _req: Request,
+    file: Express.Multer.File,
+    cb: multer.FileFilterCallback
+  ) => {
+    const allowed = ['image/png', 'image/x-icon', 'image/vnd.microsoft.icon', 'image/svg+xml'];
+    if (
+      allowed.includes(file.mimetype.toLowerCase()) ||
+      file.originalname.toLowerCase().endsWith('.ico') ||
+      file.originalname.toLowerCase().endsWith('.svg') ||
+      file.originalname.toLowerCase().endsWith('.png')
+    ) {
+      cb(null, true);
+    } else {
+      cb(new Error('Invalid favicon format. Permitted: PNG, ICO, SVG.'));
+    }
+  },
+  limits: { fileSize: 2 * 1024 * 1024 },
+});
+
+export const uploadSeoImage = multer({
+  storage: createStorage('seo'),
+  fileFilter: imageFileFilter,
+  limits,
 });

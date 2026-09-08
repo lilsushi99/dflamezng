@@ -20,6 +20,8 @@ export interface PublicSiteState {
   photographerName: string;
   studioName: string;
   professionSubtitle: string;
+  mainTextCase: 'as_written' | 'sentence' | 'upper' | 'lower';
+  subtextCase: 'as_written' | 'sentence' | 'upper' | 'lower';
   locationPrimary: string;
   locationSecondary: string;
   availabilityPrimary: string;
@@ -95,6 +97,8 @@ const INITIAL_EMPTY_STATE: PublicSiteState = {
   photographerName: '',
   studioName: '',
   professionSubtitle: '',
+  mainTextCase: 'as_written',
+  subtextCase: 'as_written',
   locationPrimary: 'Akure / Lagos',
   locationSecondary: 'Nigeria',
   availabilityPrimary: 'Open to Travel',
@@ -296,6 +300,12 @@ class PublicApiService {
       }
       if (home.hero_subtext) {
         this.state.professionSubtitle = home.hero_subtext;
+      }
+      if (home.main_text_case) {
+        this.state.mainTextCase = home.main_text_case;
+      }
+      if (home.subtext_case) {
+        this.state.subtextCase = home.subtext_case;
       }
 
       // Map social links

@@ -1,9 +1,17 @@
 -- =============================================================================
 -- Flames Photography Seed Data
 -- Compatible with MySQL 5.7+ / MySQL 8.0+ / MariaDB / PHPMyAdmin
+--
+-- ⚠️  RUN THIS FILE ONCE, DURING INITIAL DATABASE SETUP ONLY. ⚠️
+-- Do NOT re-run this file (or any deploy script that calls it) against a
+-- database that already has live content. The TRUNCATE statements below are
+-- destructive and will wipe every project, image, social link, and setting
+-- an admin has already saved. Regular code deploys (git push -> Hostinger)
+-- must NEVER execute this file automatically. It is a manual, one-time
+-- bootstrap script only.
 -- =============================================================================
 
--- Clear existing data if tables exist
+-- Clear existing data if tables exist (first-time setup only - see warning above)
 SET FOREIGN_KEY_CHECKS = 0;
 TRUNCATE TABLE `project_images`;
 TRUNCATE TABLE `homepage_images`;
@@ -14,21 +22,21 @@ TRUNCATE TABLE `splash_settings`;
 TRUNCATE TABLE `homepage_settings`;
 TRUNCATE TABLE `footer_settings`;
 TRUNCATE TABLE `site_settings`;
-TRUNCATE TABLE `admins`;
 SET FOREIGN_KEY_CHECKS = 1;
 
 -- -----------------------------------------------------------------------------
--- 1. Seed Admin Account
--- Default Username: admin12345
--- Default Password: admin12345 (Bcrypt hashed with cost factor 10)
+-- 1. Create Your Admin Account
 -- -----------------------------------------------------------------------------
-INSERT INTO `admins` (`id`, `username`, `password_hash`, `display_name`)
-VALUES (
-  1,
-  'admin12345',
-  '$2a$10$QO90rJzFqNlX1Xp4JmG37eKj1nBq2Z9rKqY8yWz7a6b5c4d3e2f1g',
-  'Lead Curator'
-);
+-- There is no default/hardcoded admin account, and this file intentionally
+-- does NOT touch the `admins` table. To create your first admin login:
+--   1. Run:  npx tsx server/scripts/hashPassword.ts "YourChosenPassword"
+--   2. Copy the printed bcrypt hash.
+--   3. In phpMyAdmin, run (replacing the placeholders):
+--        INSERT INTO `admins` (`username`, `password_hash`, `display_name`)
+--        VALUES ('your_username', 'PASTE_BCRYPT_HASH_HERE', 'Lead Curator');
+-- To change credentials later, generate a new hash the same way and either
+-- UPDATE the existing row or INSERT a new admin row directly in phpMyAdmin -
+-- the app reads credentials live from this table on every login attempt.
 
 -- -----------------------------------------------------------------------------
 -- 2. Seed Site Settings

@@ -10,7 +10,6 @@ import {
   AlertCircle,
   Loader2,
   MessageSquare,
-  Sparkles,
   Inbox,
   User,
   Calendar,

@@ -6,3 +6,24 @@ coverage/
 *.log
 .env*
 !.env.example
+
+# ---------------------------------------------------------------------------
+# Persistent runtime data & user-uploaded media - NEVER commit these.
+# This directory is live, server-side state (fallback JSON datastore + all
+# admin-uploaded images). Committing it means every `git push` deploy
+# overwrites production content with a stale snapshot, silently resetting
+# the site. Only folder scaffolding (.gitkeep) should ever be tracked here.
+# ---------------------------------------------------------------------------
+storage/db_manifest.json
+storage/splash/*
+!storage/splash/.gitkeep
+storage/homepage/front/*
+!storage/homepage/front/.gitkeep
+storage/homepage/back/*
+!storage/homepage/back/.gitkeep
+storage/projects/*
+!storage/projects/.gitkeep
+storage/logos/*
+!storage/logos/.gitkeep
+storage/seo/*
+!storage/seo/.gitkeep

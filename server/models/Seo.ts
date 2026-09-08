@@ -8,6 +8,7 @@ export interface GlobalSeoSettings {
   og_title: string;
   og_description: string;
   og_image_url: string | null;
+  favicon_path: string | null;
   google_site_verification: string | null;
   robots_indexing: boolean;
   schema_type: string;
