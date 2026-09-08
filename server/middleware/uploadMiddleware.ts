@@ -2,9 +2,11 @@ import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
 import { Request } from 'express';
+import { persistentStorageRoot } from '../config/storage';
 
-// Ensure storage subdirectories exist
-const rootStorageDir = path.join(process.cwd(), 'storage');
+// Ensure storage subdirectories exist - see server/config/storage.ts for why
+// this resolves outside the repo in production.
+const rootStorageDir = persistentStorageRoot;
 const directories = [
   path.join(rootStorageDir, 'splash'),
   path.join(rootStorageDir, 'homepage', 'front'),
