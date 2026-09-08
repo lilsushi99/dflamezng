@@ -7,7 +7,7 @@ export class SeoRepository {
     if (isDatabaseConnected()) {
       try {
         const rows = await query<GlobalSeoSettings>(
-          'SELECT id, site_title, meta_description, primary_keywords, secondary_keywords, canonical_url, og_title, og_description, og_image_url, google_site_verification, robots_indexing, schema_type, created_at, updated_at FROM seo_settings LIMIT 1'
+          'SELECT id, site_title, meta_description, primary_keywords, secondary_keywords, canonical_url, og_title, og_description, og_image_url, favicon_path, google_site_verification, robots_indexing, schema_type, created_at, updated_at FROM seo_settings LIMIT 1'
         );
         if (rows && rows[0]) {
           const store = PersistentStore.getStore();
@@ -54,6 +54,7 @@ export class SeoRepository {
             og_title = COALESCE(?, og_title), 
             og_description = COALESCE(?, og_description), 
             og_image_url = COALESCE(?, og_image_url), 
+            favicon_path = COALESCE(?, favicon_path), 
             google_site_verification = COALESCE(?, google_site_verification), 
             robots_indexing = COALESCE(?, robots_indexing), 
             schema_type = COALESCE(?, schema_type), 
@@ -68,6 +69,7 @@ export class SeoRepository {
             data.og_title ?? current.og_title,
             data.og_description ?? current.og_description,
             data.og_image_url !== undefined ? data.og_image_url : current.og_image_url,
+            data.favicon_path !== undefined ? data.favicon_path : current.favicon_path,
             data.google_site_verification !== undefined ? data.google_site_verification : current.google_site_verification,
             data.robots_indexing !== undefined ? (data.robots_indexing ? 1 : 0) : (current.robots_indexing ? 1 : 0),
             data.schema_type ?? current.schema_type,

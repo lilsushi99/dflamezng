@@ -1,6 +1,14 @@
 -- =============================================================================
 -- Flames Photography Database Schema
 -- Compatible with MySQL 5.7+ / MySQL 8.0+ / MariaDB / PHPMyAdmin
+--
+-- ⚠️  RUN THIS FILE ONCE, DURING INITIAL DATABASE SETUP ONLY. ⚠️
+-- The DROP TABLE statements below are destructive. Re-running this file
+-- against an existing database will permanently delete every admin
+-- credential, project, image, and setting that has been saved. Regular
+-- code deploys (git push -> Hostinger) must NEVER execute this file
+-- automatically - schema changes after go-live should be additive
+-- (CREATE TABLE IF NOT EXISTS / ALTER TABLE), not a re-run of this script.
 -- =============================================================================
 
 SET FOREIGN_KEY_CHECKS = 0;
@@ -13,6 +21,8 @@ DROP TABLE IF EXISTS `homepage_settings`;
 DROP TABLE IF EXISTS `splash_images`;
 DROP TABLE IF EXISTS `splash_settings`;
 DROP TABLE IF EXISTS `social_links`;
+DROP TABLE IF EXISTS `seo_locations`;
+DROP TABLE IF EXISTS `seo_settings`;
 DROP TABLE IF EXISTS `footer_settings`;
 DROP TABLE IF EXISTS `site_settings`;
 DROP TABLE IF EXISTS `admins`;
@@ -79,6 +89,16 @@ CREATE TABLE `splash_images` (
 -- -----------------------------------------------------------------------------
 CREATE TABLE `homepage_settings` (
   `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `logo_type` ENUM('TEXT', 'IMAGE') NOT NULL DEFAULT 'TEXT',
+  `navbar_logo_text` VARCHAR(255) NULL,
+  `logo_image_path` VARCHAR(500) NULL,
+  `navbar_projects_label` VARCHAR(100) NULL,
+  `navbar_contact_label` VARCHAR(100) NULL,
+  `theme_toggle_visible` BOOLEAN NOT NULL DEFAULT TRUE,
+  `theme_mode` ENUM('DARK', 'LIGHT') NOT NULL DEFAULT 'LIGHT',
+  `photographer_name` VARCHAR(255) NULL,
+  `main_text_case` ENUM('as_written', 'sentence', 'upper', 'lower') NOT NULL DEFAULT 'as_written',
+  `subtext_case` ENUM('as_written', 'sentence', 'upper', 'lower') NOT NULL DEFAULT 'as_written',
   `top_track_speed` DECIMAL(5,2) NOT NULL DEFAULT 1.00,
   `bottom_track_speed` DECIMAL(5,2) NOT NULL DEFAULT 1.00,
   `hero_quote` TEXT NULL,
@@ -159,6 +179,54 @@ CREATE TABLE `footer_settings` (
   `designer_label` VARCHAR(100) NOT NULL DEFAULT 'Designed by',
   `designer_name` VARCHAR(100) NOT NULL DEFAULT 'Castel Studios',
   `designer_url` VARCHAR(500) NOT NULL DEFAULT 'https://castelstudios.com',
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- -----------------------------------------------------------------------------
+-- 11. Global SEO Settings Table
+-- -----------------------------------------------------------------------------
+CREATE TABLE `seo_settings` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `site_title` VARCHAR(255) NOT NULL DEFAULT 'Flames Photography',
+  `meta_description` TEXT NULL,
+  `primary_keywords` TEXT NULL,
+  `secondary_keywords` TEXT NULL,
+  `canonical_url` VARCHAR(500) NULL,
+  `og_title` VARCHAR(255) NULL,
+  `og_description` TEXT NULL,
+  `og_image_url` VARCHAR(500) NULL COMMENT 'Local storage path only, set via SEO image upload - never a raw external URL',
+  `favicon_path` VARCHAR(500) NULL COMMENT 'Local storage path only, set via favicon upload',
+  `google_site_verification` VARCHAR(255) NULL,
+  `robots_indexing` BOOLEAN NOT NULL DEFAULT TRUE,
+  `schema_type` VARCHAR(100) NOT NULL DEFAULT 'PhotographyBusiness',
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- -----------------------------------------------------------------------------
+-- 12. SEO Location Landing Pages Table
+-- -----------------------------------------------------------------------------
+CREATE TABLE `seo_locations` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `location_name` VARCHAR(255) NOT NULL,
+  `state` VARCHAR(100) NULL,
+  `professional_type` VARCHAR(100) NULL,
+  `url_slug` VARCHAR(255) NOT NULL UNIQUE,
+  `seo_title` VARCHAR(255) NULL,
+  `meta_description` TEXT NULL,
+  `primary_keyword` VARCHAR(255) NULL,
+  `secondary_keywords` TEXT NULL,
+  `location_content` LONGTEXT NULL,
+  `services_offered` TEXT NULL,
+  `related_projects` TEXT NULL COMMENT 'JSON array of project IDs',
+  `og_title` VARCHAR(255) NULL,
+  `og_description` TEXT NULL,
+  `og_image_url` VARCHAR(500) NULL,
+  `canonical_url` VARCHAR(500) NULL,
+  `is_published` BOOLEAN NOT NULL DEFAULT TRUE,
+  `is_indexable` BOOLEAN NOT NULL DEFAULT TRUE,
+  `sitemap_priority` DECIMAL(2,1) NOT NULL DEFAULT 0.5,
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

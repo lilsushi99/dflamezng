@@ -50,11 +50,15 @@ export class AdminHomeController {
         theme_toggle_visible,
         theme_mode,
         photographer_name,
+        main_text_case,
+        subtext_case,
         top_track_speed,
         bottom_track_speed,
         hero_quote,
         hero_subtext,
       } = req.body;
+
+      const VALID_CASES = ['as_written', 'sentence', 'upper', 'lower'];
 
       const updated = await settingsRepository.updateHomepageSettings({
         logo_type: logo_type === 'IMAGE' ? 'IMAGE' : logo_type === 'TEXT' ? 'TEXT' : undefined,
@@ -65,6 +69,8 @@ export class AdminHomeController {
         theme_toggle_visible: theme_toggle_visible !== undefined ? Boolean(theme_toggle_visible) : undefined,
         theme_mode: theme_mode === 'LIGHT' ? 'LIGHT' : theme_mode === 'DARK' ? 'DARK' : undefined,
         photographer_name: typeof photographer_name === 'string' ? photographer_name : undefined,
+        main_text_case: VALID_CASES.includes(main_text_case) ? main_text_case : undefined,
+        subtext_case: VALID_CASES.includes(subtext_case) ? subtext_case : undefined,
         top_track_speed: top_track_speed !== undefined ? Number(top_track_speed) : undefined,
         bottom_track_speed: bottom_track_speed !== undefined ? Number(bottom_track_speed) : undefined,
         hero_quote: hero_quote !== undefined ? hero_quote : undefined,

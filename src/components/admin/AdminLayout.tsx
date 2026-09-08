@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import {
-  Sparkles,
+  Aperture,
   LayoutGrid,
   FolderKanban,
   FileText,
@@ -54,7 +54,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
     {
       id: 'splash' as AdminTab,
       label: 'SPLASH SCREEN',
-      icon: Sparkles,
+      icon: Aperture,
       description: 'Opening Identity & Photo Stack',
       disabled: false,
     },

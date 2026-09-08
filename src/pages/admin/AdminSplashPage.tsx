@@ -4,7 +4,7 @@ import {
   Loader2,
   CheckCircle2,
   AlertCircle,
-  Sparkles,
+  Type,
   Layers,
   Sliders,
   RefreshCw,
@@ -170,7 +170,7 @@ export const AdminSplashPage: React.FC = () => {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-neutral-800 mb-6">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-lg bg-neutral-800 flex items-center justify-center text-amber-400">
-              <Sparkles className="w-4 h-4" />
+              <Type className="w-4 h-4" />
             </div>
             <div>
               <h3 className="text-base font-semibold text-neutral-100">Splash Opening & Typography</h3>

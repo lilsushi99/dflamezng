@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { Upload, Link as LinkIcon, Loader2, CheckCircle2, AlertCircle, Eye, X, ArrowUpRight } from 'lucide-react';
+import { Upload, Link as LinkIcon, Loader2, CheckCircle2, AlertCircle, Eye, X, ArrowUpRight, Images } from 'lucide-react';
 
 interface ImageUploadDropzoneProps {
   onUploadFile: (file: File) => Promise<void>;
@@ -9,19 +9,24 @@ interface ImageUploadDropzoneProps {
   submitButtonText?: string;
 }
 
+interface StagedFileEntry {
+  file: File;
+  previewUrl: string;
+}
+
 export const ImageUploadDropzone: React.FC<ImageUploadDropzoneProps> = ({
   onUploadFile,
   onAddUrl,
   disabled = false,
-  helperText = 'Supports JPG, PNG, WebP, AVIF up to 30MB. Preserves original aspect ratio.',
-  submitButtonText = 'UPLOAD & PUBLISH IMAGE',
+  helperText = 'Supports JPG, PNG, WebP, AVIF up to 30MB each. Select multiple photos to upload them all at once.',
+  submitButtonText = 'UPLOAD & PUBLISH',
 }) => {
   const [activeTab, setActiveTab] = useState<'device' | 'url'>('device');
-  const [stagedFile, setStagedFile] = useState<File | null>(null);
-  const [stagedPreviewUrl, setStagedPreviewUrl] = useState<string | null>(null);
+  const [stagedFiles, setStagedFiles] = useState<StagedFileEntry[]>([]);
   const [urlInput, setUrlInput] = useState('');
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<{ done: number; total: number } | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
@@ -32,43 +37,78 @@ export const ImageUploadDropzone: React.FC<ImageUploadDropzoneProps> = ({
     setSuccessMsg(null);
   };
 
-  const handleStageFile = (file: File) => {
-    if (!file) return;
+  const handleStageFiles = (files: File[]) => {
+    if (!files || files.length === 0) return;
     clearMessages();
-    setStagedFile(file);
-    const objectUrl = URL.createObjectURL(file);
-    setStagedPreviewUrl(objectUrl);
+    const entries: StagedFileEntry[] = files.map((file) => ({
+      file,
+      previewUrl: URL.createObjectURL(file),
+    }));
+    // Append to any already-staged selection so drag/drop + browse can be combined.
+    setStagedFiles((prev) => [...prev, ...entries]);
+  };
+
+  const handleRemoveStagedAt = (index: number) => {
+    setStagedFiles((prev) => {
+      const target = prev[index];
+      if (target) URL.revokeObjectURL(target.previewUrl);
+      return prev.filter((_, i) => i !== index);
+    });
   };
 
   const handleClearStaged = () => {
-    if (stagedPreviewUrl) {
-      URL.revokeObjectURL(stagedPreviewUrl);
-    }
-    setStagedFile(null);
-    setStagedPreviewUrl(null);
+    stagedFiles.forEach((entry) => URL.revokeObjectURL(entry.previewUrl));
+    setStagedFiles([]);
+    setUploadProgress(null);
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
   const handleConfirmUpload = async () => {
-    if (!stagedFile) return;
+    if (stagedFiles.length === 0) return;
     clearMessages();
     setIsUploading(true);
 
-    try {
-      await onUploadFile(stagedFile);
-      setSuccessMsg(`"${stagedFile.name}" uploaded and published successfully`);
-      handleClearStaged();
-    } catch (err: any) {
-      setErrorMsg(err?.message || 'Failed to upload image from device');
-    } finally {
-      setIsUploading(false);
-      setTimeout(() => setSuccessMsg(null), 4000);
+    const total = stagedFiles.length;
+    let succeeded = 0;
+    const failedNames: string[] = [];
+
+    // Upload sequentially so display order stays predictable and the
+    // existing single-file backend endpoint (and its persistence guarantees)
+    // is reused unchanged for every file.
+    for (let i = 0; i < stagedFiles.length; i++) {
+      setUploadProgress({ done: i, total });
+      try {
+        await onUploadFile(stagedFiles[i].file);
+        succeeded++;
+      } catch (err: any) {
+        failedNames.push(stagedFiles[i].file.name);
+      }
     }
+    setUploadProgress({ done: total, total });
+
+    if (failedNames.length === 0) {
+      setSuccessMsg(
+        total === 1
+          ? `"${stagedFiles[0].file.name}" uploaded and published successfully`
+          : `${succeeded} photo${succeeded === 1 ? '' : 's'} uploaded and published successfully`
+      );
+      handleClearStaged();
+    } else if (succeeded > 0) {
+      setErrorMsg(`${succeeded}/${total} uploaded. Failed: ${failedNames.join(', ')}`);
+      // Keep only the failed ones staged so the admin can retry them.
+      setStagedFiles((prev) => prev.filter((entry) => failedNames.includes(entry.file.name)));
+    } else {
+      setErrorMsg('Failed to upload image(s) from device');
+    }
+
+    setIsUploading(false);
+    setUploadProgress(null);
+    setTimeout(() => setSuccessMsg(null), 4000);
   };
 
   const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) handleStageFile(file);
+    const files = Array.from(e.target.files || []) as File[];
+    if (files.length) handleStageFiles(files);
   };
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -88,9 +128,9 @@ export const ImageUploadDropzone: React.FC<ImageUploadDropzoneProps> = ({
     setIsDragging(false);
     if (disabled || isUploading) return;
 
-    const file = e.dataTransfer.files?.[0];
-    if (file) {
-      handleStageFile(file);
+    const files = Array.from(e.dataTransfer.files || []) as File[];
+    if (files.length) {
+      handleStageFiles(files);
     }
   };
 
@@ -175,9 +215,10 @@ export const ImageUploadDropzone: React.FC<ImageUploadDropzoneProps> = ({
             onChange={handleFileInputChange}
             className="hidden"
             disabled={disabled || isUploading}
+            multiple
           />
 
-          {!stagedFile ? (
+          {stagedFiles.length === 0 ? (
             <div
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}
@@ -194,42 +235,84 @@ export const ImageUploadDropzone: React.FC<ImageUploadDropzoneProps> = ({
               } ${disabled || isUploading ? 'opacity-60 pointer-events-none' : ''}`}
             >
               <div className="w-12 h-12 rounded-full bg-neutral-800/80 border border-neutral-700 flex items-center justify-center mb-3 text-neutral-300">
-                <Upload className="w-5 h-5" />
+                <Images className="w-5 h-5" />
               </div>
               <p className="text-sm font-medium text-neutral-200 mb-1">
-                Drag and drop photo here, or <span className="text-amber-400 underline underline-offset-2">browse device</span>
+                Drag and drop photos here, or <span className="text-amber-400 underline underline-offset-2">browse device</span>
               </p>
               <p className="text-xs text-neutral-500 max-w-md">{helperText}</p>
             </div>
           ) : (
-            /* Staged Image Preview with Explicit Action Buttons */
-            <div className="bg-neutral-950 border border-neutral-700 rounded-lg p-4 flex flex-col sm:flex-row items-center gap-5">
-              <div className="relative w-32 h-32 sm:w-28 sm:h-28 rounded-lg overflow-hidden bg-neutral-900 border border-neutral-800 shrink-0">
-                {stagedPreviewUrl && (
-                  <img
-                    src={stagedPreviewUrl}
-                    alt="Preview"
-                    className="w-full h-full object-cover"
-                  />
-                )}
-                <div className="absolute top-1 right-1 bg-black/60 backdrop-blur-md rounded-full p-1 text-white">
-                  <Eye className="w-3 h-3" />
-                </div>
+            /* Staged Multi-Image Preview Grid with Explicit Action Buttons */
+            <div className="bg-neutral-950 border border-neutral-700 rounded-lg p-4 space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-mono uppercase tracking-wider text-neutral-400">
+                  {stagedFiles.length} photo{stagedFiles.length === 1 ? '' : 's'} selected
+                </span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (!disabled && !isUploading) fileInputRef.current?.click();
+                  }}
+                  disabled={isUploading}
+                  className="text-[11px] font-mono uppercase tracking-wider text-amber-400 hover:text-amber-300 transition-colors disabled:opacity-50"
+                >
+                  + Add more
+                </button>
               </div>
 
-              <div className="flex-1 text-center sm:text-left space-y-1.5">
-                <div className="text-xs font-mono font-medium text-neutral-200 truncate max-w-md">
-                  {stagedFile.name}
-                </div>
-                <div className="text-[11px] text-neutral-400 font-mono">
-                  Size: {formatFileSize(stagedFile.size)} • Type: {stagedFile.type || 'image'}
-                </div>
-                <p className="text-xs text-amber-400/90 font-sans">
-                  Ready to upload to server storage and register in database.
-                </p>
+              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3 max-h-72 overflow-y-auto pr-1">
+                {stagedFiles.map((entry, index) => (
+                  <div
+                    key={`${entry.file.name}-${entry.file.lastModified}-${index}`}
+                    className="relative aspect-square rounded-lg overflow-hidden bg-neutral-900 border border-neutral-800 group"
+                  >
+                    <img
+                      src={entry.previewUrl}
+                      alt={entry.file.name}
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors" />
+                    <div className="absolute top-1 left-1 bg-black/60 backdrop-blur-md rounded-full p-1 text-white opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Eye className="w-3 h-3" />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveStagedAt(index)}
+                      disabled={isUploading}
+                      className="absolute top-1 right-1 bg-black/70 hover:bg-red-600/90 rounded-full p-1 text-white transition-colors disabled:opacity-40"
+                      aria-label={`Remove ${entry.file.name}`}
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                    <div className="absolute bottom-0 inset-x-0 bg-black/70 backdrop-blur-sm px-1.5 py-1">
+                      <div className="text-[9px] font-mono text-neutral-300 truncate">
+                        {formatFileSize(entry.file.size)}
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
 
-              <div className="flex flex-col sm:flex-row items-center gap-2.5 w-full sm:w-auto">
+              <p className="text-xs text-amber-400/90 font-sans">
+                Ready to upload to server storage and register in database.
+              </p>
+
+              {uploadProgress && isUploading && (
+                <div className="space-y-1.5">
+                  <div className="h-1.5 w-full bg-neutral-800 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-amber-400 transition-all"
+                      style={{ width: `${(uploadProgress.done / uploadProgress.total) * 100}%` }}
+                    />
+                  </div>
+                  <p className="text-[11px] text-neutral-400 font-mono">
+                    Uploading {uploadProgress.done + 1} of {uploadProgress.total}...
+                  </p>
+                </div>
+              )}
+
+              <div className="flex flex-col sm:flex-row items-center gap-2.5">
                 <button
                   type="button"
                   onClick={handleClearStaged}
@@ -237,7 +320,7 @@ export const ImageUploadDropzone: React.FC<ImageUploadDropzoneProps> = ({
                   className="w-full sm:w-auto px-4 py-2.5 bg-neutral-800 hover:bg-neutral-700 text-neutral-300 text-xs font-mono rounded-lg transition-colors flex items-center justify-center gap-1.5"
                 >
                   <X className="w-3.5 h-3.5" />
-                  CANCEL
+                  CANCEL ALL
                 </button>
                 <button
                   type="button"
@@ -253,7 +336,7 @@ export const ImageUploadDropzone: React.FC<ImageUploadDropzoneProps> = ({
                   ) : (
                     <>
                       <Upload className="w-4 h-4" />
-                      {submitButtonText}
+                      {submitButtonText} {stagedFiles.length > 1 ? `(${stagedFiles.length})` : ''}
                     </>
                   )}
                 </button>

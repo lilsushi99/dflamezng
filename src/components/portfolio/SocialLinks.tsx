@@ -14,7 +14,7 @@ export const SocialLinks: React.FC = () => {
     <nav
       id="social-links-nav"
       aria-label="Social and Portfolio Links"
-      className="flex flex-wrap items-center justify-center gap-x-6 sm:gap-x-8 md:gap-x-10 gap-y-2 font-editorial-sans text-[10px] sm:text-[11px] tracking-[0.22em] uppercase select-none"
+      className="flex flex-wrap items-center justify-center gap-x-6 sm:gap-x-8 md:gap-x-10 gap-y-2 font-editorial-mono text-[10px] sm:text-[11px] tracking-[0.14em] uppercase select-none"
     >
       {links.map((link) => (
         <a
@@ -23,7 +23,7 @@ export const SocialLinks: React.FC = () => {
           href={link.href}
           target="_blank"
           rel="noopener noreferrer"
-          className="opacity-70 hover:opacity-100 transition-all duration-200 border-b border-transparent hover:border-current pb-0.5"
+          className="opacity-60 hover:opacity-100 transition-all duration-200 border-b border-transparent hover:border-current pb-0.5"
         >
           {link.label}
         </a>

@@ -10,6 +10,7 @@ export const defaultGlobalSeoSettings: GlobalSeoSettings = {
   og_title: 'Gold Akingbade — Contemporary Visual Archive & Photography',
   og_description: 'Fine art, high-fashion editorial, and portraiture by Gold Akingbade. Monograph studies across contemporary West African landscapes.',
   og_image_url: '/storage/homepage/hero-preview.jpg',
+  favicon_path: null,
   google_site_verification: '',
   robots_indexing: true,
   schema_type: 'PhotographyBusiness',

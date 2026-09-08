@@ -42,6 +42,8 @@ export interface HomepageSettings {
   theme_toggle_visible?: boolean;
   theme_mode?: 'DARK' | 'LIGHT';
   photographer_name?: string;
+  main_text_case?: 'as_written' | 'sentence' | 'upper' | 'lower';
+  subtext_case?: 'as_written' | 'sentence' | 'upper' | 'lower';
   top_track_speed: number;
   bottom_track_speed: number;
   hero_quote: string | null;
@@ -60,6 +62,7 @@ export interface GlobalSeoSettings {
   og_title: string;
   og_description: string;
   og_image_url: string | null;
+  favicon_path: string | null;
   google_site_verification: string | null;
   robots_indexing: boolean;
   schema_type: string;

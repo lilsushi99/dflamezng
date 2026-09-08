@@ -42,11 +42,14 @@ export class AdminSeoController {
         canonical_url,
         og_title,
         og_description,
-        og_image_url,
         google_site_verification,
         robots_indexing,
         schema_type,
       } = req.body;
+
+      // NOTE: og_image_url and favicon_path are intentionally NOT accepted
+      // here as raw text - they are local storage paths only, set exclusively
+      // via the dedicated upload endpoints below (uploadFavicon / uploadOgImage).
 
       const resolvedTitle = site_title || meta_title;
       const resolvedKeywords = primary_keywords || meta_keywords;
@@ -61,7 +64,6 @@ export class AdminSeoController {
         canonical_url: typeof canonical_url === 'string' ? canonical_url.trim() : undefined,
         og_title: typeof og_title === 'string' ? og_title.trim() : undefined,
         og_description: typeof og_description === 'string' ? og_description.trim() : undefined,
-        og_image_url: og_image_url !== undefined ? og_image_url : undefined,
         google_site_verification: google_site_verification !== undefined ? google_site_verification : undefined,
         robots_indexing: robots_indexing !== undefined ? Boolean(robots_indexing) : undefined,
         schema_type: typeof schema_type === 'string' ? schema_type.trim() : undefined,
@@ -80,6 +82,58 @@ export class AdminSeoController {
       res.status(500).json({
         success: false,
         message: 'Failed to update global SEO settings',
+        error: error?.message,
+      });
+    }
+  }
+
+  // POST /api/admin/seo/favicon/upload (device upload only)
+  async uploadFavicon(req: Request, res: Response): Promise<void> {
+    try {
+      if (!req.file) {
+        res.status(400).json({ success: false, message: 'No favicon file was uploaded' });
+        return;
+      }
+
+      const filePath = `/storage/seo/${req.file.filename}`;
+      const updated = await seoRepository.updateGlobalSeo({ favicon_path: filePath });
+
+      res.status(200).json({
+        success: true,
+        message: 'Favicon uploaded successfully',
+        favicon_path: updated.favicon_path,
+        seo: updated,
+      });
+    } catch (error: any) {
+      res.status(500).json({
+        success: false,
+        message: 'Failed to upload favicon',
+        error: error?.message,
+      });
+    }
+  }
+
+  // POST /api/admin/seo/og-image/upload (device upload only)
+  async uploadOgImage(req: Request, res: Response): Promise<void> {
+    try {
+      if (!req.file) {
+        res.status(400).json({ success: false, message: 'No image file was uploaded' });
+        return;
+      }
+
+      const filePath = `/storage/seo/${req.file.filename}`;
+      const updated = await seoRepository.updateGlobalSeo({ og_image_url: filePath });
+
+      res.status(200).json({
+        success: true,
+        message: 'Social sharing image uploaded successfully',
+        og_image_url: updated.og_image_url,
+        seo: updated,
+      });
+    } catch (error: any) {
+      res.status(500).json({
+        success: false,
+        message: 'Failed to upload social sharing image',
         error: error?.message,
       });
     }

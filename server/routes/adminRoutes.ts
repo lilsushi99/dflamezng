@@ -7,6 +7,8 @@ import {
   uploadHomepageBack,
   uploadProject,
   uploadLogo,
+  uploadFavicon,
+  uploadSeoImage,
   rootStoragePath,
 } from '../middleware/uploadMiddleware';
 import { adminSplashController } from '../controllers/adminSplashController';
@@ -150,6 +152,16 @@ router.get('/seo', (req, res) => adminSeoController.getGlobalSeo(req, res));
 
 // PUT /api/admin/seo/global - update global SEO config
 router.put('/seo/global', (req, res) => adminSeoController.updateGlobalSeo(req, res));
+
+// POST /api/admin/seo/favicon/upload - upload favicon from device (local upload only)
+router.post('/seo/favicon/upload', uploadFavicon.single('favicon'), (req, res) =>
+  adminSeoController.uploadFavicon(req, res)
+);
+
+// POST /api/admin/seo/og-image/upload - upload social/Open Graph image from device (local upload only)
+router.post('/seo/og-image/upload', uploadSeoImage.single('og_image'), (req, res) =>
+  adminSeoController.uploadOgImage(req, res)
+);
 
 // GET /api/admin/seo/locations - get all SEO location landing pages
 router.get('/seo/locations', (req, res) => adminSeoController.getAllLocations(req, res));

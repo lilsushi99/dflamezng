@@ -1,24 +1,14 @@
-import { Admin } from '../models/Admin';
 import { Project, ProjectImage } from '../models/Project';
 import { Category } from '../models/Category';
 import { HomepageImage, HomepageSettings } from '../models/Homepage';
 import { SplashImage, SplashSettings } from '../models/Splash';
 import { SiteSettings, SocialLink, FooterSettings } from '../models/Settings';
-import bcrypt from 'bcryptjs';
 
-// Pre-hashed password for admin12345
-const DEFAULT_PASSWORD_HASH = bcrypt.hashSync('admin12345', 10);
-
-export const defaultAdmins: Admin[] = [
-  {
-    id: 1,
-    username: 'admin12345',
-    password_hash: DEFAULT_PASSWORD_HASH,
-    display_name: 'Lead Curator',
-    created_at: new Date(),
-    updated_at: new Date(),
-  },
-];
+// NOTE: There is intentionally NO default/hardcoded admin account here.
+// Admin credentials live only in the `admins` database table and must be
+// provisioned directly (e.g. via phpMyAdmin) using a bcrypt hash generated
+// by `server/scripts/hashPassword.ts`. See that file and `database/seed.sql`
+// for first-time setup instructions.
 
 export const defaultCategories: Category[] = [
   { id: 1, name: 'Portrait', slug: 'portrait', description: 'Commissioned studio & environmental portraiture', display_order: 1, created_at: new Date(), updated_at: new Date() },
@@ -76,6 +66,8 @@ export const defaultHomepageSettings: HomepageSettings = {
   theme_toggle_visible: true,
   theme_mode: 'DARK',
   photographer_name: 'Good Akinbade',
+  main_text_case: 'as_written',
+  subtext_case: 'as_written',
   top_track_speed: 1.00,
   bottom_track_speed: 1.00,
   hero_quote: 'A study of identity, architectural movement and quiet confidence through contemporary Nigerian photography.',

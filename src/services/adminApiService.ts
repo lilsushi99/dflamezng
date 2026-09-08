@@ -496,6 +496,32 @@ export class AdminApiService {
     return data.seo;
   }
 
+  async uploadFavicon(file: File): Promise<{ favicon_path: string; seo: GlobalSeoSettings }> {
+    const formData = new FormData();
+    formData.append('favicon', file);
+
+    const res = await fetchWithAuth(`${API_BASE}/admin/seo/favicon/upload`, {
+      method: 'POST',
+      body: formData,
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Failed to upload favicon');
+    return data;
+  }
+
+  async uploadOgImage(file: File): Promise<{ og_image_url: string; seo: GlobalSeoSettings }> {
+    const formData = new FormData();
+    formData.append('og_image', file);
+
+    const res = await fetchWithAuth(`${API_BASE}/admin/seo/og-image/upload`, {
+      method: 'POST',
+      body: formData,
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Failed to upload social sharing image');
+    return data;
+  }
+
   async getAllLocations(): Promise<SeoLocation[]> {
     const res = await fetchWithAuth(`${API_BASE}/admin/seo/locations`);
     const data = await res.json();
