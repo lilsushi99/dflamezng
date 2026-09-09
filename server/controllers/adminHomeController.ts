@@ -3,6 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import { settingsRepository } from '../repositories/settingsRepository';
 import { projectRepository } from '../repositories/projectRepository';
+import { persistentStorageRoot } from '../config/storage';
 
 export class AdminHomeController {
   // GET /api/admin/home
@@ -178,7 +179,7 @@ export class AdminHomeController {
       const filename = req.file.filename;
 
       if (currentFolder.toLowerCase() !== expectedFolder) {
-        const targetDir = path.join(process.cwd(), 'storage', 'homepage', expectedFolder);
+        const targetDir = path.join(persistentStorageRoot, 'homepage', expectedFolder);
         if (!fs.existsSync(targetDir)) {
           fs.mkdirSync(targetDir, { recursive: true });
         }

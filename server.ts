@@ -8,6 +8,7 @@ import { publicSeoController } from './server/controllers/publicSeoController';
 import { errorHandler } from './server/middleware/errorHandler';
 import { testConnection } from './server/database/db';
 import { handleHtmlRequest } from './server/services/htmlRenderer';
+import { persistentStorageRoot } from './server/config/storage';
 
 async function startServer() {
   const app = express();
@@ -21,7 +22,10 @@ async function startServer() {
   app.use(cookieParser());
 
   // 2. Serve Static Local Storage directory
-  const storagePath = path.join(process.cwd(), 'storage');
+  // Resolves to PERSISTENT_STORAGE_PATH when set (see server/config/storage.ts)
+  // so uploaded media survives redeploys even on hosts that recreate the
+  // deployed folder from a fresh git checkout on every deploy.
+  const storagePath = persistentStorageRoot;
   app.use('/storage', express.static(storagePath));
 
   // 3. API Routes FIRST

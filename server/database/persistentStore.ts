@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import { persistentStorageRoot } from '../config/storage';
 import {
   defaultSiteSettings,
   defaultSplashSettings,
@@ -37,7 +38,7 @@ export interface DatabaseManifest {
   inquiries: Inquiry[];
 }
 
-const storageDir = path.join(process.cwd(), 'storage');
+const storageDir = persistentStorageRoot;
 const manifestFilePath = path.join(storageDir, 'db_manifest.json');
 
 // In-memory cache synced with disk
