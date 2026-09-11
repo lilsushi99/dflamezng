@@ -1,5 +1,8 @@
 import { Request, Response } from 'express';
+import fs from 'fs';
+import path from 'path';
 import { seoRepository } from '../repositories/seoRepository';
+import { persistentStorageRoot } from '../config/storage';
 
 export class AdminSeoController {
   // GET /api/admin/seo
@@ -136,6 +139,46 @@ export class AdminSeoController {
         message: 'Failed to upload social sharing image',
         error: error?.message,
       });
+    }
+  }
+
+  // DELETE /api/admin/seo/favicon
+  async deleteFavicon(req: Request, res: Response): Promise<void> {
+    try {
+      const current = await seoRepository.getGlobalSeo();
+      if (current.favicon_path) {
+        const relativePath = current.favicon_path.replace(/^\/storage\//, '');
+        const fullPath = path.join(persistentStorageRoot, relativePath);
+        try {
+          if (fs.existsSync(fullPath)) fs.unlinkSync(fullPath);
+        } catch (fileErr) {
+          console.warn('[AdminSeoController] Failed to delete favicon file from disk:', fileErr);
+        }
+      }
+      const updated = await seoRepository.updateGlobalSeo({ favicon_path: null });
+      res.status(200).json({ success: true, message: 'Favicon removed successfully', seo: updated });
+    } catch (error: any) {
+      res.status(500).json({ success: false, message: 'Failed to remove favicon', error: error?.message });
+    }
+  }
+
+  // DELETE /api/admin/seo/og-image
+  async deleteOgImage(req: Request, res: Response): Promise<void> {
+    try {
+      const current = await seoRepository.getGlobalSeo();
+      if (current.og_image_url && current.og_image_url.startsWith('/storage/')) {
+        const relativePath = current.og_image_url.replace(/^\/storage\//, '');
+        const fullPath = path.join(persistentStorageRoot, relativePath);
+        try {
+          if (fs.existsSync(fullPath)) fs.unlinkSync(fullPath);
+        } catch (fileErr) {
+          console.warn('[AdminSeoController] Failed to delete social share image file from disk:', fileErr);
+        }
+      }
+      const updated = await seoRepository.updateGlobalSeo({ og_image_url: null });
+      res.status(200).json({ success: true, message: 'Social sharing image removed successfully', seo: updated });
+    } catch (error: any) {
+      res.status(500).json({ success: false, message: 'Failed to remove social sharing image', error: error?.message });
     }
   }
 

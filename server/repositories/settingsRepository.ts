@@ -4,6 +4,7 @@ import { HomepageSettings, HomepageImage, TrackType } from '../models/Homepage';
 import { isDatabaseConnected, query, execute } from '../database/db';
 import { PersistentStore } from '../database/persistentStore';
 import { defaultHomepageSettings } from '../database/seedData';
+import { deleteStoredFile } from '../config/storage';
 
 function stripUndefined<T extends Record<string, any>>(obj: T): Partial<T> {
   const result: Partial<T> = {};
@@ -52,6 +53,13 @@ export class SettingsRepository {
             location_text = ?, 
             is_available = ?, 
             availability_text = ?, 
+            about_title = ?,
+            about_statement = ?,
+            about_story = ?,
+            about_services = ?,
+            projects_modal_subtitle = ?,
+            projects_modal_title = ?,
+            projects_modal_archive_label = ?,
             updated_at = NOW() 
           WHERE id = ?`,
           [
@@ -63,11 +71,19 @@ export class SettingsRepository {
             data.location_text ?? current.location_text,
             data.is_available ?? current.is_available,
             data.availability_text ?? current.availability_text,
+            data.about_title !== undefined ? data.about_title : current.about_title,
+            data.about_statement !== undefined ? data.about_statement : current.about_statement,
+            data.about_story !== undefined ? data.about_story : current.about_story,
+            data.about_services !== undefined ? data.about_services : current.about_services,
+            data.projects_modal_subtitle !== undefined ? data.projects_modal_subtitle : current.projects_modal_subtitle,
+            data.projects_modal_title !== undefined ? data.projects_modal_title : current.projects_modal_title,
+            data.projects_modal_archive_label !== undefined ? data.projects_modal_archive_label : current.projects_modal_archive_label,
             current.id || 1,
           ]
         );
       } catch (e) {
         console.warn('[SettingsRepository] Error executing DB update for site_settings:', e);
+        throw e;
       }
     }
 
@@ -130,6 +146,7 @@ export class SettingsRepository {
         );
       } catch (e) {
         console.warn('[SettingsRepository] Error executing DB update for splash_settings:', e);
+        throw e;
       }
     }
 
@@ -176,6 +193,7 @@ export class SettingsRepository {
         }
       } catch (e) {
         console.warn('[SettingsRepository] DB insert failed for splash image, using persistent storage:', e);
+        throw e;
       }
     }
 
@@ -203,6 +221,7 @@ export class SettingsRepository {
         );
       } catch (e) {
         console.warn('[SettingsRepository] DB update failed for splash image:', e);
+        throw e;
       }
     }
 
@@ -225,6 +244,7 @@ export class SettingsRepository {
         }
       } catch (e) {
         console.warn('[SettingsRepository] Error reordering splash images in DB:', e);
+        throw e;
       }
     }
 
@@ -242,15 +262,22 @@ export class SettingsRepository {
   }
 
   async deleteSplashImage(id: number): Promise<boolean> {
+    const store = PersistentStore.getStore();
+    const target = store.splashImages.find((img) => img.id === id);
+
     if (isDatabaseConnected()) {
       try {
         await execute('DELETE FROM splash_images WHERE id = ?', [id]);
       } catch (e) {
         console.warn('[SettingsRepository] Error deleting splash image from DB:', e);
+        throw e;
       }
     }
 
-    const store = PersistentStore.getStore();
+    if (target?.source_type === 'local') {
+      deleteStoredFile(target.file_path);
+    }
+
     const initialLength = store.splashImages.length;
     store.splashImages = store.splashImages.filter(img => img.id !== id);
     PersistentStore.saveStore();
@@ -299,7 +326,6 @@ export class SettingsRepository {
             subtext_case = ?,
             top_track_speed = ?, 
             bottom_track_speed = ?, 
-            hero_quote = ?, 
             hero_subtext = ?, 
             updated_at = NOW() 
           WHERE id = ?`,
@@ -316,13 +342,13 @@ export class SettingsRepository {
             cleaned.subtext_case ?? current.subtext_case ?? 'as_written',
             cleaned.top_track_speed ?? current.top_track_speed,
             cleaned.bottom_track_speed ?? current.bottom_track_speed,
-            cleaned.hero_quote ?? current.hero_quote,
             cleaned.hero_subtext ?? current.hero_subtext,
             current.id || 1,
           ]
         );
       } catch (e) {
         console.warn('[SettingsRepository] Error executing DB update for homepage_settings:', e);
+        throw e;
       }
     }
 
@@ -375,6 +401,7 @@ export class SettingsRepository {
         }
       } catch (e) {
         console.warn('[SettingsRepository] DB insert failed for homepage image:', e);
+        throw e;
       }
     }
 
@@ -404,6 +431,7 @@ export class SettingsRepository {
         );
       } catch (e) {
         console.warn('[SettingsRepository] DB update failed for homepage image:', e);
+        throw e;
       }
     }
 
@@ -428,6 +456,7 @@ export class SettingsRepository {
         }
       } catch (e) {
         console.warn('[SettingsRepository] DB reorder failed for homepage images:', e);
+        throw e;
       }
     }
 
@@ -445,15 +474,22 @@ export class SettingsRepository {
   }
 
   async deleteHomepageImage(id: number): Promise<boolean> {
+    const store = PersistentStore.getStore();
+    const target = store.homepageImages.find((img) => img.id === id);
+
     if (isDatabaseConnected()) {
       try {
         await execute('DELETE FROM homepage_images WHERE id = ?', [id]);
       } catch (e) {
         console.warn('[SettingsRepository] Error deleting homepage image from DB:', e);
+        throw e;
       }
     }
 
-    const store = PersistentStore.getStore();
+    if (target?.source_type === 'local') {
+      deleteStoredFile(target.file_path);
+    }
+
     const initialLength = store.homepageImages.length;
     store.homepageImages = store.homepageImages.filter(img => img.id !== id);
     PersistentStore.saveStore();
@@ -491,14 +527,15 @@ export class SettingsRepository {
     if (isDatabaseConnected()) {
       try {
         const res = await execute(
-          'INSERT INTO social_links (platform_key, label, url, display_order, is_active, created_at, updated_at) VALUES (?, ?, ?, ?, ?, NOW(), NOW())',
-          [link.platform_key, link.label, link.url, nextOrder, link.is_active ?? true]
+          'INSERT INTO social_links (platform_key, label, url, display_mode, display_order, is_active, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, NOW(), NOW())',
+          [link.platform_key, link.label, link.url, link.display_mode || 'TEXT', nextOrder, link.is_active ?? true]
         );
         if (res?.insertId) {
           newId = res.insertId;
         }
       } catch (e) {
         console.warn('[SettingsRepository] DB insert failed for social link:', e);
+        throw e;
       }
     }
 
@@ -507,6 +544,7 @@ export class SettingsRepository {
       platform_key: link.platform_key,
       label: link.label,
       url: link.url,
+      display_mode: link.display_mode || 'TEXT',
       display_order: nextOrder,
       is_active: link.is_active ?? true,
       created_at: new Date(),
@@ -525,11 +563,12 @@ export class SettingsRepository {
     if (isDatabaseConnected() && current) {
       try {
         await execute(
-          'UPDATE social_links SET platform_key = ?, label = ?, url = ?, is_active = ?, display_order = ?, updated_at = NOW() WHERE id = ?',
+          'UPDATE social_links SET platform_key = ?, label = ?, url = ?, display_mode = ?, is_active = ?, display_order = ?, updated_at = NOW() WHERE id = ?',
           [
             data.platform_key ?? current.platform_key,
             data.label ?? current.label,
             data.url ?? current.url,
+            data.display_mode ?? current.display_mode ?? 'TEXT',
             data.is_active ?? current.is_active,
             data.display_order ?? current.display_order,
             id,
@@ -537,6 +576,7 @@ export class SettingsRepository {
         );
       } catch (e) {
         console.warn('[SettingsRepository] DB update failed for social link:', e);
+        throw e;
       }
     }
 
@@ -544,6 +584,7 @@ export class SettingsRepository {
       if (data.platform_key) current.platform_key = data.platform_key;
       if (data.label) current.label = data.label;
       if (data.url) current.url = data.url;
+      if (data.display_mode) current.display_mode = data.display_mode;
       if (data.is_active !== undefined) current.is_active = data.is_active;
       if (data.display_order !== undefined) current.display_order = data.display_order;
       current.updated_at = new Date();
@@ -561,6 +602,7 @@ export class SettingsRepository {
         }
       } catch (e) {
         console.warn('[SettingsRepository] DB reorder failed for social links:', e);
+        throw e;
       }
     }
 
@@ -583,6 +625,7 @@ export class SettingsRepository {
         await execute('DELETE FROM social_links WHERE id = ?', [id]);
       } catch (e) {
         console.warn('[SettingsRepository] Error deleting social link from DB:', e);
+        throw e;
       }
     }
 
@@ -637,6 +680,7 @@ export class SettingsRepository {
         );
       } catch (e) {
         console.warn('[SettingsRepository] Error updating footer_settings in DB:', e);
+        throw e;
       }
     }
 

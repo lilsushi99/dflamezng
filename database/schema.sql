@@ -16,6 +16,7 @@ SET FOREIGN_KEY_CHECKS = 0;
 -- Drop tables if they already exist (in reverse dependency order)
 DROP TABLE IF EXISTS `project_images`;
 DROP TABLE IF EXISTS `projects`;
+DROP TABLE IF EXISTS `categories`;
 DROP TABLE IF EXISTS `homepage_images`;
 DROP TABLE IF EXISTS `homepage_settings`;
 DROP TABLE IF EXISTS `splash_images`;
@@ -54,6 +55,13 @@ CREATE TABLE `site_settings` (
   `location_text` VARCHAR(255) NOT NULL DEFAULT 'Lagos, Nigeria',
   `is_available` BOOLEAN NOT NULL DEFAULT TRUE,
   `availability_text` VARCHAR(255) NOT NULL DEFAULT 'Available for Commissions Worldwide',
+  `about_title` VARCHAR(255) NULL,
+  `about_statement` TEXT NULL,
+  `about_story` TEXT NULL,
+  `about_services` TEXT NULL,
+  `projects_modal_subtitle` VARCHAR(255) NULL COMMENT 'modal_icon_subtitle: small label above the projects modal title',
+  `projects_modal_title` VARCHAR(255) NULL COMMENT 'modal_main_title: main heading of the projects modal',
+  `projects_modal_archive_label` VARCHAR(255) NULL COMMENT 'bottom_archive_studio_label: footer label inside the projects modal',
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -65,6 +73,9 @@ CREATE TABLE `splash_settings` (
   `id` INT AUTO_INCREMENT PRIMARY KEY,
   `is_enabled` BOOLEAN NOT NULL DEFAULT TRUE,
   `signature_text` VARCHAR(255) NOT NULL DEFAULT 'Flames Photography',
+  `photographer_name` VARCHAR(255) NULL,
+  `splash_subtext` VARCHAR(500) NULL,
+  `typewriter_enabled` BOOLEAN NOT NULL DEFAULT TRUE,
   `typing_speed_ms` INT NOT NULL DEFAULT 65,
   `stack_duration_ms` INT NOT NULL DEFAULT 3200,
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -101,8 +112,20 @@ CREATE TABLE `homepage_settings` (
   `subtext_case` ENUM('as_written', 'sentence', 'upper', 'lower') NOT NULL DEFAULT 'as_written',
   `top_track_speed` DECIMAL(5,2) NOT NULL DEFAULT 1.00,
   `bottom_track_speed` DECIMAL(5,2) NOT NULL DEFAULT 1.00,
-  `hero_quote` TEXT NULL,
   `hero_subtext` TEXT NULL,
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- -----------------------------------------------------------------------------
+-- 5b. Project Categories Table (dynamic, admin-managed - no hardcoded values)
+-- -----------------------------------------------------------------------------
+CREATE TABLE `categories` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `name` VARCHAR(100) NOT NULL UNIQUE,
+  `slug` VARCHAR(100) NOT NULL UNIQUE,
+  `description` VARCHAR(255) NULL,
+  `display_order` INT NOT NULL DEFAULT 0,
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -164,6 +187,7 @@ CREATE TABLE `social_links` (
   `platform_key` VARCHAR(50) NOT NULL UNIQUE,
   `label` VARCHAR(100) NOT NULL,
   `url` VARCHAR(500) NOT NULL,
+  `display_mode` ENUM('TEXT', 'ICON') NOT NULL DEFAULT 'TEXT',
   `display_order` INT NOT NULL DEFAULT 0,
   `is_active` BOOLEAN NOT NULL DEFAULT TRUE,
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

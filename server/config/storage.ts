@@ -1,3 +1,4 @@
+import fs from 'fs';
 import path from 'path';
 
 /**
@@ -33,3 +34,23 @@ export const persistentStorageRoot: string = process.env.PERSISTENT_STORAGE_PATH
   : path.join(process.cwd(), 'storage');
 
 export const isUsingExternalStoragePath = Boolean(process.env.PERSISTENT_STORAGE_PATH);
+
+/**
+ * Deletes a locally-uploaded media file from disk given its public URL path
+ * (e.g. "/storage/splash/xyz.jpg"). Safe no-op for external URLs, missing
+ * paths, or files that don't exist. Used whenever an image/video record is
+ * deleted, so deleting in /fire actually frees disk space instead of
+ * leaving orphaned files behind forever.
+ */
+export function deleteStoredFile(filePath: string | null | undefined): void {
+  if (!filePath || !filePath.startsWith('/storage/')) return;
+  try {
+    const relative = filePath.replace(/^\/storage\//, '');
+    const fullPath = path.join(persistentStorageRoot, relative);
+    if (fs.existsSync(fullPath)) {
+      fs.unlinkSync(fullPath);
+    }
+  } catch (e) {
+    console.warn('[Storage] Failed to delete stored file:', filePath, e);
+  }
+}

@@ -16,6 +16,9 @@ export const TopImageTrack: React.FC<TopImageTrackProps> = ({
   const trackRef = useRef<HTMLDivElement>(null);
   const [isPaused, setIsPaused] = useState(false);
   const [isSlowed, setIsSlowed] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStartX, setDragStartX] = useState(0);
+  const [dragStartScroll, setDragStartScroll] = useState(0);
   const scrollPosRef = useRef(0);
   const lastTimeRef = useRef<number | null>(null);
 
@@ -34,7 +37,7 @@ export const TopImageTrack: React.FC<TopImageTrackProps> = ({
     let animationFrameId: number;
 
     const animate = (time: number) => {
-      if (lastTimeRef.current !== null && el) {
+      if (lastTimeRef.current !== null && el && !isDragging) {
         const delta = time - lastTimeRef.current;
         // Calibrate speed: slightly slower & calmer on mobile (<=768px)
         const isMobile = window.innerWidth <= 768;
@@ -62,7 +65,42 @@ export const TopImageTrack: React.FC<TopImageTrackProps> = ({
       cancelAnimationFrame(animationFrameId);
       lastTimeRef.current = null;
     };
-  }, [isPaused, isSlowed, isIntroComplete]);
+  }, [isPaused, isSlowed, isDragging, isIntroComplete]);
+
+  // Mouse-drag to navigate faster through the track (desktop pointer only).
+  // Purely additive: does not touch the auto-scroll speed/animation above -
+  // it only pauses the automatic increment while dragging and hands the
+  // exact same scrollPosRef back to it afterward so motion resumes exactly
+  // where the animation loop left off.
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (!trackRef.current) return;
+    setIsDragging(true);
+    setDragStartX(e.pageX);
+    setDragStartScroll(trackRef.current.scrollLeft);
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging || !trackRef.current) return;
+    e.preventDefault();
+    const walk = (e.pageX - dragStartX) * 1.5;
+    let next = dragStartScroll - walk;
+
+    const singleSetWidth = trackRef.current.scrollWidth / 3;
+    if (singleSetWidth > 0) {
+      if (next >= singleSetWidth) next -= singleSetWidth;
+      if (next < 0) next += singleSetWidth;
+    }
+
+    trackRef.current.scrollLeft = next;
+    scrollPosRef.current = next;
+  };
+
+  const handleMouseUpOrLeave = () => {
+    if (isDragging && trackRef.current) {
+      scrollPosRef.current = trackRef.current.scrollLeft;
+    }
+    setIsDragging(false);
+  };
 
   // Triple set for seamless infinite wrap
   const repeatedPhotos = [...photos, ...photos, ...photos];
@@ -79,7 +117,14 @@ export const TopImageTrack: React.FC<TopImageTrackProps> = ({
     >
       <div
         ref={trackRef}
-        className="w-full overflow-x-auto no-scrollbar flex items-start gap-2 sm:gap-3 md:gap-4 px-3 sm:px-6 md:px-8 select-none"
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUpOrLeave}
+        onMouseLeave={() => {
+          setIsSlowed(false);
+          handleMouseUpOrLeave();
+        }}
+        className={`w-full overflow-x-auto no-scrollbar flex items-start gap-2 sm:gap-3 md:gap-4 px-3 sm:px-6 md:px-8 select-none cursor-grab active:cursor-grabbing`}
       >
         {repeatedPhotos.map((photo, idx) => (
           <PhotoPrint

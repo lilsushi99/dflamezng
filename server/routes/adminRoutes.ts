@@ -163,6 +163,12 @@ router.post('/seo/og-image/upload', uploadSeoImage.single('og_image'), (req, res
   adminSeoController.uploadOgImage(req, res)
 );
 
+// DELETE /api/admin/seo/favicon - remove favicon (file + DB reference)
+router.delete('/seo/favicon', (req, res) => adminSeoController.deleteFavicon(req, res));
+
+// DELETE /api/admin/seo/og-image - remove social sharing image (file + DB reference)
+router.delete('/seo/og-image', (req, res) => adminSeoController.deleteOgImage(req, res));
+
 // GET /api/admin/seo/locations - get all SEO location landing pages
 router.get('/seo/locations', (req, res) => adminSeoController.getAllLocations(req, res));
 

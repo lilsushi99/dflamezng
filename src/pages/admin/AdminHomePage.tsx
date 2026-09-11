@@ -54,10 +54,12 @@ export const AdminHomePage: React.FC = () => {
   const [newSocialLabel, setNewSocialLabel] = useState('');
   const [newSocialUrl, setNewSocialUrl] = useState('');
   const [newSocialKey, setNewSocialKey] = useState('instagram');
+  const [newSocialDisplayMode, setNewSocialDisplayMode] = useState<'TEXT' | 'ICON'>('TEXT');
   const [editingSocialId, setEditingSocialId] = useState<number | null>(null);
   const [editSocialLabel, setEditSocialLabel] = useState('');
   const [editSocialUrl, setEditSocialUrl] = useState('');
   const [editSocialKey, setEditSocialKey] = useState('instagram');
+  const [editSocialDisplayMode, setEditSocialDisplayMode] = useState<'TEXT' | 'ICON'>('TEXT');
   const [isSavingSocialEdit, setIsSavingSocialEdit] = useState(false);
   const [isAddingSocial, setIsAddingSocial] = useState(false);
 
@@ -280,6 +282,7 @@ export const AdminHomePage: React.FC = () => {
         platform_key: newSocialKey,
         label: newSocialLabel.trim(),
         url: newSocialUrl.trim(),
+        display_mode: newSocialDisplayMode,
         display_order: socialLinks.length + 1,
         is_active: true,
       });
@@ -310,6 +313,7 @@ export const AdminHomePage: React.FC = () => {
     setEditSocialLabel(link.label);
     setEditSocialUrl(link.url);
     setEditSocialKey(link.platform_key);
+    setEditSocialDisplayMode(link.display_mode === 'ICON' ? 'ICON' : 'TEXT');
   };
 
   const handleCancelEditSocialLink = () => {
@@ -326,6 +330,7 @@ export const AdminHomePage: React.FC = () => {
         platform_key: editSocialKey,
         label: editSocialLabel.trim(),
         url: editSocialUrl.trim(),
+        display_mode: editSocialDisplayMode,
       });
       setSocialLinks((prev) => prev.map((link) => (link.id === id ? updated : link)));
       showToast('success', `Updated social handle for ${updated.label}`);
@@ -902,7 +907,7 @@ export const AdminHomePage: React.FC = () => {
 
           {/* Add Social Link Form */}
           <form onSubmit={handleAddSocialLink} className="bg-neutral-950 p-4 rounded-xl border border-neutral-800 mb-6">
-            <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-5 gap-3">
               <div>
                 <label className="block text-[10px] font-mono uppercase text-neutral-400 mb-1">
                   Platform
@@ -921,7 +926,24 @@ export const AdminHomePage: React.FC = () => {
                   <option value="behance">Behance</option>
                   <option value="dribbble">Dribbble</option>
                   <option value="pexels">Pexels</option>
+                  <option value="telegram">Telegram</option>
+                  <option value="facebook">Facebook</option>
+                  <option value="x">X / Twitter</option>
                   <option value="custom">Custom Channel</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-mono uppercase text-neutral-400 mb-1">
+                  Display As
+                </label>
+                <select
+                  value={newSocialDisplayMode}
+                  onChange={(e) => setNewSocialDisplayMode(e.target.value as 'TEXT' | 'ICON')}
+                  className="w-full bg-neutral-900 border border-neutral-700 rounded-lg px-3 py-2 text-xs text-neutral-200"
+                >
+                  <option value="TEXT">Text Label</option>
+                  <option value="ICON">Circular Icon</option>
                 </select>
               </div>
 
@@ -974,7 +996,7 @@ export const AdminHomePage: React.FC = () => {
                   key={link.id}
                   className="p-3 bg-neutral-950 border border-amber-400/40 rounded-xl space-y-2.5"
                 >
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                  <div className="grid grid-cols-1 sm:grid-cols-4 gap-2.5">
                     <select
                       value={editSocialKey}
                       onChange={(e) => setEditSocialKey(e.target.value)}
@@ -989,6 +1011,9 @@ export const AdminHomePage: React.FC = () => {
                       <option value="behance">Behance</option>
                       <option value="dribbble">Dribbble</option>
                       <option value="pexels">Pexels</option>
+                      <option value="telegram">Telegram</option>
+                      <option value="facebook">Facebook</option>
+                      <option value="x">X / Twitter</option>
                       <option value="custom">Custom Channel</option>
                     </select>
                     <input
@@ -1005,6 +1030,14 @@ export const AdminHomePage: React.FC = () => {
                       placeholder="https://..."
                       className="w-full bg-neutral-900 border border-neutral-700 rounded-lg px-3 py-2 text-xs text-neutral-200 font-mono"
                     />
+                    <select
+                      value={editSocialDisplayMode}
+                      onChange={(e) => setEditSocialDisplayMode(e.target.value as 'TEXT' | 'ICON')}
+                      className="w-full bg-neutral-900 border border-neutral-700 rounded-lg px-3 py-2 text-xs text-neutral-200"
+                    >
+                      <option value="TEXT">Text Label</option>
+                      <option value="ICON">Circular Icon</option>
+                    </select>
                   </div>
                   <div className="flex items-center gap-2 justify-end">
                     <button

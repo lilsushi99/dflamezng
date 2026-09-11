@@ -70,7 +70,6 @@ export const defaultHomepageSettings: HomepageSettings = {
   subtext_case: 'as_written',
   top_track_speed: 1.00,
   bottom_track_speed: 1.00,
-  hero_quote: 'A study of identity, architectural movement and quiet confidence through contemporary Nigerian photography.',
   hero_subtext: 'Monochrome and pigmented archival studies across West African landscapes.',
   created_at: new Date(),
   updated_at: new Date(),
@@ -134,11 +133,11 @@ export const defaultProjectImages: ProjectImage[] = [];
 export const defaultHomepageImages: HomepageImage[] = [];
 
 export const defaultSocialLinks: SocialLink[] = [
-  { id: 1, platform_key: 'instagram', label: 'INSTAGRAM', url: 'https://instagram.com', display_order: 1, is_active: true, created_at: new Date(), updated_at: new Date() },
-  { id: 2, platform_key: 'tiktok', label: 'TIKTOK', url: 'https://tiktok.com', display_order: 2, is_active: true, created_at: new Date(), updated_at: new Date() },
-  { id: 3, platform_key: 'pixieset', label: 'PIXIESET', url: 'https://pixieset.com', display_order: 3, is_active: true, created_at: new Date(), updated_at: new Date() },
-  { id: 4, platform_key: 'pinterest', label: 'PINTEREST', url: 'https://pinterest.com', display_order: 4, is_active: true, created_at: new Date(), updated_at: new Date() },
-  { id: 5, platform_key: 'whatsapp', label: 'WHATSAPP', url: 'https://whatsapp.com', display_order: 5, is_active: true, created_at: new Date(), updated_at: new Date() },
+  { id: 1, platform_key: 'instagram', label: 'INSTAGRAM', url: 'https://instagram.com', display_mode: 'TEXT', display_order: 1, is_active: true, created_at: new Date(), updated_at: new Date() },
+  { id: 2, platform_key: 'tiktok', label: 'TIKTOK', url: 'https://tiktok.com', display_mode: 'TEXT', display_order: 2, is_active: true, created_at: new Date(), updated_at: new Date() },
+  { id: 3, platform_key: 'pixieset', label: 'PIXIESET', url: 'https://pixieset.com', display_mode: 'TEXT', display_order: 3, is_active: true, created_at: new Date(), updated_at: new Date() },
+  { id: 4, platform_key: 'pinterest', label: 'PINTEREST', url: 'https://pinterest.com', display_mode: 'TEXT', display_order: 4, is_active: true, created_at: new Date(), updated_at: new Date() },
+  { id: 5, platform_key: 'whatsapp', label: 'WHATSAPP', url: 'https://whatsapp.com', display_mode: 'TEXT', display_order: 5, is_active: true, created_at: new Date(), updated_at: new Date() },
 ];
 
 export const defaultFooterSettings: FooterSettings = {

@@ -73,6 +73,8 @@ export interface SocialLink {
   label: string;
   href: string;
   target?: string;
+  platform_key?: string;
+  display_mode?: 'TEXT' | 'ICON';
 }
 
 export interface InquiryFormData {

@@ -113,6 +113,7 @@ export interface SocialLink {
   platform_key: string;
   label: string;
   url: string;
+  display_mode: 'TEXT' | 'ICON';
   display_order: number;
   is_active: boolean;
   created_at: string;

@@ -314,6 +314,8 @@ class PublicApiService {
           id: s.platform_key || String(s.id),
           label: s.label || (s.platform_key || '').toUpperCase(),
           href: s.url || '#',
+          platform_key: s.platform_key,
+          display_mode: s.display_mode === 'ICON' ? 'ICON' : 'TEXT',
         }));
       } else {
         this.state.socialLinks = [];

@@ -172,6 +172,36 @@ export const SeoManager: React.FC = () => {
     }
   };
 
+  const handleDeleteFavicon = async () => {
+    setIsUploadingFavicon(true);
+    setFeedback(null);
+    try {
+      await adminApiService.deleteFavicon();
+      setGlobalSeo((prev) => ({ ...prev, favicon_path: null }));
+      setFeedback({ type: 'success', message: 'Favicon removed' });
+    } catch (err: any) {
+      setFeedback({ type: 'error', message: err?.message || 'Failed to remove favicon' });
+    } finally {
+      setIsUploadingFavicon(false);
+      setTimeout(() => setFeedback(null), 3500);
+    }
+  };
+
+  const handleDeleteOgImage = async () => {
+    setIsUploadingOgImage(true);
+    setFeedback(null);
+    try {
+      await adminApiService.deleteOgImage();
+      setGlobalSeo((prev) => ({ ...prev, og_image_url: null }));
+      setFeedback({ type: 'success', message: 'Social sharing image removed' });
+    } catch (err: any) {
+      setFeedback({ type: 'error', message: err?.message || 'Failed to remove social sharing image' });
+    } finally {
+      setIsUploadingOgImage(false);
+      setTimeout(() => setFeedback(null), 3500);
+    }
+  };
+
   const handleOpenNewLocation = () => {
     setSelectedLocation(null);
     setLocationForm({
@@ -501,6 +531,16 @@ export const SeoManager: React.FC = () => {
                       className="hidden"
                     />
                   </label>
+                  {globalSeo.favicon_path && (
+                    <button
+                      type="button"
+                      onClick={handleDeleteFavicon}
+                      disabled={isUploadingFavicon}
+                      className="shrink-0 flex items-center gap-1 px-2.5 py-2 bg-neutral-900 hover:bg-red-950/60 text-neutral-400 hover:text-red-400 text-[11px] font-mono uppercase tracking-wider rounded-lg transition-colors disabled:opacity-50"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  )}
                 </div>
                 <p className="text-[11px] text-neutral-500 mt-1.5">PNG, ICO or SVG. Replaces the default browser icon.</p>
               </div>
@@ -538,6 +578,16 @@ export const SeoManager: React.FC = () => {
                       className="hidden"
                     />
                   </label>
+                  {globalSeo.og_image_url && (
+                    <button
+                      type="button"
+                      onClick={handleDeleteOgImage}
+                      disabled={isUploadingOgImage}
+                      className="shrink-0 flex items-center gap-1 px-2.5 py-2 bg-neutral-900 hover:bg-red-950/60 text-neutral-400 hover:text-red-400 text-[11px] font-mono uppercase tracking-wider rounded-lg transition-colors disabled:opacity-50"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  )}
                 </div>
                 <p className="text-[11px] text-neutral-500 mt-1.5">Shown as the preview image when the site is shared on social platforms.</p>
               </div>

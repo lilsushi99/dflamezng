@@ -42,6 +42,7 @@ export class ContactRepository {
         }
       } catch (e) {
         console.warn('[ContactRepository] DB insert error for inquiry, using persistent store:', e);
+        throw e;
       }
     }
 
@@ -73,6 +74,7 @@ export class ContactRepository {
         ]);
       } catch (e) {
         console.warn('[ContactRepository] DB update inquiry status error:', e);
+        throw e;
       }
     }
 
@@ -94,6 +96,7 @@ export class ContactRepository {
         await execute('DELETE FROM inquiries WHERE id = ?', [id]);
       } catch (e) {
         console.warn('[ContactRepository] DB delete inquiry error:', e);
+        throw e;
       }
     }
 

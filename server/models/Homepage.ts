@@ -30,7 +30,6 @@ export interface HomepageSettings {
   subtext_case?: TextCaseMode;
   top_track_speed: number;
   bottom_track_speed: number;
-  hero_quote: string | null;
   hero_subtext: string | null;
   created_at: Date;
   updated_at: Date;

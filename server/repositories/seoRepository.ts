@@ -44,39 +44,55 @@ export class SeoRepository {
 
     if (isDatabaseConnected()) {
       try {
-        await execute(
+        const values = [
+          resolvedTitle,
+          data.meta_description ?? current.meta_description,
+          resolvedKeywords,
+          data.secondary_keywords ?? current.secondary_keywords,
+          data.canonical_url ?? current.canonical_url,
+          data.og_title ?? current.og_title,
+          data.og_description ?? current.og_description,
+          data.og_image_url !== undefined ? data.og_image_url : current.og_image_url,
+          data.favicon_path !== undefined ? data.favicon_path : current.favicon_path,
+          data.google_site_verification !== undefined ? data.google_site_verification : current.google_site_verification,
+          data.robots_indexing !== undefined ? (data.robots_indexing ? 1 : 0) : (current.robots_indexing ? 1 : 0),
+          data.schema_type ?? current.schema_type,
+        ];
+
+        const result = await execute(
           `UPDATE seo_settings SET 
-            site_title = COALESCE(?, site_title), 
-            meta_description = COALESCE(?, meta_description), 
-            primary_keywords = COALESCE(?, primary_keywords), 
-            secondary_keywords = COALESCE(?, secondary_keywords), 
-            canonical_url = COALESCE(?, canonical_url), 
-            og_title = COALESCE(?, og_title), 
-            og_description = COALESCE(?, og_description), 
-            og_image_url = COALESCE(?, og_image_url), 
-            favicon_path = COALESCE(?, favicon_path), 
-            google_site_verification = COALESCE(?, google_site_verification), 
-            robots_indexing = COALESCE(?, robots_indexing), 
-            schema_type = COALESCE(?, schema_type), 
+            site_title = ?, 
+            meta_description = ?, 
+            primary_keywords = ?, 
+            secondary_keywords = ?, 
+            canonical_url = ?, 
+            og_title = ?, 
+            og_description = ?, 
+            og_image_url = ?, 
+            favicon_path = ?, 
+            google_site_verification = ?, 
+            robots_indexing = ?, 
+            schema_type = ?, 
             updated_at = NOW() 
           WHERE id = 1`,
-          [
-            resolvedTitle,
-            data.meta_description ?? current.meta_description,
-            resolvedKeywords,
-            data.secondary_keywords ?? current.secondary_keywords,
-            data.canonical_url ?? current.canonical_url,
-            data.og_title ?? current.og_title,
-            data.og_description ?? current.og_description,
-            data.og_image_url !== undefined ? data.og_image_url : current.og_image_url,
-            data.favicon_path !== undefined ? data.favicon_path : current.favicon_path,
-            data.google_site_verification !== undefined ? data.google_site_verification : current.google_site_verification,
-            data.robots_indexing !== undefined ? (data.robots_indexing ? 1 : 0) : (current.robots_indexing ? 1 : 0),
-            data.schema_type ?? current.schema_type,
-          ]
+          values
         );
+
+        // Self-healing upsert: if no row with id=1 exists yet (e.g. the
+        // table was just created and never seeded), the UPDATE above
+        // silently matches zero rows - insert the row instead so a save
+        // can never appear to succeed while persisting nothing.
+        if (!result?.affectedRows) {
+          await execute(
+            `INSERT INTO seo_settings 
+              (id, site_title, meta_description, primary_keywords, secondary_keywords, canonical_url, og_title, og_description, og_image_url, favicon_path, google_site_verification, robots_indexing, schema_type, created_at, updated_at) 
+            VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())`,
+            values
+          );
+        }
       } catch (e) {
         console.warn('[SeoRepository] DB error in updateGlobalSeo:', e);
+        throw e;
       }
     }
 
@@ -140,6 +156,7 @@ export class SeoRepository {
         }
       } catch (e) {
         console.warn('[SeoRepository] DB error in getLocationBySlug:', e);
+        throw e;
       }
     }
 
@@ -205,6 +222,7 @@ export class SeoRepository {
         }
       } catch (e) {
         console.warn('[SeoRepository] DB insert failed for seo_location:', e);
+        throw e;
       }
     }
 
@@ -292,6 +310,7 @@ export class SeoRepository {
         );
       } catch (e) {
         console.warn('[SeoRepository] DB update failed for seo_location:', e);
+        throw e;
       }
     }
 
@@ -323,6 +342,7 @@ export class SeoRepository {
         await execute('DELETE FROM seo_locations WHERE id = ?', [id]);
       } catch (e) {
         console.warn('[SeoRepository] DB delete failed for seo_location:', e);
+        throw e;
       }
     }
 

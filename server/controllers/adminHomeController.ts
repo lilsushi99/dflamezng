@@ -55,7 +55,6 @@ export class AdminHomeController {
         subtext_case,
         top_track_speed,
         bottom_track_speed,
-        hero_quote,
         hero_subtext,
       } = req.body;
 
@@ -74,7 +73,6 @@ export class AdminHomeController {
         subtext_case: VALID_CASES.includes(subtext_case) ? subtext_case : undefined,
         top_track_speed: top_track_speed !== undefined ? Number(top_track_speed) : undefined,
         bottom_track_speed: bottom_track_speed !== undefined ? Number(bottom_track_speed) : undefined,
-        hero_quote: hero_quote !== undefined ? hero_quote : undefined,
         hero_subtext: hero_subtext !== undefined ? hero_subtext : undefined,
       });
 
@@ -360,7 +358,7 @@ export class AdminHomeController {
   // POST /api/admin/social-links
   async addSocialLink(req: Request, res: Response): Promise<void> {
     try {
-      const { platform_key, label, url, display_order, is_active } = req.body;
+      const { platform_key, label, url, display_mode, display_order, is_active } = req.body;
 
       if (!label || !url) {
         res.status(400).json({
@@ -376,6 +374,7 @@ export class AdminHomeController {
         platform_key: key,
         label: label.trim(),
         url: url.trim(),
+        display_mode: display_mode === 'ICON' ? 'ICON' : 'TEXT',
         display_order: display_order ? Number(display_order) : 0,
         is_active: is_active !== undefined ? Boolean(is_active) : true,
       });
@@ -398,12 +397,13 @@ export class AdminHomeController {
   async updateSocialLink(req: Request, res: Response): Promise<void> {
     try {
       const id = Number(req.params.id);
-      const { platform_key, label, url, display_order, is_active } = req.body;
+      const { platform_key, label, url, display_mode, display_order, is_active } = req.body;
 
       const link = await settingsRepository.updateSocialLink(id, {
         platform_key: platform_key ? String(platform_key).trim() : undefined,
         label: label ? String(label).trim() : undefined,
         url: url ? String(url).trim() : undefined,
+        display_mode: display_mode === 'ICON' || display_mode === 'TEXT' ? display_mode : undefined,
         display_order: display_order !== undefined ? Number(display_order) : undefined,
         is_active: is_active !== undefined ? Boolean(is_active) : undefined,
       });

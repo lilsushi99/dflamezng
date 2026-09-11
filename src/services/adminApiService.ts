@@ -522,6 +522,20 @@ export class AdminApiService {
     return data;
   }
 
+  async deleteFavicon(): Promise<GlobalSeoSettings> {
+    const res = await fetchWithAuth(`${API_BASE}/admin/seo/favicon`, { method: 'DELETE' });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Failed to remove favicon');
+    return data.seo;
+  }
+
+  async deleteOgImage(): Promise<GlobalSeoSettings> {
+    const res = await fetchWithAuth(`${API_BASE}/admin/seo/og-image`, { method: 'DELETE' });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Failed to remove social sharing image');
+    return data.seo;
+  }
+
   async getAllLocations(): Promise<SeoLocation[]> {
     const res = await fetchWithAuth(`${API_BASE}/admin/seo/locations`);
     const data = await res.json();

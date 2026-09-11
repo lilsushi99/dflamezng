@@ -16,6 +16,7 @@ SET FOREIGN_KEY_CHECKS = 0;
 TRUNCATE TABLE `project_images`;
 TRUNCATE TABLE `homepage_images`;
 TRUNCATE TABLE `projects`;
+TRUNCATE TABLE `categories`;
 TRUNCATE TABLE `splash_images`;
 TRUNCATE TABLE `social_links`;
 TRUNCATE TABLE `splash_settings`;
@@ -37,6 +38,21 @@ SET FOREIGN_KEY_CHECKS = 1;
 -- To change credentials later, generate a new hash the same way and either
 -- UPDATE the existing row or INSERT a new admin row directly in phpMyAdmin -
 -- the app reads credentials live from this table on every login attempt.
+
+-- -----------------------------------------------------------------------------
+-- 1b. Seed Project Categories (fully editable afterward from /fire - these
+-- are just a starting point, not hardcoded values baked into the app)
+-- -----------------------------------------------------------------------------
+INSERT INTO `categories` (`name`, `slug`, `description`, `display_order`) VALUES
+  ('Portrait', 'portrait', 'Studio & Environmental Portraiture', 1),
+  ('Fashion', 'fashion', 'Contemporary Fashion Monographs', 2),
+  ('Editorial', 'editorial', 'Magazine & Narrative Spreads', 3),
+  ('Afrocentric', 'afrocentric', 'Traditional Textiles & Cultural Identity', 4),
+  ('Convocation', 'convocation', 'Academic & Institutional Ceremonies', 5),
+  ('Documentary', 'documentary', 'Visual Journalism & Archives', 6),
+  ('Commercial', 'commercial', 'Brand Campaigns & Lookbooks', 7),
+  ('Art Direction', 'art-direction', 'Conceptual Styling & Set Design', 8),
+  ('Visual Storytelling', 'visual-storytelling', 'Sequential Photographic Narratives', 9);
 
 -- -----------------------------------------------------------------------------
 -- 2. Seed Site Settings
@@ -70,6 +86,22 @@ VALUES (
 -- 4. Splash Images: Empty by default (Images uploaded via Admin Panel)
 -- -----------------------------------------------------------------------------
 -- No dummy splash image records.
+
+-- -----------------------------------------------------------------------------
+-- 4b. Seed SEO Settings (id=1 must exist or admin saves will silently
+-- match zero rows - the app also self-heals this via upsert, but seeding
+-- it here keeps a fresh install correct from the start)
+-- -----------------------------------------------------------------------------
+INSERT INTO `seo_settings` (`id`, `site_title`, `meta_description`, `og_title`, `og_description`, `robots_indexing`, `schema_type`)
+VALUES (
+  1,
+  'Flames Photography',
+  'Contemporary Nigerian fashion and portrait photography.',
+  'Flames Photography',
+  'Contemporary Nigerian fashion and portrait photography.',
+  TRUE,
+  'PhotographyBusiness'
+);
 
 -- -----------------------------------------------------------------------------
 -- 5. Seed Homepage Settings

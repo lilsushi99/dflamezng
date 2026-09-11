@@ -1,6 +1,7 @@
 import { Project, ProjectImage } from '../models/Project';
 import { isDatabaseConnected, query, execute } from '../database/db';
 import { PersistentStore } from '../database/persistentStore';
+import { deleteStoredFile } from '../config/storage';
 
 export class ProjectRepository {
   async findAll(): Promise<Project[]> {
@@ -94,6 +95,7 @@ export class ProjectRepository {
         );
       } catch (e) {
         console.warn('[ProjectRepository] DB update failed for project:', e);
+        throw e;
       }
     }
 
@@ -146,6 +148,7 @@ export class ProjectRepository {
         }
       } catch (e) {
         console.warn('[ProjectRepository] DB insert failed for project image:', e);
+        throw e;
       }
     }
 
@@ -173,6 +176,7 @@ export class ProjectRepository {
         }
       } catch (e) {
         console.warn('[ProjectRepository] DB reorder failed for project images:', e);
+        throw e;
       }
     }
 
@@ -190,15 +194,22 @@ export class ProjectRepository {
   }
 
   async deleteProjectImage(imageId: number): Promise<boolean> {
+    const store = PersistentStore.getStore();
+    const target = store.projectImages.find((img) => img.id === imageId);
+
     if (isDatabaseConnected()) {
       try {
         await execute('DELETE FROM project_images WHERE id = ?', [imageId]);
       } catch (e) {
         console.warn('[ProjectRepository] DB delete failed for project image:', e);
+        throw e;
       }
     }
 
-    const store = PersistentStore.getStore();
+    if (target?.source_type === 'local') {
+      deleteStoredFile(target.file_path);
+    }
+
     const initialLength = store.projectImages.length;
     store.projectImages = store.projectImages.filter((img) => img.id !== imageId);
     PersistentStore.saveStore();
@@ -229,6 +240,7 @@ export class ProjectRepository {
         }
       } catch (e) {
         console.warn('[ProjectRepository] DB insert failed for project:', e);
+        throw e;
       }
     }
 
@@ -250,16 +262,31 @@ export class ProjectRepository {
   }
 
   async deleteProject(id: number): Promise<boolean> {
+    const store = PersistentStore.getStore();
+    const imagesToDelete = store.projectImages.filter((img) => img.project_id === id);
+
     if (isDatabaseConnected()) {
       try {
         await execute('DELETE FROM project_images WHERE project_id = ?', [id]);
         await execute('DELETE FROM projects WHERE id = ?', [id]);
+
+        // Safe, opt-in ID reset: only touches AUTO_INCREMENT when the table
+        // is now genuinely empty, so this can never collide with or
+        // duplicate an existing row's ID.
+        const remaining = await query<{ count: number }>('SELECT COUNT(*) as count FROM projects');
+        if (remaining[0] && Number(remaining[0].count) === 0) {
+          await execute('ALTER TABLE projects AUTO_INCREMENT = 1');
+        }
       } catch (e) {
         console.warn('[ProjectRepository] DB delete failed for project:', e);
+        throw e;
       }
     }
 
-    const store = PersistentStore.getStore();
+    imagesToDelete.forEach((img) => {
+      if (img.source_type === 'local') deleteStoredFile(img.file_path);
+    });
+
     store.projectImages = store.projectImages.filter((img) => img.project_id !== id);
     const initialLen = store.projects.length;
     store.projects = store.projects.filter((p) => p.id !== id);
@@ -271,18 +298,30 @@ export class ProjectRepository {
   // CATEGORIES MANAGEMENT
   // ==========================================
   async findAllCategories(): Promise<any[]> {
+    if (isDatabaseConnected()) {
+      try {
+        const rows = await query<any>('SELECT * FROM categories ORDER BY display_order ASC, id ASC');
+        if (rows && rows.length > 0) {
+          const store = PersistentStore.getStore();
+          store.categories = rows;
+          PersistentStore.saveStore();
+          return rows;
+        }
+      } catch (e) {
+        console.warn('[ProjectRepository] Falling back to persistent store for categories:', e);
+      }
+    }
+
     const store = PersistentStore.getStore();
     if (!store.categories || store.categories.length === 0) {
+      // Starting point only when there is truly nothing anywhere yet (DB
+      // unreachable AND no local cache) - these are fully editable from
+      // /fire afterward, never hardcoded into project category selection.
       store.categories = [
         { id: 1, name: 'Portrait', slug: 'portrait', description: 'Studio & Environmental Portraiture', display_order: 1, created_at: new Date(), updated_at: new Date() },
         { id: 2, name: 'Fashion', slug: 'fashion', description: 'Contemporary Fashion Monographs', display_order: 2, created_at: new Date(), updated_at: new Date() },
         { id: 3, name: 'Editorial', slug: 'editorial', description: 'Magazine & Narrative Spreads', display_order: 3, created_at: new Date(), updated_at: new Date() },
         { id: 4, name: 'Afrocentric', slug: 'afrocentric', description: 'Traditional Textiles & Cultural Identity', display_order: 4, created_at: new Date(), updated_at: new Date() },
-        { id: 5, name: 'Convocation', slug: 'convocation', description: 'Academic & Institutional Ceremonies', display_order: 5, created_at: new Date(), updated_at: new Date() },
-        { id: 6, name: 'Documentary', slug: 'documentary', description: 'Visual Journalism & Archives', display_order: 6, created_at: new Date(), updated_at: new Date() },
-        { id: 7, name: 'Commercial', slug: 'commercial', description: 'Brand Campaigns & Lookbooks', display_order: 7, created_at: new Date(), updated_at: new Date() },
-        { id: 8, name: 'Art Direction', slug: 'art-direction', description: 'Conceptual Styling & Set Design', display_order: 8, created_at: new Date(), updated_at: new Date() },
-        { id: 9, name: 'Visual Storytelling', slug: 'visual-storytelling', description: 'Sequential Photographic Narratives', display_order: 9, created_at: new Date(), updated_at: new Date() },
       ];
       PersistentStore.saveStore();
     }
@@ -292,15 +331,31 @@ export class ProjectRepository {
   async createCategory(data: { name: string; slug?: string; description?: string }): Promise<any> {
     const store = PersistentStore.getStore();
     const existing = store.categories || [];
-    const nextId = existing.length > 0 ? Math.max(...existing.map((c: any) => c.id)) + 1 : 1;
+    let nextId = existing.length > 0 ? Math.max(...existing.map((c: any) => c.id)) + 1 : 1;
     const slug = data.slug || data.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    const nextOrder = existing.length > 0 ? Math.max(...existing.map((c: any) => c.display_order || 0)) + 1 : 1;
+
+    if (isDatabaseConnected()) {
+      try {
+        const res = await execute(
+          'INSERT INTO categories (name, slug, description, display_order, created_at, updated_at) VALUES (?, ?, ?, ?, NOW(), NOW())',
+          [data.name, slug, data.description || '', nextOrder]
+        );
+        if (res?.insertId) {
+          nextId = res.insertId;
+        }
+      } catch (e) {
+        console.warn('[ProjectRepository] DB insert failed for category:', e);
+        throw e;
+      }
+    }
 
     const newCat = {
       id: nextId,
       name: data.name,
       slug,
       description: data.description || '',
-      display_order: nextId,
+      display_order: nextOrder,
       created_at: new Date(),
       updated_at: new Date(),
     };
@@ -315,6 +370,23 @@ export class ProjectRepository {
     const store = PersistentStore.getStore();
     const cat = (store.categories || []).find((c: any) => c.id === id);
     if (!cat) return null;
+
+    if (isDatabaseConnected()) {
+      try {
+        await execute(
+          'UPDATE categories SET name = ?, slug = ?, description = ?, updated_at = NOW() WHERE id = ?',
+          [
+            data.name !== undefined ? data.name : cat.name,
+            data.slug !== undefined ? data.slug : cat.slug,
+            data.description !== undefined ? data.description : cat.description,
+            id,
+          ]
+        );
+      } catch (e) {
+        console.warn('[ProjectRepository] DB update failed for category:', e);
+        throw e;
+      }
+    }
 
     if (data.name !== undefined) cat.name = data.name;
     if (data.slug !== undefined) cat.slug = data.slug;
@@ -339,6 +411,24 @@ export class ProjectRepository {
           p.category = 'EDITORIAL';
         }
       });
+
+      if (isDatabaseConnected()) {
+        try {
+          await execute('UPDATE projects SET category = ? WHERE UPPER(category) = ?', ['EDITORIAL', cat.name.toUpperCase()]);
+        } catch (e) {
+          console.warn('[ProjectRepository] DB reassignment failed while deleting category:', e);
+          throw e;
+        }
+      }
+    }
+
+    if (isDatabaseConnected()) {
+      try {
+        await execute('DELETE FROM categories WHERE id = ?', [id]);
+      } catch (e) {
+        console.warn('[ProjectRepository] DB delete failed for category:', e);
+        throw e;
+      }
     }
 
     store.categories = store.categories.filter((c: any) => c.id !== id);
