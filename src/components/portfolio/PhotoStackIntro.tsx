@@ -16,14 +16,18 @@ interface StackSlot {
   zIndex: number;
 }
 
+// Sizing progressively steps DOWN by a small, consistent amount from the
+// first slot (largest) to the last (smallest) - previously this array
+// accidentally grew larger toward the end. Rotation/position/timing are
+// untouched.
 const STACK_SLOTS: StackSlot[] = [
-  { initialX: 0, initialY: 15, targetX: -18, targetY: -12, rotation: -3.5, width: 'w-48 sm:w-60 md:w-72', height: 'h-64 sm:h-80 md:h-96', zIndex: 11 },
-  { initialX: 0, initialY: -15, targetX: 16, targetY: 10, rotation: 3.0, width: 'w-48 sm:w-60 md:w-72', height: 'h-64 sm:h-80 md:h-96', zIndex: 12 },
-  { initialX: 0, initialY: 10, targetX: -10, targetY: 14, rotation: -2.0, width: 'w-50 sm:w-64 md:w-76', height: 'h-66 sm:h-84 md:h-100', zIndex: 13 },
-  { initialX: 0, initialY: -10, targetX: 14, targetY: -8, rotation: 2.5, width: 'w-48 sm:w-60 md:w-72', height: 'h-64 sm:h-80 md:h-96', zIndex: 14 },
-  { initialX: 0, initialY: 0, targetX: -6, targetY: 4, rotation: -1.0, width: 'w-52 sm:w-66 md:w-80', height: 'h-68 sm:h-86 md:h-104', zIndex: 15 },
-  { initialX: 0, initialY: 0, targetX: 8, targetY: -4, rotation: 1.5, width: 'w-52 sm:w-66 md:w-80', height: 'h-68 sm:h-86 md:h-104', zIndex: 16 },
-  { initialX: 0, initialY: 0, targetX: 0, targetY: 0, rotation: 0, width: 'w-54 sm:w-68 md:w-84', height: 'h-70 sm:h-90 md:h-108', zIndex: 17 },
+  { initialX: 0, initialY: 15, targetX: -18, targetY: -12, rotation: -3.5, width: 'w-56 sm:w-68 md:w-84', height: 'h-72 sm:h-92 md:h-112', zIndex: 11 },
+  { initialX: 0, initialY: -15, targetX: 16, targetY: 10, rotation: 3.0, width: 'w-54 sm:w-66 md:w-80', height: 'h-70 sm:h-88 md:h-106', zIndex: 12 },
+  { initialX: 0, initialY: 10, targetX: -10, targetY: 14, rotation: -2.0, width: 'w-52 sm:w-64 md:w-76', height: 'h-68 sm:h-84 md:h-100', zIndex: 13 },
+  { initialX: 0, initialY: -10, targetX: 14, targetY: -8, rotation: 2.5, width: 'w-50 sm:w-62 md:w-72', height: 'h-66 sm:h-80 md:h-96', zIndex: 14 },
+  { initialX: 0, initialY: 0, targetX: -6, targetY: 4, rotation: -1.0, width: 'w-48 sm:w-60 md:w-68', height: 'h-64 sm:h-76 md:h-90', zIndex: 15 },
+  { initialX: 0, initialY: 0, targetX: 8, targetY: -4, rotation: 1.5, width: 'w-46 sm:w-58 md:w-64', height: 'h-62 sm:h-72 md:h-84', zIndex: 16 },
+  { initialX: 0, initialY: 0, targetX: 0, targetY: 0, rotation: 0, width: 'w-44 sm:w-56 md:w-60', height: 'h-60 sm:h-68 md:h-80', zIndex: 17 },
 ];
 
 export const PhotoStackIntro: React.FC<PhotoStackIntroProps> = ({ onComplete }) => {

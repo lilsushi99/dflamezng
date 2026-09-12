@@ -60,6 +60,7 @@ export class SettingsRepository {
             projects_modal_subtitle = ?,
             projects_modal_title = ?,
             projects_modal_archive_label = ?,
+            booking_page_subtext = ?,
             updated_at = NOW() 
           WHERE id = ?`,
           [
@@ -78,6 +79,7 @@ export class SettingsRepository {
             data.projects_modal_subtitle !== undefined ? data.projects_modal_subtitle : current.projects_modal_subtitle,
             data.projects_modal_title !== undefined ? data.projects_modal_title : current.projects_modal_title,
             data.projects_modal_archive_label !== undefined ? data.projects_modal_archive_label : current.projects_modal_archive_label,
+            data.booking_page_subtext !== undefined ? data.booking_page_subtext : current.booking_page_subtext,
             current.id || 1,
           ]
         );

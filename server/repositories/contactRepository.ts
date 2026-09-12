@@ -21,10 +21,10 @@ export class ContactRepository {
   async createInquiry(data: {
     name: string;
     email: string;
-    project_type: string;
-    timeline: string;
-    message: string;
+    phone: string;
+    project_location: string;
     budget?: string;
+    project_brief: string;
   }): Promise<Inquiry> {
     const store = PersistentStore.getStore();
     if (!store.inquiries) store.inquiries = [];
@@ -34,8 +34,8 @@ export class ContactRepository {
     if (isDatabaseConnected()) {
       try {
         const res = await execute(
-          'INSERT INTO inquiries (name, email, project_type, timeline, message, budget, status, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), NOW())',
-          [data.name, data.email, data.project_type, data.timeline, data.message, data.budget || '', 'NEW']
+          'INSERT INTO inquiries (name, email, phone, project_location, budget, project_brief, status, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), NOW())',
+          [data.name, data.email, data.phone, data.project_location, data.budget || '', data.project_brief, 'NEW']
         );
         if (res?.insertId) {
           newId = res.insertId;
@@ -50,10 +50,10 @@ export class ContactRepository {
       id: newId,
       name: data.name,
       email: data.email,
-      project_type: data.project_type,
-      timeline: data.timeline,
-      message: data.message,
+      phone: data.phone,
+      project_location: data.project_location,
       budget: data.budget || '',
+      project_brief: data.project_brief,
       status: 'NEW',
       created_at: new Date(),
       updated_at: new Date(),

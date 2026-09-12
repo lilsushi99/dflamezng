@@ -169,9 +169,9 @@ export interface Inquiry {
   id: number;
   name: string;
   email: string;
-  project_type: string;
-  timeline: string;
-  message: string;
+  phone: string;
+  project_location: string;
+  project_brief: string;
   budget?: string;
   status: 'NEW' | 'REVIEWED' | 'ARCHIVED';
   notes?: string;

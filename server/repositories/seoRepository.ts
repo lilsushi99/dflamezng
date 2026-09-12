@@ -156,7 +156,6 @@ export class SeoRepository {
         }
       } catch (e) {
         console.warn('[SeoRepository] DB error in getLocationBySlug:', e);
-        throw e;
       }
     }
 

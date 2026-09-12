@@ -2,16 +2,17 @@ import { Request, Response } from 'express';
 import { settingsRepository } from '../repositories/settingsRepository';
 import { projectRepository } from '../repositories/projectRepository';
 import { contactRepository } from '../repositories/contactRepository';
+import { sendBookingEmails } from '../services/mailService';
 
 export class PublicController {
   // POST /api/inquiries
   async submitInquiry(req: Request, res: Response): Promise<void> {
     try {
-      const { name, email, projectType, timeline, message, budget } = req.body;
-      if (!name || !email || !message) {
+      const { name, email, phone, projectLocation, budget, projectBrief } = req.body;
+      if (!name || !email || !phone || !projectLocation || !projectBrief) {
         res.status(400).json({
           success: false,
-          message: 'Name, email, and message are required',
+          message: 'Name, email, phone, project location, and project brief are required',
         });
         return;
       }
@@ -19,22 +20,32 @@ export class PublicController {
       const inquiry = await contactRepository.createInquiry({
         name: String(name).trim(),
         email: String(email).trim(),
-        project_type: String(projectType || 'Editorial & Fashion').trim(),
-        timeline: String(timeline || 'Within 1-2 Months').trim(),
-        message: String(message).trim(),
+        phone: String(phone).trim(),
+        project_location: String(projectLocation).trim(),
         budget: budget ? String(budget).trim() : undefined,
+        project_brief: String(projectBrief).trim(),
       });
+
+      // Never let an email hiccup block or fail the booking itself - the
+      // inquiry is already safely stored by this point.
+      sendBookingEmails({
+        name: inquiry.name,
+        email: inquiry.email,
+        phone: inquiry.phone,
+        project_location: inquiry.project_location,
+        budget: inquiry.budget,
+        project_brief: inquiry.project_brief,
+      }).catch(() => {});
 
       res.status(201).json({
         success: true,
-        message: 'Inquiry received successfully',
+        message: 'Booking received successfully',
         inquiry,
       });
     } catch (error: any) {
       res.status(500).json({
         success: false,
-        message: 'Failed to submit inquiry',
-        error: error?.message,
+        message: 'Failed to submit booking'
       });
     }
   }
@@ -52,8 +63,7 @@ export class PublicController {
     } catch (error: any) {
       res.status(500).json({
         success: false,
-        message: 'Failed to retrieve splash screen data',
-        error: error?.message,
+        message: 'Failed to retrieve splash screen data'
       });
     }
   }
@@ -78,8 +88,7 @@ export class PublicController {
     } catch (error: any) {
       res.status(500).json({
         success: false,
-        message: 'Failed to retrieve homepage data',
-        error: error?.message,
+        message: 'Failed to retrieve homepage data'
       });
     }
   }
@@ -95,8 +104,7 @@ export class PublicController {
     } catch (error: any) {
       res.status(500).json({
         success: false,
-        message: 'Failed to retrieve social links',
-        error: error?.message,
+        message: 'Failed to retrieve social links'
       });
     }
   }
@@ -112,8 +120,7 @@ export class PublicController {
     } catch (error: any) {
       res.status(500).json({
         success: false,
-        message: 'Failed to retrieve homepage front images',
-        error: error?.message,
+        message: 'Failed to retrieve homepage front images'
       });
     }
   }
@@ -129,8 +136,7 @@ export class PublicController {
     } catch (error: any) {
       res.status(500).json({
         success: false,
-        message: 'Failed to retrieve homepage back images',
-        error: error?.message,
+        message: 'Failed to retrieve homepage back images'
       });
     }
   }
@@ -146,8 +152,7 @@ export class PublicController {
     } catch (error: any) {
       res.status(500).json({
         success: false,
-        message: 'Failed to retrieve projects',
-        error: error?.message,
+        message: 'Failed to retrieve projects'
       });
     }
   }
@@ -180,8 +185,7 @@ export class PublicController {
     } catch (error: any) {
       res.status(500).json({
         success: false,
-        message: 'Failed to retrieve project details',
-        error: error?.message,
+        message: 'Failed to retrieve project details'
       });
     }
   }
@@ -197,8 +201,7 @@ export class PublicController {
     } catch (error: any) {
       res.status(500).json({
         success: false,
-        message: 'Failed to retrieve footer settings',
-        error: error?.message,
+        message: 'Failed to retrieve footer settings'
       });
     }
   }

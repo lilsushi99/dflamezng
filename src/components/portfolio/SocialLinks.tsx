@@ -27,9 +27,9 @@ export const SocialLinks: React.FC = () => {
             rel="noopener noreferrer"
             aria-label={link.label}
             title={link.label}
-            className="w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center border border-neutral-900/15 dark:border-white/15 text-neutral-900 dark:text-neutral-100 opacity-70 hover:opacity-100 hover:border-neutral-900/40 dark:hover:border-white/40 hover:scale-105 transition-all duration-200"
+            className="social-icon-glass w-10 h-10 sm:w-11 sm:h-11 rounded-full flex items-center justify-center text-neutral-900 dark:text-neutral-50 opacity-90 hover:opacity-100 hover:scale-110 hover:-translate-y-0.5 transition-all duration-300"
           >
-            <SocialIcon platformKey={link.platform_key || link.id} className="w-4 h-4 sm:w-[18px] sm:h-[18px]" />
+            <SocialIcon platformKey={link.platform_key || link.id} className="w-4 h-4 sm:w-[18px] sm:h-[18px] drop-shadow-sm" />
           </a>
         ) : (
           <a

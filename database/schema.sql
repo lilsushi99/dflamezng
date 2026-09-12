@@ -25,6 +25,7 @@ DROP TABLE IF EXISTS `social_links`;
 DROP TABLE IF EXISTS `seo_locations`;
 DROP TABLE IF EXISTS `seo_settings`;
 DROP TABLE IF EXISTS `footer_settings`;
+DROP TABLE IF EXISTS `inquiries`;
 DROP TABLE IF EXISTS `site_settings`;
 DROP TABLE IF EXISTS `admins`;
 
@@ -62,6 +63,7 @@ CREATE TABLE `site_settings` (
   `projects_modal_subtitle` VARCHAR(255) NULL COMMENT 'modal_icon_subtitle: small label above the projects modal title',
   `projects_modal_title` VARCHAR(255) NULL COMMENT 'modal_main_title: main heading of the projects modal',
   `projects_modal_archive_label` VARCHAR(255) NULL COMMENT 'bottom_archive_studio_label: footer label inside the projects modal',
+  `booking_page_subtext` TEXT NULL,
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -251,6 +253,23 @@ CREATE TABLE `seo_locations` (
   `is_published` BOOLEAN NOT NULL DEFAULT TRUE,
   `is_indexable` BOOLEAN NOT NULL DEFAULT TRUE,
   `sitemap_priority` DECIMAL(2,1) NOT NULL DEFAULT 0.5,
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- -----------------------------------------------------------------------------
+-- 13. Client Inquiries / Bookings Table
+-- -----------------------------------------------------------------------------
+CREATE TABLE `inquiries` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `name` VARCHAR(255) NOT NULL,
+  `email` VARCHAR(255) NOT NULL,
+  `phone` VARCHAR(100) NOT NULL,
+  `project_location` VARCHAR(255) NOT NULL,
+  `budget` VARCHAR(100) NULL,
+  `project_brief` TEXT NOT NULL,
+  `status` ENUM('NEW', 'REVIEWED', 'ARCHIVED') NOT NULL DEFAULT 'NEW',
+  `notes` TEXT NULL,
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

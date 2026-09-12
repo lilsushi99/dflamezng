@@ -4,10 +4,10 @@ export interface Inquiry {
   id: number;
   name: string;
   email: string;
-  project_type: string;
-  timeline: string;
-  message: string;
+  phone: string;
+  project_location: string;
   budget?: string;
+  project_brief: string;
   status: InquiryStatus;
   notes?: string;
   created_at: Date;

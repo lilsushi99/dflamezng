@@ -31,6 +31,7 @@ export interface PublicSiteState {
   isAvailable: boolean;
   aboutTitle?: string;
   aboutStatement?: string;
+  bookingPageSubtext?: string;
   aboutStory?: string;
   aboutServices?: string;
   projectsModalSubtitle?: string;
@@ -263,6 +264,7 @@ class PublicApiService {
       }
       if (site.about_statement !== undefined) {
         this.state.aboutStatement = site.about_statement;
+        this.state.bookingPageSubtext = site.booking_page_subtext;
       }
       if (site.about_story !== undefined) {
         this.state.aboutStory = site.about_story;
@@ -499,10 +501,10 @@ class PublicApiService {
   public async submitInquiry(payload: {
     name: string;
     email: string;
-    projectType: string;
-    timeline: string;
-    message: string;
+    phone: string;
+    projectLocation: string;
     budget?: string;
+    projectBrief: string;
   }): Promise<{ success: boolean; message?: string }> {
     try {
       const res = await fetch(`${API_BASE}/inquiries`, {
@@ -512,11 +514,11 @@ class PublicApiService {
       });
       const data = await res.json();
       if (!res.ok) {
-        throw new Error(data.message || 'Failed to submit inquiry');
+        throw new Error(data.message || 'Failed to submit booking');
       }
       return { success: true, message: data.message };
     } catch (err: any) {
-      return { success: false, message: err?.message || 'Failed to transmit inquiry' };
+      return { success: false, message: err?.message || 'Failed to submit booking' };
     }
   }
 }

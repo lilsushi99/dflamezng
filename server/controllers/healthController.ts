@@ -13,7 +13,20 @@ const BUILD_MARKER = 'storage-fix-v2-2026-09-09';
 const EXPECTED_SUBFOLDERS = ['splash', 'homepage/front', 'homepage/back', 'projects', 'logos', 'seo'];
 
 export class HealthController {
-  async getHealth(req: Request, res: Response): Promise<void> {
+  // GET /api/health - PUBLIC. Deliberately minimal: no DB host/name,
+  // connection status, storage paths, or any other internal detail.
+  async getPublicHealth(req: Request, res: Response): Promise<void> {
+    res.status(200).json({
+      status: 'ok',
+      service: 'Flames Photography',
+      timestamp: new Date().toISOString(),
+    });
+  }
+
+  // GET /api/admin/diagnostics - ADMIN AUTH REQUIRED (mounted under
+  // adminRoutes, which applies requireAdminAuth to the whole router).
+  // This is where the detailed, previously-public diagnostics now live.
+  async getAdminDiagnostics(req: Request, res: Response): Promise<void> {
     const isDbActive = isDatabaseConnected();
 
     const subfolderStatus = EXPECTED_SUBFOLDERS.reduce((acc, sub) => {
@@ -48,10 +61,6 @@ export class HealthController {
       },
       storage: {
         type: 'local_filesystem',
-        // The ACTUAL absolute path this running process writes uploads to,
-        // resolved live - not a hardcoded string. If this doesn't match
-        // your PERSISTENT_STORAGE_PATH env var, the running app either
-        // doesn't have that env var set, or is running old code.
         resolvedRoot: persistentStorageRoot,
         usingExternalPersistentPath: isUsingExternalStoragePath,
         persistentStoragePathEnvVar: process.env.PERSISTENT_STORAGE_PATH || null,

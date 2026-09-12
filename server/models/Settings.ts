@@ -15,6 +15,7 @@ export interface SiteSettings {
   projects_modal_subtitle?: string;
   projects_modal_title?: string;
   projects_modal_archive_label?: string;
+  booking_page_subtext?: string;
   created_at: Date;
   updated_at: Date;
 }

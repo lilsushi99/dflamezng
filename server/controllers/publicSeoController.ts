@@ -10,7 +10,7 @@ export class PublicSeoController {
       const seo = await seoRepository.getGlobalSeo();
       res.status(200).json({ success: true, seo });
     } catch (error: any) {
-      res.status(500).json({ success: false, message: 'Failed to retrieve SEO data', error: error?.message });
+      res.status(500).json({ success: false, message: 'Failed to retrieve SEO data' });
     }
   }
 
@@ -35,7 +35,7 @@ export class PublicSeoController {
         total: summary.length,
       });
     } catch (error: any) {
-      res.status(500).json({ success: false, message: 'Failed to retrieve locations', error: error?.message });
+      res.status(500).json({ success: false, message: 'Failed to retrieve locations' });
     }
   }
 
@@ -79,7 +79,7 @@ export class PublicSeoController {
         socialLinks,
       });
     } catch (error: any) {
-      res.status(500).json({ success: false, message: 'Failed to fetch location details', error: error?.message });
+      res.status(500).json({ success: false, message: 'Failed to fetch location details' });
     }
   }
 

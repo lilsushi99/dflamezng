@@ -31,10 +31,7 @@ export const ContactManager: React.FC = () => {
     availability_text: string;
     studio_name: string;
     photographer_name: string;
-    about_title?: string;
-    about_statement?: string;
-    about_story?: string;
-    about_services?: string;
+    booking_page_subtext?: string;
   }>({
     contact_email: 'studio@goldakingbade.com',
     contact_phone: '+234 812 345 6789',
@@ -43,10 +40,7 @@ export const ContactManager: React.FC = () => {
     availability_text: 'Open to Travel — Worldwide & Commissions',
     studio_name: 'GOLD AKINGBADE STUDIO',
     photographer_name: 'Gold Akingbade',
-    about_title: 'ABOUT THE STUDIO',
-    about_statement: 'Good Akinbade is a Nigerian fashion, portrait, and editorial art direction photographer based in Akure and Lagos.',
-    about_story: 'Blending classical African aesthetics with contemporary high-fashion narrative, the studio creates timeless visual archives for international lookbooks, publications, and private collections.',
-    about_services: 'Fashion Lookbooks, Editorial Campaigns, Portraiture, Creative Direction, Commercial Visual Production',
+    booking_page_subtext: 'Once you and the creative agree on the direction of your project, this form is used to make the official booking.',
   });
 
   // Inquiries State
@@ -312,67 +306,26 @@ export const ContactManager: React.FC = () => {
             </div>
           </section>
 
-          {/* About / Studio Manifesto Section */}
+          {/* Book Us Page Content Section */}
           <section className="bg-neutral-900 border border-neutral-800 rounded-2xl p-6 md:p-8 space-y-6">
             <div className="border-b border-neutral-800 pb-4">
-              <h3 className="text-base font-semibold text-neutral-100">About the Studio & Curatorial Manifesto</h3>
+              <h3 className="text-base font-semibold text-neutral-100">Book Us Page Content</h3>
               <p className="text-xs text-neutral-400">
-                Official biography, artistic philosophy, and services rendered across editorial and commercial portfolios.
+                The subtext shown on the public Book Us page, explaining the booking process.
               </p>
             </div>
 
-            <div className="space-y-5">
-              <div>
-                <label className="block text-xs font-mono uppercase tracking-wider text-neutral-300 mb-2">
-                  Section Header Title
-                </label>
-                <input
-                  type="text"
-                  value={contactSettings.about_title || ''}
-                  onChange={(e) => setContactSettings({ ...contactSettings, about_title: e.target.value })}
-                  placeholder="ABOUT THE STUDIO"
-                  className="w-full bg-neutral-950 border border-neutral-700 rounded-xl px-4 py-2.5 text-sm text-neutral-100 focus:outline-none focus:border-amber-400 font-mono uppercase text-xs"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-mono uppercase tracking-wider text-neutral-300 mb-2">
-                  Core Artistic Statement / Hook
-                </label>
-                <textarea
-                  rows={2}
-                  value={contactSettings.about_statement || ''}
-                  onChange={(e) => setContactSettings({ ...contactSettings, about_statement: e.target.value })}
-                  placeholder="Good Akinbade is a Nigerian fashion, portrait, and editorial art direction photographer based in Akure and Lagos."
-                  className="w-full bg-neutral-950 border border-neutral-700 rounded-xl px-4 py-2.5 text-sm text-neutral-100 focus:outline-none focus:border-amber-400 font-serif"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-mono uppercase tracking-wider text-neutral-300 mb-2">
-                  Studio Story & Curatorial Background
-                </label>
-                <textarea
-                  rows={4}
-                  value={contactSettings.about_story || ''}
-                  onChange={(e) => setContactSettings({ ...contactSettings, about_story: e.target.value })}
-                  placeholder="Blending classical African aesthetics with contemporary high-fashion narrative, the studio creates timeless visual archives for international lookbooks, publications, and private collections."
-                  className="w-full bg-neutral-950 border border-neutral-700 rounded-xl px-4 py-2.5 text-sm text-neutral-100 focus:outline-none focus:border-amber-400 font-serif"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-mono uppercase tracking-wider text-neutral-300 mb-2">
-                  Creative Services & Capabilities
-                </label>
-                <input
-                  type="text"
-                  value={contactSettings.about_services || ''}
-                  onChange={(e) => setContactSettings({ ...contactSettings, about_services: e.target.value })}
-                  placeholder="Fashion Lookbooks, Editorial Campaigns, Portraiture, Creative Direction, Commercial Visual Production"
-                  className="w-full bg-neutral-950 border border-neutral-700 rounded-xl px-4 py-2.5 text-sm text-neutral-100 focus:outline-none focus:border-amber-400 font-mono text-xs"
-                />
-              </div>
+            <div>
+              <label className="block text-xs font-mono uppercase tracking-wider text-neutral-300 mb-2">
+                Booking Page Subtext
+              </label>
+              <textarea
+                rows={3}
+                value={contactSettings.booking_page_subtext || ''}
+                onChange={(e) => setContactSettings({ ...contactSettings, booking_page_subtext: e.target.value })}
+                placeholder="Once you and the creative agree on the direction of your project, this form is used to make the official booking."
+                className="w-full bg-neutral-950 border border-neutral-700 rounded-xl px-4 py-2.5 text-sm text-neutral-100 focus:outline-none focus:border-amber-400 font-serif"
+              />
             </div>
           </section>
         </form>
@@ -421,7 +374,7 @@ export const ContactManager: React.FC = () => {
                       </span>
                     </div>
 
-                    <div className="text-[11px] text-neutral-400 truncate mb-1">{inq.project_type}</div>
+                    <div className="text-[11px] text-neutral-400 truncate mb-1">{inq.project_location}</div>
                     <div className="text-[10px] font-mono text-neutral-500">
                       {new Date(inq.created_at).toLocaleDateString()}
                     </div>
@@ -492,13 +445,13 @@ export const ContactManager: React.FC = () => {
                   </div>
 
                   <div className="p-3 bg-neutral-950/60 rounded-xl border border-neutral-800 space-y-1">
-                    <span className="text-[10px] font-mono text-neutral-500 uppercase">Project Scope</span>
-                    <span className="text-neutral-200 block font-medium">{selectedInquiry.project_type}</span>
+                    <span className="text-[10px] font-mono text-neutral-500 uppercase">Phone / WhatsApp</span>
+                    <span className="text-neutral-200 block font-mono">{selectedInquiry.phone}</span>
                   </div>
 
                   <div className="p-3 bg-neutral-950/60 rounded-xl border border-neutral-800 space-y-1">
-                    <span className="text-[10px] font-mono text-neutral-500 uppercase">Target Timeline</span>
-                    <span className="text-neutral-200 block">{selectedInquiry.timeline}</span>
+                    <span className="text-[10px] font-mono text-neutral-500 uppercase">Project Location</span>
+                    <span className="text-neutral-200 block">{selectedInquiry.project_location}</span>
                   </div>
 
                   {selectedInquiry.budget && (
@@ -509,20 +462,20 @@ export const ContactManager: React.FC = () => {
                   )}
                 </div>
 
-                {/* Concept Brief & Location Message */}
+                {/* Project Brief */}
                 <div className="p-5 bg-neutral-950/80 rounded-xl border border-neutral-800 space-y-2">
                   <span className="text-[10px] font-mono text-neutral-500 uppercase block">
-                    Concept Brief & Creative Deliverables
+                    Project Brief
                   </span>
                   <p className="text-sm text-neutral-200 whitespace-pre-wrap leading-relaxed">
-                    {selectedInquiry.message}
+                    {selectedInquiry.project_brief}
                   </p>
                 </div>
 
                 {/* Quick Reply button */}
                 <div className="flex justify-end pt-2">
                   <a
-                    href={`mailto:${selectedInquiry.email}?subject=RE: Studio Collaboration Inquiry - Gold Akingbade&body=Hello ${selectedInquiry.name},%0D%0A%0D%0AThank you for reaching out regarding your ${selectedInquiry.project_type} project.%0D%0A`}
+                    href={`mailto:${selectedInquiry.email}?subject=RE: Your Booking Request - Gold Akingbade&body=Hello ${selectedInquiry.name},%0D%0A%0D%0AThank you for your booking request.%0D%0A`}
                     className="flex items-center gap-2 px-5 py-2.5 bg-neutral-100 hover:bg-white text-neutral-950 text-xs font-semibold rounded-xl tracking-wider transition-all"
                   >
                     <Mail className="w-3.5 h-3.5" />

@@ -12,6 +12,7 @@ import {
   rootStoragePath,
 } from '../middleware/uploadMiddleware';
 import { adminSplashController } from '../controllers/adminSplashController';
+import { healthController } from '../controllers/healthController';
 import { adminHomeController } from '../controllers/adminHomeController';
 import { adminProjectController } from '../controllers/adminProjectController';
 import { adminFooterController } from '../controllers/adminFooterController';
@@ -22,6 +23,9 @@ const router = Router();
 
 // All routes in /api/admin/* require authentication
 router.use(requireAdminAuth);
+
+// GET /api/admin/diagnostics - detailed DB/storage diagnostics, admin-only
+router.get('/diagnostics', (req, res) => healthController.getAdminDiagnostics(req, res));
 
 // ==========================================
 // 1. SPLASH SCREEN ROUTES

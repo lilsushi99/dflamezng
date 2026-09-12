@@ -5,6 +5,7 @@ import { HomePage } from './pages/HomePage';
 import { GalleryPage } from './pages/GalleryPage';
 import { CollaborationFormPage } from './pages/CollaborationFormPage';
 import { LocationLandingPage } from './pages/LocationLandingPage';
+import { LegalPage } from './pages/LegalPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 import { AdminLoginPage } from './pages/admin/AdminLoginPage';
 import { AdminDashboard } from './pages/admin/AdminDashboard';
@@ -114,6 +115,34 @@ export default function App() {
 
   const isHomeRoute = currentPath === '/' || currentPath === '';
 
+  const LEGAL_CONTENT: Record<string, { title: string; content: string }> = {
+    '/terms': {
+      title: 'Terms & Conditions',
+      content: `By submitting a booking request through this site, you agree to work with Gold Akingbade Studio in good faith to define project scope, deliverables, timeline, and payment terms before any shoot is scheduled.
+
+A booking request is not a confirmed engagement. Confirmation happens once both parties agree on the project brief, budget, and schedule in writing (email or WhatsApp).
+
+Deposits, cancellation terms, usage rights, and delivery timelines will be communicated directly and agreed upon per project before work begins.
+
+The studio reserves the right to decline any booking request that does not align with its creative direction or availability.`,
+    },
+    '/privacy': {
+      title: 'Privacy Policy',
+      content: `We collect the information you submit through the booking form (name, email, phone/WhatsApp, project location, budget, and project brief) solely to respond to your request and manage the resulting engagement.
+
+Your information is never sold or shared with third parties for marketing purposes. It is used only to communicate with you about your booking and, where applicable, to fulfil the resulting project.
+
+You may request that your information be deleted from our records at any time by contacting the studio directly.`,
+    },
+    '/cookies': {
+      title: 'Cookies Policy',
+      content: `This site uses minimal, essential cookies required for basic functionality, such as remembering your light/dark theme preference.
+
+We do not use tracking or advertising cookies. No personal data is collected via cookies on this site.`,
+    },
+  };
+  const legalPageEntry = LEGAL_CONTENT[currentPath];
+
   // Legacy /admin redirect to /fire
   useEffect(() => {
     if (currentPath.startsWith('/admin')) {
@@ -157,7 +186,16 @@ export default function App() {
             onNavigateCollaborate={() => navigateTo('/collaborate')}
           />
         ) : isCollaborateRoute ? (
-          <CollaborationFormPage onNavigateHome={() => navigateTo('/')} />
+          <CollaborationFormPage
+            onNavigateHome={() => navigateTo('/')}
+            onNavigateTerms={() => navigateTo('/terms')}
+          />
+        ) : legalPageEntry ? (
+          <LegalPage
+            title={legalPageEntry.title}
+            content={legalPageEntry.content}
+            onNavigateHome={() => navigateTo('/')}
+          />
         ) : isHomeRoute ? (
           <HomePage
             onNavigateGallery={(slug) => navigateTo(`/gallery/${slug}`)}
