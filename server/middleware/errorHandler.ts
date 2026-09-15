@@ -11,6 +11,22 @@ function looksLikeInternalError(message: string): boolean {
   return INTERNAL_ERROR_PATTERNS.some((pattern) => pattern.test(message));
 }
 
+/**
+ * Thrown by application code (e.g. multer file filters, request validation)
+ * to signal "this exact message is safe to show the requester, in any
+ * environment" - as opposed to letting an arbitrary caught exception's
+ * message through, which might contain internal implementation detail even
+ * when it doesn't match INTERNAL_ERROR_PATTERNS above.
+ */
+export class AppError extends Error {
+  status: number;
+  expose = true;
+  constructor(message: string, status = 400) {
+    super(message);
+    this.status = status;
+  }
+}
+
 export function errorHandler(err: any, req: Request, res: Response, _next: NextFunction): void {
   // Full detail always goes to server logs only - never to the client.
   console.error('[Unhandled Error]', err);
@@ -18,10 +34,16 @@ export function errorHandler(err: any, req: Request, res: Response, _next: NextF
   const statusCode = err.status || err.statusCode || 500;
   const rawMessage = typeof err.message === 'string' ? err.message : 'Internal Server Error';
 
-  // In production, or whenever the message looks like it leaked from a
-  // database/internal error, replace it with a safe generic message.
-  const safeMessage =
-    !isProduction && !looksLikeInternalError(rawMessage) ? rawMessage : 'Something went wrong. Please try again shortly.';
+  // Multer's own errors (file-too-large, wrong field name, etc.) are safe,
+  // known-shape validation messages - surface them as-is. Everything else
+  // follows the strict production-safe logic below.
+  const isKnownSafeError = err.expose === true || err.name === 'MulterError';
+
+  const safeMessage = isKnownSafeError
+    ? rawMessage
+    : !isProduction && !looksLikeInternalError(rawMessage)
+      ? rawMessage
+      : 'Something went wrong. Please try again shortly.';
 
   res.status(statusCode >= 500 ? 500 : statusCode).json({
     success: false,

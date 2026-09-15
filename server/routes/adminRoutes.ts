@@ -10,6 +10,10 @@ import {
   uploadFavicon,
   uploadSeoImage,
   rootStoragePath,
+  verifyMagicBytes,
+  verifyImageOrSanitizeSvg,
+  STANDARD_IMAGE_MIMES,
+  ICON_IMAGE_MIMES,
 } from '../middleware/uploadMiddleware';
 import { adminSplashController } from '../controllers/adminSplashController';
 import { healthController } from '../controllers/healthController';
@@ -37,8 +41,11 @@ router.get('/splash', (req, res) => adminSplashController.getSplash(req, res));
 router.put('/splash/settings', (req, res) => adminSplashController.updateSettings(req, res));
 
 // POST /api/admin/splash/images/upload - upload from device
-router.post('/splash/images/upload', uploadSplash.single('image'), (req, res) =>
-  adminSplashController.uploadImage(req, res)
+router.post(
+  '/splash/images/upload',
+  uploadSplash.single('image'),
+  verifyMagicBytes(STANDARD_IMAGE_MIMES),
+  (req, res) => adminSplashController.uploadImage(req, res)
 );
 
 // POST /api/admin/splash/images/url - add by URL
@@ -69,8 +76,11 @@ router.get('/home', (req, res) => adminHomeController.getHomeData(req, res));
 router.put('/home/settings', (req, res) => adminHomeController.updateSettings(req, res));
 
 // POST /api/admin/home/logo/upload - upload custom logo image
-router.post('/home/logo/upload', uploadLogo.single('logo'), (req, res) =>
-  adminHomeController.uploadLogo(req, res)
+router.post(
+  '/home/logo/upload',
+  uploadLogo.single('logo'),
+  verifyImageOrSanitizeSvg([...STANDARD_IMAGE_MIMES]),
+  (req, res) => adminHomeController.uploadLogo(req, res)
 );
 
 // DELETE /api/admin/home/logo - remove logo image
@@ -80,6 +90,7 @@ router.delete('/home/logo', (req, res) => adminHomeController.deleteLogo(req, re
 router.post(
   '/homepage/images/upload',
   uploadHomepage.single('image'),
+  verifyMagicBytes(STANDARD_IMAGE_MIMES),
   (req, res) => adminHomeController.uploadImage(req, res)
 );
 
@@ -126,8 +137,11 @@ router.put('/categories/:id', (req, res) => adminProjectController.updateCategor
 router.delete('/categories/:id', (req, res) => adminProjectController.deleteCategory(req, res));
 
 // POST /api/admin/projects/:id/images/upload - upload gallery image from device
-router.post('/projects/:id/images/upload', uploadProject.single('image'), (req, res) =>
-  adminProjectController.uploadImage(req, res)
+router.post(
+  '/projects/:id/images/upload',
+  uploadProject.single('image'),
+  verifyMagicBytes(STANDARD_IMAGE_MIMES),
+  (req, res) => adminProjectController.uploadImage(req, res)
 );
 
 // POST /api/admin/projects/:id/images/url - add gallery image by URL
@@ -158,13 +172,19 @@ router.get('/seo', (req, res) => adminSeoController.getGlobalSeo(req, res));
 router.put('/seo/global', (req, res) => adminSeoController.updateGlobalSeo(req, res));
 
 // POST /api/admin/seo/favicon/upload - upload favicon from device (local upload only)
-router.post('/seo/favicon/upload', uploadFavicon.single('favicon'), (req, res) =>
-  adminSeoController.uploadFavicon(req, res)
+router.post(
+  '/seo/favicon/upload',
+  uploadFavicon.single('favicon'),
+  verifyImageOrSanitizeSvg(ICON_IMAGE_MIMES),
+  (req, res) => adminSeoController.uploadFavicon(req, res)
 );
 
 // POST /api/admin/seo/og-image/upload - upload social/Open Graph image from device (local upload only)
-router.post('/seo/og-image/upload', uploadSeoImage.single('og_image'), (req, res) =>
-  adminSeoController.uploadOgImage(req, res)
+router.post(
+  '/seo/og-image/upload',
+  uploadSeoImage.single('og_image'),
+  verifyMagicBytes(STANDARD_IMAGE_MIMES),
+  (req, res) => adminSeoController.uploadOgImage(req, res)
 );
 
 // DELETE /api/admin/seo/favicon - remove favicon (file + DB reference)

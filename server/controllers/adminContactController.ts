@@ -12,10 +12,10 @@ export class AdminContactController {
         settings: siteSettings,
       });
     } catch (error: any) {
+      console.error('[adminContactController.ts]', error);
       res.status(500).json({
         success: false,
         message: 'Failed to retrieve contact settings',
-        error: error?.message,
       });
     }
   }
@@ -30,10 +30,10 @@ export class AdminContactController {
         settings: updated,
       });
     } catch (error: any) {
+      console.error('[adminContactController.ts]', error);
       res.status(500).json({
         success: false,
         message: 'Failed to update contact settings',
-        error: error?.message,
       });
     }
   }
@@ -47,10 +47,10 @@ export class AdminContactController {
         inquiries,
       });
     } catch (error: any) {
+      console.error('[adminContactController.ts]', error);
       res.status(500).json({
         success: false,
         message: 'Failed to retrieve inquiries',
-        error: error?.message,
       });
     }
   }
@@ -74,10 +74,10 @@ export class AdminContactController {
         inquiry: updated,
       });
     } catch (error: any) {
+      console.error('[adminContactController.ts]', error);
       res.status(500).json({
         success: false,
         message: 'Failed to update inquiry',
-        error: error?.message,
       });
     }
   }
@@ -92,10 +92,10 @@ export class AdminContactController {
         message: deleted ? 'Inquiry deleted' : 'Inquiry not found',
       });
     } catch (error: any) {
+      console.error('[adminContactController.ts]', error);
       res.status(500).json({
         success: false,
         message: 'Failed to delete inquiry',
-        error: error?.message,
       });
     }
   }

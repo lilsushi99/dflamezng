@@ -11,10 +11,10 @@ export class AdminFooterController {
         footer,
       });
     } catch (error: any) {
+      console.error('[adminFooterController.ts]', error);
       res.status(500).json({
         success: false,
         message: 'Failed to retrieve footer settings',
-        error: error?.message,
       });
     }
   }
@@ -37,10 +37,10 @@ export class AdminFooterController {
         footer: updated,
       });
     } catch (error: any) {
+      console.error('[adminFooterController.ts]', error);
       res.status(500).json({
         success: false,
         message: 'Failed to update footer settings',
-        error: error?.message,
       });
     }
   }

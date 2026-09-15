@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { publicController } from '../controllers/publicController';
 import { publicSeoController } from '../controllers/publicSeoController';
+import { inquiryRateLimiter } from '../middleware/rateLimiters';
 
 const router = Router();
 
@@ -29,7 +30,7 @@ router.get('/projects/:id', (req, res) => publicController.getProjectById(req, r
 router.get('/footer', (req, res) => publicController.getFooter(req, res));
 
 // POST /api/inquiries
-router.post('/inquiries', (req, res) => publicController.submitInquiry(req, res));
+router.post('/inquiries', inquiryRateLimiter, (req, res) => publicController.submitInquiry(req, res));
 
 // ==========================================
 // SEO & Dynamic Nigerian Location Routes

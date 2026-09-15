@@ -11,10 +11,10 @@ export class AdminProjectController {
         projects,
       });
     } catch (error: any) {
+      console.error('[adminProjectController.ts]', error);
       res.status(500).json({
         success: false,
         message: 'Failed to retrieve projects',
-        error: error?.message,
       });
     }
   }
@@ -38,10 +38,10 @@ export class AdminProjectController {
         project,
       });
     } catch (error: any) {
+      console.error('[adminProjectController.ts]', error);
       res.status(500).json({
         success: false,
         message: 'Failed to retrieve project details',
-        error: error?.message,
       });
     }
   }
@@ -82,10 +82,10 @@ export class AdminProjectController {
         project: updated,
       });
     } catch (error: any) {
+      console.error('[adminProjectController.ts]', error);
       res.status(500).json({
         success: false,
         message: 'Failed to update project',
-        error: error?.message,
       });
     }
   }
@@ -117,10 +117,10 @@ export class AdminProjectController {
         image: newImage,
       });
     } catch (error: any) {
+      console.error('[adminProjectController.ts]', error);
       res.status(500).json({
         success: false,
         message: 'Failed to upload project image',
-        error: error?.message,
       });
     }
   }
@@ -153,10 +153,10 @@ export class AdminProjectController {
         image: newImage,
       });
     } catch (error: any) {
+      console.error('[adminProjectController.ts]', error);
       res.status(500).json({
         success: false,
         message: 'Failed to add project image URL',
-        error: error?.message,
       });
     }
   }
@@ -183,10 +183,10 @@ export class AdminProjectController {
         images,
       });
     } catch (error: any) {
+      console.error('[adminProjectController.ts]', error);
       res.status(500).json({
         success: false,
         message: 'Failed to reorder project images',
-        error: error?.message,
       });
     }
   }
@@ -210,10 +210,10 @@ export class AdminProjectController {
         message: 'Project image deleted successfully',
       });
     } catch (error: any) {
+      console.error('[adminProjectController.ts]', error);
       res.status(500).json({
         success: false,
         message: 'Failed to delete project image',
-        error: error?.message,
       });
     }
   }
@@ -244,10 +244,10 @@ export class AdminProjectController {
         project: newProject,
       });
     } catch (error: any) {
+      console.error('[adminProjectController.ts]', error);
       res.status(500).json({
         success: false,
         message: 'Failed to create project',
-        error: error?.message,
       });
     }
   }
@@ -270,10 +270,10 @@ export class AdminProjectController {
         message: 'Project deleted successfully',
       });
     } catch (error: any) {
+      console.error('[adminProjectController.ts]', error);
       res.status(500).json({
         success: false,
         message: 'Failed to delete project',
-        error: error?.message,
       });
     }
   }
@@ -289,10 +289,10 @@ export class AdminProjectController {
         categories,
       });
     } catch (error: any) {
+      console.error('[adminProjectController.ts]', error);
       res.status(500).json({
         success: false,
         message: 'Failed to retrieve categories',
-        error: error?.message,
       });
     }
   }
@@ -320,10 +320,10 @@ export class AdminProjectController {
         category: cat,
       });
     } catch (error: any) {
+      console.error('[adminProjectController.ts]', error);
       res.status(500).json({
         success: false,
         message: 'Failed to create category',
-        error: error?.message,
       });
     }
   }
@@ -348,10 +348,10 @@ export class AdminProjectController {
         category: updated,
       });
     } catch (error: any) {
+      console.error('[adminProjectController.ts]', error);
       res.status(500).json({
         success: false,
         message: 'Failed to update category',
-        error: error?.message,
       });
     }
   }
@@ -368,10 +368,10 @@ export class AdminProjectController {
 
       res.status(200).json(result);
     } catch (error: any) {
+      console.error('[adminProjectController.ts]', error);
       res.status(500).json({
         success: false,
         message: 'Failed to delete category',
-        error: error?.message,
       });
     }
   }

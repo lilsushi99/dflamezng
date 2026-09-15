@@ -9,6 +9,7 @@ import { errorHandler } from './server/middleware/errorHandler';
 import { testConnection } from './server/database/db';
 import { handleHtmlRequest } from './server/services/htmlRenderer';
 import { persistentStorageRoot } from './server/config/storage';
+import { generalApiRateLimiter } from './server/middleware/rateLimiters';
 
 async function startServer() {
   const app = express();
@@ -16,10 +17,54 @@ async function startServer() {
   const isProduction = process.env.NODE_ENV === 'production';
 
   // 1. Core Middlewares
-  app.use(cors({ origin: true, credentials: true }));
+  //
+  // CORS: reflecting `origin: true` (any origin) combined with
+  // `credentials: true` means any website can make credentialed requests to
+  // this API and have the browser attach cookies. ALLOWED_ORIGINS restricts
+  // this to an explicit, configured list - the site's own domain(s) - so a
+  // malicious third-party page can't ride the admin's session cookie.
+  // Comma-separated, e.g. "https://dflamez.com.ng,https://www.dflamez.com.ng".
+  // If unset, defaults to reflecting the request's own origin in development
+  // only, and to no cross-origin access at all in production, which is safe
+  // since the frontend and API are served from the same origin here.
+  const allowedOrigins = (process.env.ALLOWED_ORIGINS || '')
+    .split(',')
+    .map((o) => o.trim())
+    .filter(Boolean);
+
+  app.use(
+    cors({
+      origin: (origin, callback) => {
+        // No Origin header (same-origin requests, curl, server-to-server) - allow.
+        if (!origin) return callback(null, true);
+        if (allowedOrigins.includes(origin)) return callback(null, true);
+        if (!isProduction) return callback(null, true); // permissive locally for dev convenience
+        callback(new Error('Not allowed by CORS'));
+      },
+      credentials: true,
+    })
+  );
+
+  // Basic security headers on every response. Notably X-Content-Type-Options
+  // prevents a browser from sniffing an uploaded file's declared type away
+  // from what the server set (relevant defense-in-depth alongside the
+  // upload validation in uploadMiddleware.ts), and the storage-scoped CSP
+  // below blocks script execution for anything served from /storage even
+  // if a malicious file ever slipped through upload validation.
+  app.use((req, res, next) => {
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('X-Frame-Options', 'DENY');
+    res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+    if (req.path.startsWith('/storage')) {
+      res.setHeader("Content-Security-Policy", "default-src 'none'; style-src 'unsafe-inline'; img-src 'self'; sandbox;");
+    }
+    next();
+  });
+
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
   app.use(cookieParser());
+  app.use('/api', generalApiRateLimiter);
 
   // 2. Serve Static Local Storage directory
   // Resolves to PERSISTENT_STORAGE_PATH when set (see server/config/storage.ts)

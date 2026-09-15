@@ -43,6 +43,7 @@ export class PublicController {
         inquiry,
       });
     } catch (error: any) {
+      console.error('[publicController.ts]', error);
       res.status(500).json({
         success: false,
         message: 'Failed to submit booking'
@@ -61,6 +62,7 @@ export class PublicController {
         images,
       });
     } catch (error: any) {
+      console.error('[publicController.ts]', error);
       res.status(500).json({
         success: false,
         message: 'Failed to retrieve splash screen data'
@@ -86,6 +88,7 @@ export class PublicController {
         socialLinks,
       });
     } catch (error: any) {
+      console.error('[publicController.ts]', error);
       res.status(500).json({
         success: false,
         message: 'Failed to retrieve homepage data'
@@ -102,6 +105,7 @@ export class PublicController {
         socialLinks,
       });
     } catch (error: any) {
+      console.error('[publicController.ts]', error);
       res.status(500).json({
         success: false,
         message: 'Failed to retrieve social links'
@@ -118,6 +122,7 @@ export class PublicController {
         images: frontImages,
       });
     } catch (error: any) {
+      console.error('[publicController.ts]', error);
       res.status(500).json({
         success: false,
         message: 'Failed to retrieve homepage front images'
@@ -134,6 +139,7 @@ export class PublicController {
         images: backImages,
       });
     } catch (error: any) {
+      console.error('[publicController.ts]', error);
       res.status(500).json({
         success: false,
         message: 'Failed to retrieve homepage back images'
@@ -150,6 +156,7 @@ export class PublicController {
         projects,
       });
     } catch (error: any) {
+      console.error('[publicController.ts]', error);
       res.status(500).json({
         success: false,
         message: 'Failed to retrieve projects'
@@ -183,6 +190,7 @@ export class PublicController {
         project,
       });
     } catch (error: any) {
+      console.error('[publicController.ts]', error);
       res.status(500).json({
         success: false,
         message: 'Failed to retrieve project details'
@@ -199,6 +207,7 @@ export class PublicController {
         footer,
       });
     } catch (error: any) {
+      console.error('[publicController.ts]', error);
       res.status(500).json({
         success: false,
         message: 'Failed to retrieve footer settings'

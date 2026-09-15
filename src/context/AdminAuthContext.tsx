@@ -17,24 +17,14 @@ export const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
+    // Session state lives entirely in the httpOnly cookie the server set on
+    // login, so we simply ask the server who (if anyone) it belongs to.
     const checkAuth = async () => {
-      const token = localStorage.getItem('flames_admin_token');
-      if (!token) {
-        setLoading(false);
-        return;
-      }
-
       try {
         const currentUser = await adminApiService.getMe();
-        if (currentUser) {
-          setUser(currentUser);
-        } else {
-          localStorage.removeItem('flames_admin_token');
-          setUser(null);
-        }
+        setUser(currentUser);
       } catch (err) {
         console.error('Failed to verify admin auth session:', err);
-        localStorage.removeItem('flames_admin_token');
         setUser(null);
       } finally {
         setLoading(false);

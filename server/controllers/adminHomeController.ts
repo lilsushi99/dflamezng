@@ -31,10 +31,10 @@ export class AdminHomeController {
         projects: simplifiedProjects,
       });
     } catch (error: any) {
+      console.error('[adminHomeController.ts]', error);
       res.status(500).json({
         success: false,
         message: 'Failed to retrieve home screen data',
-        error: error?.message,
       });
     }
   }
@@ -92,10 +92,10 @@ export class AdminHomeController {
         settings: updated,
       });
     } catch (error: any) {
+      console.error('[adminHomeController.ts]', error);
       res.status(500).json({
         success: false,
         message: 'Failed to update home screen settings',
-        error: error?.message,
       });
     }
   }
@@ -124,10 +124,10 @@ export class AdminHomeController {
         settings: updated,
       });
     } catch (error: any) {
+      console.error('[adminHomeController.ts]', error);
       res.status(500).json({
         success: false,
         message: 'Failed to upload logo',
-        error: error?.message,
       });
     }
   }
@@ -146,10 +146,10 @@ export class AdminHomeController {
         settings: updated,
       });
     } catch (error: any) {
+      console.error('[adminHomeController.ts]', error);
       res.status(500).json({
         success: false,
         message: 'Failed to remove logo image',
-        error: error?.message,
       });
     }
   }
@@ -206,10 +206,10 @@ export class AdminHomeController {
         image: newImage,
       });
     } catch (error: any) {
+      console.error('[adminHomeController.ts]', error);
       res.status(500).json({
         success: false,
         message: 'Failed to upload homepage image',
-        error: error?.message,
       });
     }
   }
@@ -247,10 +247,10 @@ export class AdminHomeController {
         image: newImage,
       });
     } catch (error: any) {
+      console.error('[adminHomeController.ts]', error);
       res.status(500).json({
         success: false,
         message: 'Failed to add homepage image URL',
-        error: error?.message,
       });
     }
   }
@@ -287,10 +287,10 @@ export class AdminHomeController {
         image: updated,
       });
     } catch (error: any) {
+      console.error('[adminHomeController.ts]', error);
       res.status(500).json({
         success: false,
         message: 'Failed to update homepage image',
-        error: error?.message,
       });
     }
   }
@@ -317,10 +317,10 @@ export class AdminHomeController {
         images,
       });
     } catch (error: any) {
+      console.error('[adminHomeController.ts]', error);
       res.status(500).json({
         success: false,
         message: 'Failed to reorder homepage images',
-        error: error?.message,
       });
     }
   }
@@ -344,10 +344,10 @@ export class AdminHomeController {
         message: 'Homepage image deleted successfully',
       });
     } catch (error: any) {
+      console.error('[adminHomeController.ts]', error);
       res.status(500).json({
         success: false,
         message: 'Failed to delete homepage image',
-        error: error?.message,
       });
     }
   }
@@ -385,10 +385,10 @@ export class AdminHomeController {
         link,
       });
     } catch (error: any) {
+      console.error('[adminHomeController.ts]', error);
       res.status(500).json({
         success: false,
         message: 'Failed to create social link',
-        error: error?.message,
       });
     }
   }
@@ -422,10 +422,10 @@ export class AdminHomeController {
         link,
       });
     } catch (error: any) {
+      console.error('[adminHomeController.ts]', error);
       res.status(500).json({
         success: false,
         message: 'Failed to update social link',
-        error: error?.message,
       });
     }
   }
@@ -450,10 +450,10 @@ export class AdminHomeController {
         links,
       });
     } catch (error: any) {
+      console.error('[adminHomeController.ts]', error);
       res.status(500).json({
         success: false,
         message: 'Failed to reorder social links',
-        error: error?.message,
       });
     }
   }
@@ -477,10 +477,10 @@ export class AdminHomeController {
         message: 'Social link deleted successfully',
       });
     } catch (error: any) {
+      console.error('[adminHomeController.ts]', error);
       res.status(500).json({
         success: false,
         message: 'Failed to delete social link',
-        error: error?.message,
       });
     }
   }
@@ -494,10 +494,10 @@ export class AdminHomeController {
         siteSettings,
       });
     } catch (error: any) {
+      console.error('[adminHomeController.ts]', error);
       res.status(500).json({
         success: false,
         message: 'Failed to fetch site settings',
-        error: error?.message,
       });
     }
   }
@@ -512,10 +512,10 @@ export class AdminHomeController {
         siteSettings: updated,
       });
     } catch (error: any) {
+      console.error('[adminHomeController.ts]', error);
       res.status(500).json({
         success: false,
         message: 'Failed to update site settings',
-        error: error?.message,
       });
     }
   }

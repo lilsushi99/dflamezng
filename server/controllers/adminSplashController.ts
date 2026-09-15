@@ -14,10 +14,10 @@ export class AdminSplashController {
         images,
       });
     } catch (error: any) {
+      console.error('[adminSplashController.ts]', error);
       res.status(500).json({
         success: false,
         message: 'Failed to retrieve splash screen data',
-        error: error?.message,
       });
     }
   }
@@ -51,10 +51,10 @@ export class AdminSplashController {
         settings: updated,
       });
     } catch (error: any) {
+      console.error('[adminSplashController.ts]', error);
       res.status(500).json({
         success: false,
         message: 'Failed to update splash screen settings',
-        error: error?.message,
       });
     }
   }
@@ -84,10 +84,10 @@ export class AdminSplashController {
         image: newImage,
       });
     } catch (error: any) {
+      console.error('[adminSplashController.ts]', error);
       res.status(500).json({
         success: false,
         message: 'Failed to upload splash image',
-        error: error?.message,
       });
     }
   }
@@ -118,10 +118,10 @@ export class AdminSplashController {
         image: newImage,
       });
     } catch (error: any) {
+      console.error('[adminSplashController.ts]', error);
       res.status(500).json({
         success: false,
         message: 'Failed to add splash image URL',
-        error: error?.message,
       });
     }
   }
@@ -146,10 +146,10 @@ export class AdminSplashController {
         images,
       });
     } catch (error: any) {
+      console.error('[adminSplashController.ts]', error);
       res.status(500).json({
         success: false,
         message: 'Failed to reorder splash images',
-        error: error?.message,
       });
     }
   }
@@ -179,10 +179,10 @@ export class AdminSplashController {
         image: updated,
       });
     } catch (error: any) {
+      console.error('[adminSplashController.ts]', error);
       res.status(500).json({
         success: false,
         message: 'Failed to update splash image',
-        error: error?.message,
       });
     }
   }
@@ -213,10 +213,10 @@ export class AdminSplashController {
         message: 'Splash image deleted successfully',
       });
     } catch (error: any) {
+      console.error('[adminSplashController.ts]', error);
       res.status(500).json({
         success: false,
         message: 'Failed to delete splash image',
-        error: error?.message,
       });
     }
   }

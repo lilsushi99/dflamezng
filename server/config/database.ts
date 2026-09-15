@@ -13,8 +13,8 @@ export const dbConfig = {
   connectTimeout: 5000,
 };
 
-export const authConfig = {
-  sessionSecret: process.env.SESSION_SECRET || 'flames_photography_editorial_secret_key_2026',
-  tokenExpiresIn: '7d',
-  cookieName: 'flames_admin_token',
-};
+// NOTE: auth/session config lives in server/config/auth.ts - the single
+// source of truth for the JWT signing secret (it also enforces a production
+// fail-fast if SESSION_SECRET isn't set). A duplicate, unused copy used to
+// live here with the same hardcoded fallback secret; removed to eliminate
+// the risk of a future import accidentally pulling the wrong one.

@@ -24,10 +24,10 @@ export class AdminSeoController {
         publishedCount: locations.filter((l) => l.is_published).length,
       });
     } catch (error: any) {
+      console.error('[adminSeoController.ts]', error);
       res.status(500).json({
         success: false,
         message: 'Failed to retrieve SEO settings',
-        error: error?.message,
       });
     }
   }
@@ -82,10 +82,10 @@ export class AdminSeoController {
         },
       });
     } catch (error: any) {
+      console.error('[adminSeoController.ts]', error);
       res.status(500).json({
         success: false,
         message: 'Failed to update global SEO settings',
-        error: error?.message,
       });
     }
   }
@@ -108,10 +108,10 @@ export class AdminSeoController {
         seo: updated,
       });
     } catch (error: any) {
+      console.error('[adminSeoController.ts]', error);
       res.status(500).json({
         success: false,
         message: 'Failed to upload favicon',
-        error: error?.message,
       });
     }
   }
@@ -134,10 +134,10 @@ export class AdminSeoController {
         seo: updated,
       });
     } catch (error: any) {
+      console.error('[adminSeoController.ts]', error);
       res.status(500).json({
         success: false,
         message: 'Failed to upload social sharing image',
-        error: error?.message,
       });
     }
   }
@@ -158,7 +158,8 @@ export class AdminSeoController {
       const updated = await seoRepository.updateGlobalSeo({ favicon_path: null });
       res.status(200).json({ success: true, message: 'Favicon removed successfully', seo: updated });
     } catch (error: any) {
-      res.status(500).json({ success: false, message: 'Failed to remove favicon', error: error?.message });
+      console.error('[adminSeoController.ts]', error);
+      res.status(500).json({ success: false, message: 'Failed to remove favicon' });
     }
   }
 
@@ -178,7 +179,8 @@ export class AdminSeoController {
       const updated = await seoRepository.updateGlobalSeo({ og_image_url: null });
       res.status(200).json({ success: true, message: 'Social sharing image removed successfully', seo: updated });
     } catch (error: any) {
-      res.status(500).json({ success: false, message: 'Failed to remove social sharing image', error: error?.message });
+      console.error('[adminSeoController.ts]', error);
+      res.status(500).json({ success: false, message: 'Failed to remove social sharing image' });
     }
   }
 
@@ -191,10 +193,10 @@ export class AdminSeoController {
         locations,
       });
     } catch (error: any) {
+      console.error('[adminSeoController.ts]', error);
       res.status(500).json({
         success: false,
         message: 'Failed to fetch SEO locations',
-        error: error?.message,
       });
     }
   }
@@ -210,10 +212,10 @@ export class AdminSeoController {
       }
       res.status(200).json({ success: true, location });
     } catch (error: any) {
+      console.error('[adminSeoController.ts]', error);
       res.status(500).json({
         success: false,
         message: 'Failed to fetch SEO location',
-        error: error?.message,
       });
     }
   }
@@ -279,10 +281,10 @@ export class AdminSeoController {
         location: created,
       });
     } catch (error: any) {
+      console.error('[adminSeoController.ts]', error);
       res.status(500).json({
         success: false,
         message: 'Failed to create SEO location page',
-        error: error?.message,
       });
     }
   }
@@ -308,10 +310,10 @@ export class AdminSeoController {
         location: updated,
       });
     } catch (error: any) {
+      console.error('[adminSeoController.ts]', error);
       res.status(500).json({
         success: false,
         message: 'Failed to update location SEO page',
-        error: error?.message,
       });
     }
   }
@@ -336,10 +338,10 @@ export class AdminSeoController {
         message: 'Location SEO page deleted successfully',
       });
     } catch (error: any) {
+      console.error('[adminSeoController.ts]', error);
       res.status(500).json({
         success: false,
         message: 'Failed to delete location SEO page',
-        error: error?.message,
       });
     }
   }

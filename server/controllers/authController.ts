@@ -27,10 +27,13 @@ export class AuthController {
         maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
       });
 
+      // Session lives in the httpOnly cookie set above - the raw token is
+      // intentionally never included in the JSON body, so it's never
+      // readable by client-side JavaScript (and therefore not stealable
+      // via XSS the way a token in localStorage would be).
       res.status(200).json({
         success: true,
         message: 'Admin authentication successful',
-        token: result.token,
         admin: result.admin,
       });
     } catch (error: any) {
@@ -66,10 +69,10 @@ export class AuthController {
         admin,
       });
     } catch (error: any) {
+      console.error('[AuthController] getMe failed:', error);
       res.status(500).json({
         success: false,
         message: 'Failed to retrieve admin profile',
-        error: error?.message,
       });
     }
   }

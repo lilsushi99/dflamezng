@@ -17,18 +17,15 @@ import { publicApiService } from './publicApiService';
 const API_ROOT = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '');
 const API_BASE = `${API_ROOT}/api`;
 
-// Helper for sending authenticated fetch requests
+// Helper for sending authenticated fetch requests.
+// Auth relies solely on the httpOnly, server-set session cookie (sent
+// automatically via credentials: 'include') - never on a token readable by
+// client-side JavaScript. Storing the admin token in localStorage would let
+// any XSS on the site fully hijack the admin session; the cookie's httpOnly
+// flag is specifically what prevents that.
 async function fetchWithAuth(url: string, options: RequestInit = {}): Promise<Response> {
-  const token = localStorage.getItem('flames_admin_token');
-  const headers = new Headers(options.headers || {});
-
-  if (token) {
-    headers.set('Authorization', `Bearer ${token}`);
-  }
-
   return fetch(url, {
     ...options,
-    headers,
     credentials: 'include',
   });
 }
@@ -37,7 +34,7 @@ export class AdminApiService {
   // ==========================================
   // AUTH
   // ==========================================
-  async login(username: string, password: string): Promise<{ token: string; admin: AdminUser }> {
+  async login(username: string, password: string): Promise<{ admin: AdminUser }> {
     const res = await fetch(`${API_BASE}/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -50,10 +47,9 @@ export class AdminApiService {
       throw new Error(data.message || 'Login failed');
     }
 
-    if (data.token) {
-      localStorage.setItem('flames_admin_token', data.token);
-    }
-    return { token: data.token, admin: data.admin };
+    // The server sets the session as an httpOnly cookie; there is nothing
+    // for client JS to store.
+    return { admin: data.admin };
   }
 
   async getMe(): Promise<AdminUser | null> {
@@ -68,11 +64,7 @@ export class AdminApiService {
   }
 
   async logout(): Promise<void> {
-    try {
-      await fetchWithAuth(`${API_BASE}/auth/logout`, { method: 'POST' });
-    } finally {
-      localStorage.removeItem('flames_admin_token');
-    }
+    await fetchWithAuth(`${API_BASE}/auth/logout`, { method: 'POST' });
   }
 
   // ==========================================

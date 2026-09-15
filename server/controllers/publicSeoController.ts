@@ -143,7 +143,9 @@ export class PublicSeoController {
       res.header('Content-Type', 'application/xml');
       res.status(200).send(xml);
     } catch (error: any) {
-      res.status(500).send(`<!-- Error generating sitemap: ${error?.message} -->`);
+      console.error('[publicSeoController.getSitemap]', error);
+      res.header('Content-Type', 'application/xml');
+      res.status(500).send('<!-- Sitemap temporarily unavailable -->');
     }
   }
 
